@@ -128,6 +128,10 @@ filter_files = true
 
 [tool.ruff]
 target-version = "py310"
+line-length = 100
+extend-exclude = ["docs", "test", "tests"]
+
+[tool.ruff.lint]
 select = ["F", "E"]
 extend-select = [
     "W",
@@ -170,7 +174,6 @@ extend-select = [
     "FLY",
     "NPY",
     "PERF",
-    "FURB",
     "RUF",
 ]
 ignore = [
@@ -178,7 +181,6 @@ ignore = [
     "ANN401",
     "SIM300",
     "PERF203",
-    "ANN101",
     "B905",
     "NPY002",
     "COM812",
@@ -229,26 +231,29 @@ fixable = [
     "FLY",
     "NPY",
     "PERF",
-    "FURB",
     "RUF",
 ]
 unfixable = []
-line-length = 100
-extend-exclude = ["docs", "test", "tests"]
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
-[tool.ruff.isort]
+
+[tool.ruff.lint.isort]
 force-single-line = true
 force-sort-within-sections = false
 lines-after-imports = 2
-[tool.ruff.mccabe]
+
+[tool.ruff.lint.mccabe]
 max-complexity = 24
-[tool.ruff.pycodestyle]
+
+[tool.ruff.lint.pycodestyle]
 ignore-overlong-task-comments = true
-[tool.ruff.pydocstyle]
+
+[tool.ruff.lint.pydocstyle]
 convention = "numpy"
-[tool.ruff.flake8-annotations]
+
+[tool.ruff.lint.flake8-annotations]
 allow-star-arg-any = false
 ignore-fully-untyped = false
+
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"

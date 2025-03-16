@@ -305,13 +305,7 @@ class PolynomialTrajectory:
             )
 
             # Jerk
-            qddd = (
-                6 * a3
-                + 24 * a4 * tau
-                + 60 * a5 * tau**2
-                + 120 * a6 * tau**3
-                + 210 * a7 * tau**4
-            )
+            qddd = 6 * a3 + 24 * a4 * tau + 60 * a5 * tau**2 + 120 * a6 * tau**3 + 210 * a7 * tau**4
 
             return q, qd, qdd, qddd
 
@@ -398,7 +392,7 @@ class PolynomialTrajectory:
 
         # If accelerations are not provided, set to zeros
         acc = params.accelerations
-        if acc is None and (params.order in (ORDER_5, ORDER_7)):
+        if acc is None and params.order in {ORDER_5, ORDER_7}:  # Changed to set literal
             acc = [0.0] * n
 
         # If jerks are not provided, set to zeros
