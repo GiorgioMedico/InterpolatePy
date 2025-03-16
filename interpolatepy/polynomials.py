@@ -392,7 +392,7 @@ class PolynomialTrajectory:
 
         # If accelerations are not provided, set to zeros
         acc = params.accelerations
-        if acc is None and params.order in {ORDER_5, ORDER_7}:  # Changed to set literal
+        if acc is None and params.order in {ORDER_5, ORDER_7}:
             acc = [0.0] * n
 
         # If jerks are not provided, set to zeros
@@ -426,15 +426,26 @@ class PolynomialTrajectory:
             segments.append((segment, params.times[i], params.times[i + 1]))
 
         def trajectory(t: float) -> tuple[float, float, float, float]:
-            # Find the appropriate segment
-            for segment, t_start, t_end in segments:
-                if t_start <= t <= t_end:
-                    return segment(t)
-
-            # If t is outside the range, use the first or last segment
+            # Handle boundary cases first for efficiency
             if t < params.times[0]:
                 return segments[0][0](params.times[0])
+            if t > params.times[-1]:
+                return segments[-1][0](params.times[-1])
 
-            return segments[-1][0](params.times[-1])
+            # Binary search to find the appropriate segment
+            left, right = 0, len(segments) - 1
+
+            while left <= right:
+                mid = (left + right) // 2
+                t_start, t_end = segments[mid][1], segments[mid][2]
+
+                if t_start <= t <= t_end:
+                    return segments[mid][0](t)
+                if t < t_start:
+                    right = mid - 1
+                else:  # t > t_end
+                    left = mid + 1
+
+            raise ValueError(f"No segment found for time {t}")
 
         return trajectory

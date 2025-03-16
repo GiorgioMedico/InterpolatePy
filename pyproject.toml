@@ -189,6 +189,8 @@ ignore = [
     "INP001",
     "TRY003",
     "PLW1641",
+    "PLR0914", # Too many local variables
+    "PLR0915", # Too many statements
 ]
 fixable = [
     "W",
