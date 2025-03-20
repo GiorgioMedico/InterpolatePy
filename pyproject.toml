@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "setuptools-scm"]
+requires = ["setuptools", "setuptools-scm", "numpy>=2.0.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -20,10 +20,7 @@ classifiers = [
     "Operating System :: Unix",
     "Operating System :: MacOS",
 ]
-dependencies = [
-    "numpy>=1.21.6; python_version<'3.11'",
-    "numpy>=1.23.2; python_version>='3.11'",
-]
+dependencies = ["numpy>=2.0.0", "matplotlib>=3.10.1"]
 dynamic = ["version"]
 
 [project.optional-dependencies]
@@ -43,7 +40,7 @@ platforms = ["unix", "linux", "osx", "cygwin", "win32"]
 packages = ["interpolatepy"]                            # optional
 
 [tool.setuptools.dynamic]
-version = { attr = "interpolatepy.__version__" }
+version = { attr = "ik_ur.__version__" }
 
 [tool.pytest.ini_options]
 minversion = "7.3"
@@ -191,6 +188,8 @@ ignore = [
     "PLW1641",
     "PLR0914", # Too many local variables
     "PLR0915", # Too many statements
+    "C901",
+    "PLR0912",
 ]
 fixable = [
     "W",
