@@ -1,5 +1,3 @@
-from typing import Any
-
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -437,15 +435,12 @@ class BSpline:
 
         return u_values, curve_points
 
-    def plot_2d(  # noqa: PLR0913, PLR0917
+    def plot_2d(
         self,
         num_points: int = 100,
         show_control_polygon: bool = True,
         show_knots: bool = False,
         ax: plt.Axes | None = None,
-        curve_style: dict[str, Any] | None = None,
-        control_style: dict[str, Any] | None = None,
-        knot_style: dict[str, Any] | None = None,
     ) -> plt.Axes:
         """
         Plot a 2D B-spline curve with customizable styling.
@@ -499,11 +494,6 @@ class BSpline:
             "label": "Knot points",
         }
 
-        # Apply user styles or defaults
-        curve_style = {**default_curve_style, **(curve_style or {})}
-        control_style = {**default_control_style, **(control_style or {})}
-        knot_style = {**default_knot_style, **(knot_style or {})}
-
         # Create a new figure if needed
         if ax is None:
             _, ax = plt.subplots(figsize=(10, 6))
@@ -512,11 +502,11 @@ class BSpline:
         _, curve_points = self.generate_curve_points(num_points)
 
         # Plot the curve
-        ax.plot(curve_points[:, 0], curve_points[:, 1], **curve_style)
+        ax.plot(curve_points[:, 0], curve_points[:, 1], **default_curve_style)
 
         # Plot the control points and polygon if requested
         if show_control_polygon:
-            ax.plot(self.control_points[:, 0], self.control_points[:, 1], **control_style)
+            ax.plot(self.control_points[:, 0], self.control_points[:, 1], **default_control_style)
 
         # Plot the knot points if requested
         if show_knots:
@@ -525,7 +515,7 @@ class BSpline:
             unique_knots = np.unique(valid_knots)
 
             knot_points = np.array([self.evaluate(k) for k in unique_knots])
-            ax.plot(knot_points[:, 0], knot_points[:, 1], **knot_style)
+            ax.plot(knot_points[:, 0], knot_points[:, 1], **default_knot_style)
 
         # Set labels and title
         ax.set_xlabel("X")
@@ -541,8 +531,6 @@ class BSpline:
         num_points: int = 100,
         show_control_polygon: bool = True,
         ax: plt.Axes | None = None,
-        curve_style: dict[str, Any] | None = None,
-        control_style: dict[str, Any] | None = None,
     ) -> plt.Axes:
         """
         Plot a 3D B-spline curve.
@@ -586,10 +574,6 @@ class BSpline:
             "label": "Control polygon",
         }
 
-        # Apply user styles or defaults
-        curve_style = {**default_curve_style, **(curve_style or {})}
-        control_style = {**default_control_style, **(control_style or {})}
-
         # Create a new figure if needed
         if ax is None:
             fig = plt.figure(figsize=(10, 8))
@@ -599,7 +583,7 @@ class BSpline:
         _, curve_points = self.generate_curve_points(num_points)
 
         # Plot the curve
-        ax.plot(curve_points[:, 0], curve_points[:, 1], curve_points[:, 2], **curve_style)
+        ax.plot(curve_points[:, 0], curve_points[:, 1], curve_points[:, 2], **default_curve_style)
 
         # Plot the control points and polygon if requested
         if show_control_polygon:
@@ -607,7 +591,7 @@ class BSpline:
                 self.control_points[:, 0],
                 self.control_points[:, 1],
                 self.control_points[:, 2],
-                **control_style,
+                **default_control_style,
             )
 
         # Set labels and title
