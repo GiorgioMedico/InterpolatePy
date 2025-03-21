@@ -26,28 +26,57 @@ def smoothing_spline_with_tolerance(
     tolerance: float,
     config: SplineConfig,
 ) -> tuple[CubicSmoothingSpline, float, float, int]:
-    """
-    Find a cubic smoothing spline with a maximum approximation error smaller than
+    """Find a cubic smoothing spline with a maximum approximation error smaller than
     a given tolerance using binary search on the μ parameter.
 
     This implements the algorithm for "Smoothing spline with prescribed tolerance".
 
-    Args:
-        t_points: Time points [t₀, t₁, t₂, ..., tₙ]
-        q_points: Position points [q₀, q₁, q₂, ..., qₙ]
-        tolerance: Maximum allowed approximation error δ between original and smoothed points
-        config: Configuration object with optional parameters:
-               - weights: Individual point weights [w₀, w₁, ..., wₙ] (None = equal weights)
-               - v0: Initial velocity constraint at t₀
-               - vn: Final velocity constraint at tₙ
-               - max_iterations: Maximum number of iterations for the binary search
-               - debug: Whether to print debug information
+    Parameters
+    ----------
+    t_points : np.ndarray
+        Time points [t₀, t₁, t₂, ..., tₙ]
+    q_points : np.ndarray
+        Position points [q₀, q₁, q₂, ..., qₙ]
+    tolerance : float
+        Maximum allowed approximation error δ between original and smoothed points
+    config : SplineConfig
+        Configuration object with optional parameters:
+        - weights: Individual point weights [w₀, w₁, ..., wₙ] (None = equal weights)
+        - v0: Initial velocity constraint at t₀
+        - vn: Final velocity constraint at tₙ
+        - max_iterations: Maximum number of iterations for the binary search
+        - debug: Whether to print debug information
 
-    Returns:
-        spline: The final CubicSmoothingSpline object
-        mu: The found value of μ parameter
-        e_max: The maximum approximation error achieved
-        iterations: Number of iterations performed
+    Returns
+    -------
+    spline : CubicSmoothingSpline
+        The final CubicSmoothingSpline object
+    mu : float
+        The found value of μ parameter
+    e_max : float
+        The maximum approximation error achieved
+    iterations : int
+        Number of iterations performed
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from interpolatepy.c_s_smoothing import CubicSmoothingSpline
+    >>> # Create sample data
+    >>> t = np.linspace(0, 10, 100)
+    >>> q = np.sin(t) + 0.1 * np.random.randn(100)
+    >>> config = SplineConfig(max_iterations=20)
+    >>> # Find spline with tolerance of 0.05
+    >>> spline, mu, error, iterations = smoothing_spline_with_tolerance(t, q, 0.05, config)
+    >>> print(f"Found spline with μ={mu:.6f}, error={error:.6f} in {iterations} iterations")
+
+    Notes
+    -----
+    The algorithm uses binary search to find the optimal μ parameter value that
+    produces a smoothing spline with maximum error below the specified tolerance.
+    The parameter μ controls the trade-off between smoothness and accuracy, with
+    values closer to 0 producing smoother curves and values closer to 1 producing
+    more accurate but less smooth curves.
     """
 
     # Initialize the search range for μ
