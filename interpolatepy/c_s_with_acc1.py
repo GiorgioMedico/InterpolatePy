@@ -20,6 +20,79 @@ class CubicSplineWithAcceleration1:
     Implements the method described in section 4.4.4 of the paper, which adds
     two extra points in the first and last segments to satisfy the acceleration
     constraints.
+
+    Parameters
+    ----------
+    t_points : list of float or numpy.ndarray
+        Time points [t₀, t₂, t₃, ..., tₙ₋₂, tₙ]
+    q_points : list of float or numpy.ndarray
+        Position points [q₀, q₂, q₃, ..., qₙ₋₂, qₙ]
+    v0 : float, optional
+        Initial velocity at t₀. Default is 0.0
+    vn : float, optional
+        Final velocity at tₙ. Default is 0.0
+    a0 : float, optional
+        Initial acceleration at t₀. Default is 0.0
+    an : float, optional
+        Final acceleration at tₙ. Default is 0.0
+    debug : bool, optional
+        Whether to print debug information. Default is False
+
+    Attributes
+    ----------
+    t_orig : numpy.ndarray
+        Original time points
+    q_orig : numpy.ndarray
+        Original position points
+    v0 : float
+        Initial velocity
+    vn : float
+        Final velocity
+    a0 : float
+        Initial acceleration
+    an : float
+        Final acceleration
+    debug : bool
+        Debug flag
+    n_orig : int
+        Number of original points
+    t : numpy.ndarray
+        Time points including extra points
+    q : numpy.ndarray
+        Position points including extra points
+    n : int
+        Total number of points including extras
+    T : numpy.ndarray
+        Time intervals between consecutive points
+    omega : numpy.ndarray
+        Acceleration values at each point
+    coeffs : numpy.ndarray
+        Polynomial coefficients for each segment
+    original_indices : list
+        Indices of original points in expanded arrays
+
+    Notes
+    -----
+    This implementation adds two extra points (at t₁ and tₙ₋₁) to the trajectory
+    to satisfy both velocity and acceleration constraints at the endpoints.
+    The extra points are placed at the midpoints of the first and last segments
+    of the original trajectory.
+
+    The acceleration (omega) values are computed by solving a tridiagonal system
+    that ensures C2 continuity throughout the trajectory.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> # Define waypoints
+    >>> t_points = [0, 1, 2, 3]
+    >>> q_points = [0, 1, 0, 1]
+    >>> # Create spline with velocity and acceleration constraints
+    >>> spline = CubicSplineWithAcceleration1(t_points, q_points, v0=0.0, vn=0.0, a0=0.0, an=0.0)
+    >>> # Evaluate at specific time
+    >>> spline.evaluate(1.5)
+    >>> # Plot the trajectory
+    >>> spline.plot()
     """
 
     def __init__(  # noqa: PLR0913, PLR0917
@@ -35,14 +108,29 @@ class CubicSplineWithAcceleration1:
         """
         Initialize the cubic spline with velocity and acceleration constraints.
 
-        Args:
-            t_points: Time points [t₀, t₂, t₃, ..., tₙ₋₂, tₙ]
-            q_points: Position points [q₀, q₂, q₃, ..., qₙ₋₂, qₙ]
-            v0: Initial velocity at t₀
-            vn: Final velocity at tₙ
-            a0: Initial acceleration at t₀
-            an: Final acceleration at tₙ
-            debug: Whether to print debug information
+        Parameters
+        ----------
+        t_points : list of float or numpy.ndarray
+            Time points [t₀, t₂, t₃, ..., tₙ₋₂, tₙ]
+        q_points : list of float or numpy.ndarray
+            Position points [q₀, q₂, q₃, ..., qₙ₋₂, qₙ]
+        v0 : float, optional
+            Initial velocity at t₀. Default is 0.0
+        vn : float, optional
+            Final velocity at tₙ. Default is 0.0
+        a0 : float, optional
+            Initial acceleration at t₀. Default is 0.0
+        an : float, optional
+            Final acceleration at tₙ. Default is 0.0
+        debug : bool, optional
+            Whether to print debug information. Default is 0.0
+
+        Raises
+        ------
+        ValueError
+            If time and position arrays have different lengths
+            If fewer than two points are provided
+            If time points are not strictly increasing
         """
         # Validate inputs
         if len(t_points) != len(q_points):
@@ -99,8 +187,15 @@ class CubicSplineWithAcceleration1:
         Following the paper, the time points are placed at midpoints:
         t₁ = (t₀ + t₂)/2 and tₙ₋₁ = (tₙ₋₂ + tₙ)/2
 
-        Returns:
+        Returns
+        -------
+        tuple of numpy.ndarray
             (t, q): New time and position arrays with extra points
+
+        Notes
+        -----
+        The q values for the extra points are initially set to zero and
+        will be properly computed after solving for the accelerations.
         """
         # Create expanded arrays for time and position
         t_new = np.zeros(self.n_orig + 2)
@@ -136,8 +231,20 @@ class CubicSplineWithAcceleration1:
 
         Uses the tridiagonal solver for improved efficiency.
 
-        Returns:
+        Returns
+        -------
+        numpy.ndarray
             Array of accelerations [ω₀, ω₁, ..., ωₙ]
+
+        Notes
+        -----
+        This method sets up and solves the tridiagonal system described in equation (4.28)
+        of the paper. It also adjusts the positions of the extra points (q₁ and qₙ₋₁)
+        using equations (4.26) and (4.27) after the accelerations are computed.
+
+        The tridiagonal system has special structure for the first and last rows
+        to account for the boundary conditions. The system is of size (n-1) x (n-1)
+        where n is the number of segments.
         """
         # Number of segments (number of points - 1)
         n_segments = self.n - 1
@@ -269,8 +376,18 @@ class CubicSplineWithAcceleration1:
             aₖ₂ = ωₖ/2
             aₖ₃ = (ωₖ₊₁-ωₖ)/(6Tₖ)
 
-        Returns:
+        Returns
+        -------
+        numpy.ndarray
             Array of shape (n_segments, 4) with coefficients for each segment
+
+        Notes
+        -----
+        These coefficients define the cubic polynomial for each segment:
+        q(t) = aₖ₀ + aₖ₁(t-tₖ) + aₖ₂(t-tₖ)² + aₖ₃(t-tₖ)³
+
+        The coefficients are derived to ensure C2 continuity (continuity of position,
+        velocity, and acceleration) across segment boundaries.
         """
         n_segments = self.n - 1
         coeffs = np.zeros((n_segments, 4))
@@ -302,8 +419,15 @@ class CubicSplineWithAcceleration1:
         """
         Get the indices in the expanded array that correspond to original points.
 
-        Returns:
-            List of indices
+        Returns
+        -------
+        list of int
+            Indices of original points in the expanded arrays
+
+        Notes
+        -----
+        This is used primarily for visualization to distinguish between
+        original waypoints and extra points added to satisfy constraints.
         """
         # First point
         indices = [0]
@@ -320,11 +444,22 @@ class CubicSplineWithAcceleration1:
         """
         Evaluate the spline at time t.
 
-        Args:
-            t: Time point or array of time points
+        Parameters
+        ----------
+        t : float or array_like
+            Time point or array of time points
 
-        Returns:
+        Returns
+        -------
+        float or numpy.ndarray
             Position(s) at the specified time(s)
+
+        Examples
+        --------
+        >>> # Evaluate at a single time point
+        >>> spline.evaluate(1.5)
+        >>> # Evaluate at multiple time points
+        >>> spline.evaluate(np.linspace(0, 3, 100))
         """
         t_array = np.atleast_1d(t)
         result = np.zeros_like(t_array, dtype=float)
@@ -354,11 +489,22 @@ class CubicSplineWithAcceleration1:
         """
         Evaluate the velocity at time t.
 
-        Args:
-            t: Time point or array of time points
+        Parameters
+        ----------
+        t : float or array_like
+            Time point or array of time points
 
-        Returns:
+        Returns
+        -------
+        float or numpy.ndarray
             Velocity at the specified time(s)
+
+        Examples
+        --------
+        >>> # Evaluate velocity at a single time point
+        >>> spline.evaluate_velocity(1.5)
+        >>> # Evaluate velocity at multiple time points
+        >>> spline.evaluate_velocity(np.linspace(0, 3, 100))
         """
         t_array = np.atleast_1d(t)
         result = np.zeros_like(t_array, dtype=float)
@@ -385,11 +531,22 @@ class CubicSplineWithAcceleration1:
         """
         Evaluate the acceleration at time t.
 
-        Args:
-            t: Time point or array of time points
+        Parameters
+        ----------
+        t : float or array_like
+            Time point or array of time points
 
-        Returns:
+        Returns
+        -------
+        float or numpy.ndarray
             Acceleration at the specified time(s)
+
+        Examples
+        --------
+        >>> # Evaluate acceleration at a single time point
+        >>> spline.evaluate_acceleration(1.5)
+        >>> # Evaluate acceleration at multiple time points
+        >>> spline.evaluate_acceleration(np.linspace(0, 3, 100))
         """
         t_array = np.atleast_1d(t)
         result = np.zeros_like(t_array, dtype=float)
@@ -416,8 +573,25 @@ class CubicSplineWithAcceleration1:
         """
         Plot the spline trajectory with velocity and acceleration profiles.
 
-        Args:
-            num_points: Number of points for smooth plotting
+        Parameters
+        ----------
+        num_points : int, optional
+            Number of points for smooth plotting. Default is 1000
+
+        Returns
+        -------
+        None
+            Displays the plot using matplotlib
+
+        Notes
+        -----
+        This method creates a figure with three subplots showing:
+        1. Position trajectory with original and extra waypoints
+        2. Velocity profile with initial and final velocities marked
+        3. Acceleration profile with initial and final accelerations marked
+
+        Original waypoints are shown as red circles, while extra points
+        are shown as green x-marks.
         """
         # Generate evaluation points
         t_eval = np.linspace(self.t[0], self.t[-1], num_points)

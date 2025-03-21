@@ -11,6 +11,58 @@ class CubicSpline:
     This class implements the cubic spline algorithm described in the document.
     It generates a smooth trajectory passing through specified waypoints with
     continuous velocity and acceleration profiles.
+
+    Parameters
+    ----------
+    t_points : list or numpy.ndarray
+        List or array of time points (t0, t1, ..., tn)
+    q_points : list or numpy.ndarray
+        List or array of position points (q0, q1, ..., qn)
+    v0 : float, optional
+        Initial velocity at t0. Default is 0.0
+    vn : float, optional
+        Final velocity at tn. Default is 0.0
+    debug : bool, optional
+        Whether to print debug information. Default is False
+
+    Attributes
+    ----------
+    t_points : numpy.ndarray
+        Array of time points
+    q_points : numpy.ndarray
+        Array of position points
+    v0 : float
+        Initial velocity
+    vn : float
+        Final velocity
+    debug : bool
+        Debug flag
+    n : int
+        Number of segments (n = len(t_points) - 1)
+    t_intervals : numpy.ndarray
+        Time intervals between consecutive points
+    velocities : numpy.ndarray
+        Velocities at each waypoint
+    coefficients : numpy.ndarray
+        Polynomial coefficients for each segment
+
+    Notes
+    -----
+    The cubic spline ensures C2 continuity (continuous position, velocity, and
+    acceleration) across all waypoints.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> # Define waypoints
+    >>> t_points = [0, 1, 2, 3]
+    >>> q_points = [0, 1, 0, 1]
+    >>> # Create spline
+    >>> spline = CubicSpline(t_points, q_points)
+    >>> # Evaluate at specific time
+    >>> spline.evaluate(1.5)
+    >>> # Plot the trajectory
+    >>> spline.plot()
     """
 
     def __init__(
@@ -24,12 +76,24 @@ class CubicSpline:
         """
         Initialize a cubic spline trajectory.
 
-        Args:
-            t_points: List or array of time points (t0, t1, ..., tn)
-            q_points: List or array of position points (q0, q1, ..., qn)
-            v0: Initial velocity at t0 (default: 0.0)
-            vn: Final velocity at tn (default: 0.0)
-            debug: Whether to print debug information (default: False)
+        Parameters
+        ----------
+        t_points : list or numpy.ndarray
+            List or array of time points (t0, t1, ..., tn)
+        q_points : list or numpy.ndarray
+            List or array of position points (q0, q1, ..., qn)
+        v0 : float, optional
+            Initial velocity at t0. Default is 0.0
+        vn : float, optional
+            Final velocity at tn. Default is 0.0
+        debug : bool, optional
+            Whether to print debug information. Default is False
+
+        Raises
+        ------
+        ValueError
+            If t_points and q_points have different lengths
+            If t_points are not strictly increasing
         """
         # Ensure inputs are numpy arrays
         self.t_points = np.array(t_points, dtype=float)
@@ -62,8 +126,25 @@ class CubicSpline:
         corresponding to equation (17). It sets up and solves the tridiagonal system A*v = c
         to find the intermediate velocities, which ensures C2 continuity of the spline.
 
-        Returns:
+        Returns
+        -------
+        numpy.ndarray
             Array of velocities [v0, v1, ..., vn]
+
+        Notes
+        -----
+        The tridiagonal system is formed as follows:
+
+        Matrix A:
+        [2(T0+T1)    T0         0         ...        0       ]
+        [T2        2(T1+T2)     T1        0         ...      ]
+        [0          T3        2(T2+T3)    T2        ...      ]
+        [...        ...        ...        ...       ...      ]
+        [0          ...        0         Tn-2    2(Tn-3+Tn-2) Tn-3]
+        [0          ...        0          0       Tn-1      2(Tn-2+Tn-1)]
+
+        Vector c:
+        c_i = 3/(T_i*T_{i+1}) * [T_i^2*(q_{i+2}-q_{i+1}) + T_{i+1}^2*(q_{i+1}-q_i)]
         """
         n = self.n
         t_intervals = self.t_intervals
@@ -164,14 +245,26 @@ class CubicSpline:
     def _compute_coefficients(self) -> np.ndarray:
         """
         Compute the coefficients for each cubic polynomial segment.
+
         For each segment k, we compute:
         - ak0: constant term
         - ak1: coefficient of (t-tk)
         - ak2: coefficient of (t-tk)^2
         - ak3: coefficient of (t-tk)^3
 
-        Returns:
-            Array of shape (n, 4) containing the coefficients
+        Returns
+        -------
+        numpy.ndarray
+            Array of shape (n, 4) containing the coefficients for each segment
+            where n is the number of segments
+
+        Notes
+        -----
+        The cubic polynomial for segment k is defined as:
+        q(t) = ak0 + ak1*(t-tk) + ak2*(t-tk)^2 + ak3*(t-tk)^3
+
+        The coefficients are computed to ensure position, velocity, and
+        acceleration continuity at the waypoints.
         """
         n = self.n
         t_intervals = self.t_intervals
@@ -206,11 +299,22 @@ class CubicSpline:
         """
         Evaluate the spline at time t.
 
-        Args:
-            t: Time point or array of time points
+        Parameters
+        ----------
+        t : float or numpy.ndarray
+            Time point or array of time points
 
-        Returns:
+        Returns
+        -------
+        float or numpy.ndarray
             Position(s) at the specified time(s)
+
+        Examples
+        --------
+        >>> # Evaluate at a single time point
+        >>> spline.evaluate(1.5)
+        >>> # Evaluate at multiple time points
+        >>> spline.evaluate(np.linspace(0, 3, 100))
         """
         t = np.atleast_1d(t)
         result = np.zeros_like(t)
@@ -241,11 +345,22 @@ class CubicSpline:
         """
         Evaluate the velocity at time t.
 
-        Args:
-            t: Time point or array of time points
+        Parameters
+        ----------
+        t : float or numpy.ndarray
+            Time point or array of time points
 
-        Returns:
+        Returns
+        -------
+        float or numpy.ndarray
             Velocity at the specified time(s)
+
+        Examples
+        --------
+        >>> # Evaluate velocity at a single time point
+        >>> spline.evaluate_velocity(1.5)
+        >>> # Evaluate velocity at multiple time points
+        >>> spline.evaluate_velocity(np.linspace(0, 3, 100))
         """
         t = np.atleast_1d(t)
         result = np.zeros_like(t)
@@ -275,11 +390,22 @@ class CubicSpline:
         """
         Evaluate the acceleration at time t.
 
-        Args:
-            t: Time point or array of time points
+        Parameters
+        ----------
+        t : float or numpy.ndarray
+            Time point or array of time points
 
-        Returns:
+        Returns
+        -------
+        float or numpy.ndarray
             Acceleration at the specified time(s)
+
+        Examples
+        --------
+        >>> # Evaluate acceleration at a single time point
+        >>> spline.evaluate_acceleration(1.5)
+        >>> # Evaluate acceleration at multiple time points
+        >>> spline.evaluate_acceleration(np.linspace(0, 3, 100))
         """
         t = np.atleast_1d(t)
         result = np.zeros_like(t)
@@ -309,8 +435,24 @@ class CubicSpline:
         """
         Plot the spline trajectory along with its velocity and acceleration profiles.
 
-        Args:
-            num_points: Number of points to use for plotting
+        Parameters
+        ----------
+        num_points : int, optional
+            Number of points to use for plotting. Default is 1000
+
+        Returns
+        -------
+        None
+            Displays the plot using matplotlib
+
+        Notes
+        -----
+        This method creates a figure with three subplots showing:
+        1. Position trajectory with waypoints
+        2. Velocity profile
+        3. Acceleration profile
+
+        The original waypoints are marked with red circles on the position plot.
         """
         t_min, t_max = self.t_points[0], self.t_points[-1]
         t = np.linspace(t_min, t_max, num_points)
