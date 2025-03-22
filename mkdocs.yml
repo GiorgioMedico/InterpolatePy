@@ -1,5 +1,5 @@
-site_name: FastVector
-site_description: "This is a simple vector python package."
+site_name: InterpolatePy
+site_description: "A comprehensive Python library for trajectory planning and curve interpolation."
 
 repo_url: https://github.com/GiorgioMedico/InterpolatePy
 repo_name: GiorgioMedico/InterpolatePy
@@ -33,5 +33,5 @@ markdown_extensions:
   - pymdownx.superfences
 
 nav:
-  - "Start": index.md
-  - "API": api.md
+  - "Home": index.md
+  - "API Reference": api.md
