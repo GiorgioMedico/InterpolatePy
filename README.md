@@ -279,7 +279,7 @@ Please follow the existing code style and include appropriate tests for new feat
 
 ## License
 
-InterpolatePy is released under the MIT License. See the [LICENSE](LICENSE) file for more details.
+InterpolatePy is released under the MIT License. See the [LICENSE](https://github.com/GiorgioMedico/InterpolatePy/blob/main/LICENSE) file for more details.
 
 ## Acknowledgments
 
