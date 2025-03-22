@@ -3,24 +3,29 @@
 ![Python](https://img.shields.io/badge/python-3.10+-blue)
 [![pre-commit](https://github.com/GiorgioMedico/InterpolatePy/actions/workflows/pre-commit.yml/badge.svg)](https://github.com/GiorgioMedico/InterpolatePy/actions/workflows/pre-commit.yml)
 [![ci-test](https://github.com/GiorgioMedico/InterpolatePy/actions/workflows/test.yml/badge.svg)](https://github.com/GiorgioMedico/InterpolatePy/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Overview
 
-InterpolatePy provides a collection of algorithms for generating smooth trajectories and curves with precise control over position, velocity, acceleration, and jerk. The library implements numerous interpolation techniques ranging from simple linear interpolation to advanced B-splines and motion profiles.
+InterpolatePy is a comprehensive Python library for generating smooth trajectories and curves with precise control over position, velocity, acceleration, and jerk profiles. Designed for robotics, motion planning, computer graphics, and scientific computing applications, it provides a wide range of interpolation techniques from simple linear interpolation to advanced B-splines and motion profiles.
+
+Whether you need to generate smooth robotic joint motions, create path planning for autonomous vehicles, or design animation curves with specific dynamic properties, InterpolatePy offers the tools to create trajectories that maintain continuity while adhering to physical constraints.
 
 ## Key Features
 
 ### Spline Interpolation
 
 #### B-Splines
-- **BSpline**: Base implementation of B-splines with customizable degree and knot vectors
-- **ApproximationBSpline**: B-spline curve approximation of sets of points
-- **CubicBSplineInterpolation**: Specialized cubic B-spline interpolation
-- **BSplineInterpolator**: General B-spline interpolation with controllable continuity
-- **SmoothingCubicBSpline**: B-splines with smoothness-vs-accuracy tradeoff
+
+- **BSpline**: Versatile implementation with customizable degree and knot vectors
+- **ApproximationBSpline**: Efficiently approximates sets of points with a B-spline curve
+- **CubicBSplineInterpolation**: Specialized cubic B-spline interpolation that passes through all points
+- **BSplineInterpolator**: General B-spline interpolation with controllable continuity (C²-C⁴)
+- **SmoothingCubicBSpline**: B-splines with adjustable smoothness-vs-accuracy tradeoff
 
 #### Cubic Splines
-- **CubicSpline**: Basic cubic spline with velocity constraints
+
+- **CubicSpline**: Standard cubic spline with velocity constraints at endpoints
 - **CubicSplineWithAcceleration1**: Cubic spline with velocity and acceleration constraints (extra points method)
 - **CubicSplineWithAcceleration2**: Alternative cubic spline with acceleration constraints (quintic segments method)
 - **CubicSmoothingSpline**: Cubic splines with μ parameter for smoothness control
@@ -29,14 +34,14 @@ InterpolatePy provides a collection of algorithms for generating smooth trajecto
 ### Motion Profiles
 
 - **DoubleSTrajectory**: S-curve motion profile with bounded velocity, acceleration, and jerk
-- **linear_traj**: Linear interpolation with constant velocity
+- **linear_traj**: Simple linear interpolation with constant velocity
 - **PolynomialTrajectory**: Trajectory generation using polynomials of orders 3, 5, and 7
-- **TrapezoidalTrajectory**: Trapezoidal velocity profiles with various constraints
+- **TrapezoidalTrajectory**: Trapezoidal velocity profiles with various constraint options
 
 ### Path Generation
 
 - **LinearPath**: Simple linear paths with constant velocity
-- **CircularPath**: Circular arcs and paths
+- **CircularPath**: Circular arcs and paths in 3D
 - **Frenet Frames**: Tools for computing and visualizing Frenet frames along parametric curves
 
 ### Utility Functions
@@ -45,17 +50,39 @@ InterpolatePy provides a collection of algorithms for generating smooth trajecto
 
 ## Installation
 
-```bash
-# Install directly from PyPI
-pip install interpolatepy
+### From Source
 
-# Install from source with development dependencies
+To install the latest development version with all dependencies:
+
+```bash
+# Clone the repository
+git clone https://github.com/GiorgioMedico/InterpolatePy.git
+cd InterpolatePy
+
+# Install with development dependencies
 pip install -e ".[all]"
+```
+
+### Optional Dependencies
+
+You can install specific dependency groups:
+
+```bash
+# For testing dependencies only
+pip install -e ".[test]"
+
+# For documentation dependencies only
+pip install -e ".[doc]"
+
+# For development tools only
+pip install -e ".[dev]"
 ```
 
 ## Usage Examples
 
-### Creating a Cubic Spline Trajectory
+### Cubic Spline Trajectory
+
+Create a smooth trajectory through waypoints with velocity constraints:
 
 ```python
 from interpolatepy.cubic_spline import CubicSpline
@@ -72,11 +99,13 @@ position = spline.evaluate(6.0)
 velocity = spline.evaluate_velocity(6.0)
 acceleration = spline.evaluate_acceleration(6.0)
 
-# Plot the trajectory
+# Plot the trajectory with position, velocity, and acceleration profiles
 spline.plot()
 ```
 
-### Generating a Double-S Trajectory
+### Double-S Trajectory
+
+Generate a trajectory with bounded jerk for smooth motion profiles:
 
 ```python
 from interpolatepy.double_s import DoubleSTrajectory, StateParams, TrajectoryBounds
@@ -98,7 +127,9 @@ time_points = np.linspace(0, duration, 100)
 positions, velocities, accelerations, jerks = trajectory.evaluate(time_points)
 ```
 
-### Creating a B-Spline Curve
+### B-Spline Curve
+
+Create and manipulate a B-spline curve with control points:
 
 ```python
 import numpy as np
@@ -118,11 +149,13 @@ point = bspline.evaluate(0.5)
 # Generate curve points for plotting
 u_values, curve_points = bspline.generate_curve_points(100)
 
-# Plot the curve
+# Plot the curve with control polygon
 bspline.plot_2d(show_control_polygon=True)
 ```
 
 ### Trapezoidal Trajectory with Waypoints
+
+Generate a trajectory with trapezoidal velocity profile through multiple points:
 
 ```python
 from interpolatepy.trapezoidal import TrapezoidalTrajectory, InterpolationParams
@@ -146,16 +179,55 @@ traj_func, duration = TrapezoidalTrajectory.interpolate_waypoints(params)
 position, velocity, acceleration = traj_func(2.5)
 ```
 
+### 3D Path with Frenet Frames
+
+Create and visualize a trajectory with coordinate frames along the path:
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from interpolatepy.frenet_frame import (
+    helicoidal_trajectory_with_derivatives,
+    compute_trajectory_frames,
+    plot_frames
+)
+
+# Create a helicoidal path
+u_values = np.linspace(0, 4 * np.pi, 100)
+def helix_func(u):
+    return helicoidal_trajectory_with_derivatives(u, r=2.0, d=0.5)
+
+# Compute Frenet frames along the path
+points, frames = compute_trajectory_frames(helix_func, u_values)
+
+# Visualize
+fig = plt.figure(figsize=(10, 8))
+ax = fig.add_subplot(111, projection='3d')
+plot_frames(ax, points, frames, scale=0.5, skip=10)
+plt.show()
+```
+
 ## Mathematical Concepts
 
-The library implements several key mathematical concepts for trajectory generation:
+InterpolatePy implements several key mathematical concepts for trajectory generation:
 
-- **B-splines**: Parametric curves defined by control points and a knot vector, offering local control and customizable continuity
-- **Cubic splines**: Piecewise polynomials with C2 continuity (continuous position, velocity, and acceleration)
-- **Smoothing splines**: Splines with a controllable balance between accuracy and smoothness
-- **Trapezoidal velocity profiles**: Trajectories with linear segments of constant acceleration and velocity
-- **Double-S trajectories**: Motions with bounded jerk, acceleration, and velocity, creating smooth S-curves
-- **Frenet frames**: Local coordinate systems defined by tangent, normal, and binormal vectors along a curve
+### B-splines
+Piecewise parametric curves defined by control points and a knot vector. B-splines offer local control (changes to a control point only affect the curve locally) and customizable continuity.
+
+### Cubic Splines
+Piecewise polynomials with C² continuity (continuous position, velocity, and acceleration) that interpolate a given set of points.
+
+### Smoothing Splines 
+Splines with a controllable balance between accuracy (passing through points exactly) and smoothness (minimizing curvature). The μ parameter controls this tradeoff.
+
+### Trapezoidal Velocity Profiles
+Trajectories with linear segments of constant acceleration and velocity, creating a trapezoidal shape in the velocity profile.
+
+### Double-S Trajectories
+Motion profiles with bounded jerk, acceleration, and velocity, creating smooth S-curves in the acceleration profile. These are ideal for robotic motion to reduce stress on mechanical systems.
+
+### Frenet Frames
+Local coordinate systems defined by tangent, normal, and binormal vectors along a curve, useful for tool orientation and trajectory tracking.
 
 ## Requirements
 
@@ -166,12 +238,11 @@ The library implements several key mathematical concepts for trajectory generati
 
 ## Development
 
-InterpolatePy uses modern Python tools for development:
+InterpolatePy uses modern Python tooling for development:
 
-- Black and isort for code formatting
-- Ruff and mypy for linting and type checking
-- pytest for testing
-- mkdocs for documentation
+- **Code Quality**: Black and isort for formatting, Ruff and mypy for linting and type checking
+- **Testing**: pytest for unit tests and benchmarks
+- **Documentation**: mkdocs for documentation generation
 
 To set up the development environment:
 
@@ -180,6 +251,43 @@ pip install -e ".[all]"
 pre-commit install
 ```
 
+### Running Tests
+
+```bash
+python -m pytest tests
+```
+
+### Building Documentation
+
+```bash
+mkdocs build
+# or to serve locally
+mkdocs serve
+```
+
+## Contributing
+
+Contributions to InterpolatePy are welcome! To contribute:
+
+1. Fork the repository
+2. Create a feature branch
+3. Add your changes
+4. Run tests to ensure they pass
+5. Submit a pull request
+
+Please follow the existing code style and include appropriate tests for new features.
+
 ## License
 
-MIT License
+InterpolatePy is released under the MIT License. See the [LICENSE](LICENSE) file for more details.
+
+## Acknowledgments
+
+InterpolatePy implements algorithms and mathematical concepts primarily from the following authoritative textbooks:
+
+- Biagiotti, L., & Melchiorri, C. (2008). *Trajectory Planning for Automatic Machines and Robots*. Springer.
+- Siciliano, B., Sciavicco, L., Villani, L., & Oriolo, G. (2010). *Robotics: Modelling, Planning and Control*. Springer.
+
+The library's implementation draws heavily from the theoretical frameworks, mathematical formulations, and algorithms presented in these works.
+
+I express my gratitude to these authors for their significant contributions to the field of trajectory planning and robotics, which have made this library possible.
