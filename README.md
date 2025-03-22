@@ -5,6 +5,22 @@
 [![ci-test](https://github.com/GiorgioMedico/InterpolatePy/actions/workflows/test.yml/badge.svg)](https://github.com/GiorgioMedico/InterpolatePy/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+## Table of Contents
+- [Overview](#overview)
+- [Key Features](#key-features)
+  - [Spline Interpolation](#spline-interpolation)
+  - [Motion Profiles](#motion-profiles)
+  - [Path Generation](#path-generation)
+  - [Utility Functions](#utility-functions)
+- [Installation](#installation)
+- [Usage Examples](#usage-examples)
+- [Mathematical Concepts](#mathematical-concepts)
+- [Requirements](#requirements)
+- [Development](#development)
+- [Contributing](#contributing)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
+
 ## Overview
 
 InterpolatePy is a comprehensive Python library for generating smooth trajectories and curves with precise control over position, velocity, acceleration, and jerk profiles. Designed for robotics, motion planning, computer graphics, and scientific computing applications, it provides a wide range of interpolation techniques from simple linear interpolation to advanced B-splines and motion profiles.
@@ -30,6 +46,14 @@ Whether you need to generate smooth robotic joint motions, create path planning 
 - **CubicSplineWithAcceleration2**: Alternative cubic spline with acceleration constraints (quintic segments method)
 - **CubicSmoothingSpline**: Cubic splines with μ parameter for smoothness control
 - **SplineConfig/smoothing_spline_with_tolerance**: Tools for finding optimal smoothing parameters
+
+##### Imposing Acceleration Constraints at Endpoints
+
+InterpolatePy offers two distinct methods for implementing cubic splines with endpoint acceleration constraints:
+
+1. **Extra Points Method (`CubicSplineWithAcceleration1`)**: This approach adds two extra points in the first and last segments to satisfy the acceleration constraints while maintaining C² continuity throughout the entire curve. The extra points are placed at the midpoints of the first and last segments, with positions calculated to ensure the specified accelerations at endpoints are achieved.
+
+2. **Quintic Segments Method (`CubicSplineWithAcceleration2`)**: This approach uses standard cubic polynomials for interior segments, but replaces the first and last segments with quintic (5th degree) polynomials. The higher degree provides the additional degrees of freedom needed to satisfy the acceleration constraints at endpoints while maintaining overall C² continuity at all knot points.
 
 ### Motion Profiles
 
@@ -100,6 +124,37 @@ velocity = spline.evaluate_velocity(6.0)
 acceleration = spline.evaluate_acceleration(6.0)
 
 # Plot the trajectory with position, velocity, and acceleration profiles
+spline.plot()
+```
+
+### Cubic Spline with Acceleration Constraints
+
+Create a smooth trajectory with both velocity and acceleration constraints at endpoints:
+
+```python
+from interpolatepy.c_s_with_acc2 import CubicSplineWithAcceleration2, SplineParameters
+
+# Define waypoints
+t_points = [0.0, 5.0, 7.0, 8.0, 10.0, 15.0, 18.0]
+q_points = [3.0, -2.0, -5.0, 0.0, 6.0, 12.0, 8.0]
+
+# Create parameters with velocity and acceleration constraints
+params = SplineParameters(
+    v0=2.0,    # Initial velocity
+    vn=-3.0,   # Final velocity
+    a0=0.0,    # Initial acceleration
+    an=0.0     # Final acceleration
+)
+
+# Create spline with quintic segments at endpoints
+spline = CubicSplineWithAcceleration2(t_points, q_points, params)
+
+# Evaluate at specific time
+position = spline.evaluate(6.0)
+velocity = spline.evaluate_velocity(6.0)
+acceleration = spline.evaluate_acceleration(6.0)
+
+# Plot the trajectory
 spline.plot()
 ```
 
