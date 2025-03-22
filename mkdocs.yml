@@ -1,8 +1,8 @@
 site_name: FastVector
 site_description: "This is a simple vector python package."
 
-repo_url: https://github.com/franneck94/Python-Project-Template
-repo_name: franneck94/Python-Project-Template
+repo_url: https://github.com/GiorgioMedico/InterpolatePy
+repo_name: GiorgioMedico/InterpolatePy
 
 theme:
   icon:
