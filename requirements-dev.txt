@@ -19,10 +19,3 @@ codecov>=2.1.13
 pytest-cov>=4.1.0
 pytest-benchmark>=4.0.0
 lark>=0.0.0
-
-# Documentation
-mkdocs>=1.5.3
-mkdocstrings>=0.23.0
-mkdocstrings-python>=1.7.3
-mkdocs-material>=9.4.8
-Pygments>=2.16.1
