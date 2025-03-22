@@ -1,58 +1,185 @@
-# FastVector
+# InterpolatePy
 
-![Python](https://img.shields.io/badge/python-3.9+-blue)
-![License](https://camo.githubusercontent.com/890acbdcb87868b382af9a4b1fac507b9659d9bf/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f6c6963656e73652d4d49542d626c75652e737667)
-[![Build](https://github.com/franneck94/Python-Project-Template/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/franneck94/Python-Project-Template/actions/workflows/test.yml)
-[![codecov](https://codecov.io/gh/franneck94/Python-Project-Template-Eng/branch/master/graph/badge.svg)](https://codecov.io/gh/franneck94/Python-Project-Template-Eng)
-[![Documentation](https://img.shields.io/badge/ref-Documentation-blue)](https://franneck94.github.io/Python-Project-Template-Eng/)
+![Python](https://img.shields.io/badge/python-3.10+-blue)
+[![pre-commit](https://github.com/GiorgioMedico/InterpolatePy/actions/workflows/pre-commit.yml/badge.svg)](https://github.com/GiorgioMedico/InterpolatePy/actions/workflows/pre-commit.yml)
+[![ci-test](https://github.com/GiorgioMedico/InterpolatePy/actions/workflows/test.yml/badge.svg)](https://github.com/GiorgioMedico/InterpolatePy/actions/workflows/test.yml)
 
-## Template For Python Projects
+## Overview
 
-This is a template for Python projects. What you get:
+InterpolatePy provides a collection of algorithms for generating smooth trajectories and curves with precise control over position, velocity, acceleration, and jerk. The library implements numerous interpolation techniques ranging from simple linear interpolation to advanced B-splines and motion profiles.
 
-- Source code and test code is seperated in different directories.
-- External libraries installed and managed by [Pip](https://pypi.org/project/pip/) and [setuptools](https://setuptools.pypa.io/en/latest/) in a pyproject.toml.
-- Setup for tests using [Pytest](https://docs.pytest.org/en/stable/) and coverage with [Pytest-Cov](https://github.com/pytest-dev/pytest-cov).
-- Continuous testing with [Github-Actions](https://github.com/features/actions/) including [pre-commit](https://github.com/pre-commit/pre-commit).
-- Code coverage reports, including automatic upload to [Codecov](https://codecov.io).
-- Code documentation with [Mkdocs](https://www.mkdocs.org/).
+## Key Features
 
-## Structure
+### Spline Interpolation
 
-``` text
-├── pyproject.toml
-├── ... other config files ...
-├── docs
-│   ├── api.md
-│   └── index.md
-├── examples
-│   └── ...
-├── fastvector
-│   ├── __init__.py
-│   ├── vector.py
-│   └── version.py
-└── tests
-    ├── __init__.py
-    └── test_vector.py
-```
+#### B-Splines
+- **BSpline**: Base implementation of B-splines with customizable degree and knot vectors
+- **ApproximationBSpline**: B-spline curve approximation of sets of points
+- **CubicBSplineInterpolation**: Specialized cubic B-spline interpolation
+- **BSplineInterpolator**: General B-spline interpolation with controllable continuity
+- **SmoothingCubicBSpline**: B-splines with smoothness-vs-accuracy tradeoff
 
-### Commands
+#### Cubic Splines
+- **CubicSpline**: Basic cubic spline with velocity constraints
+- **CubicSplineWithAcceleration1**: Cubic spline with velocity and acceleration constraints (extra points method)
+- **CubicSplineWithAcceleration2**: Alternative cubic spline with acceleration constraints (quintic segments method)
+- **CubicSmoothingSpline**: Cubic splines with μ parameter for smoothness control
+- **SplineConfig/smoothing_spline_with_tolerance**: Tools for finding optimal smoothing parameters
 
-```bash
-# Build and Install (local)
-pip install -e .  # OR
-pip install -e ../Python-Project-Template  # OR
-pip install -e ../Python-Project-Template[all]
-```
+### Motion Profiles
 
-```bash
-# Test
-pytest tests  # OR
-pytest .  # OR
-pytest
-```
+- **DoubleSTrajectory**: S-curve motion profile with bounded velocity, acceleration, and jerk
+- **linear_traj**: Linear interpolation with constant velocity
+- **PolynomialTrajectory**: Trajectory generation using polynomials of orders 3, 5, and 7
+- **TrapezoidalTrajectory**: Trapezoidal velocity profiles with various constraints
+
+### Path Generation
+
+- **LinearPath**: Simple linear paths with constant velocity
+- **CircularPath**: Circular arcs and paths
+- **Frenet Frames**: Tools for computing and visualizing Frenet frames along parametric curves
+
+### Utility Functions
+
+- **solve_tridiagonal**: Efficient tridiagonal matrix solver (Thomas algorithm)
+
+## Installation
 
 ```bash
-# Code Coverage
-pytest --cov=fastvector tests --cov-report=html
+# Install directly from PyPI
+pip install interpolatepy
+
+# Install from source with development dependencies
+pip install -e ".[all]"
 ```
+
+## Usage Examples
+
+### Creating a Cubic Spline Trajectory
+
+```python
+from interpolatepy.cubic_spline import CubicSpline
+
+# Define waypoints
+t_points = [0.0, 5.0, 7.0, 8.0, 10.0, 15.0, 18.0]
+q_points = [3.0, -2.0, -5.0, 0.0, 6.0, 12.0, 8.0]
+
+# Create cubic spline with initial and final velocities
+spline = CubicSpline(t_points, q_points, v0=2.0, vn=-3.0)
+
+# Evaluate at specific time
+position = spline.evaluate(6.0)
+velocity = spline.evaluate_velocity(6.0)
+acceleration = spline.evaluate_acceleration(6.0)
+
+# Plot the trajectory
+spline.plot()
+```
+
+### Generating a Double-S Trajectory
+
+```python
+from interpolatepy.double_s import DoubleSTrajectory, StateParams, TrajectoryBounds
+
+# Create parameters for trajectory
+state = StateParams(q_0=0.0, q_1=10.0, v_0=0.0, v_1=0.0)
+bounds = TrajectoryBounds(v_bound=5.0, a_bound=10.0, j_bound=30.0)
+
+# Create trajectory
+trajectory = DoubleSTrajectory(state, bounds)
+
+# Get trajectory information
+duration = trajectory.get_duration()
+phases = trajectory.get_phase_durations()
+
+# Generate trajectory points
+import numpy as np
+time_points = np.linspace(0, duration, 100)
+positions, velocities, accelerations, jerks = trajectory.evaluate(time_points)
+```
+
+### Creating a B-Spline Curve
+
+```python
+import numpy as np
+from interpolatepy.b_spline import BSpline
+
+# Define control points, degree, and knot vector
+control_points = np.array([[0, 0], [1, 2], [3, 1], [4, 0]])
+degree = 3
+knots = BSpline.create_uniform_knots(degree, len(control_points))
+
+# Create B-spline
+bspline = BSpline(degree, knots, control_points)
+
+# Evaluate at parameter value
+point = bspline.evaluate(0.5)
+
+# Generate curve points for plotting
+u_values, curve_points = bspline.generate_curve_points(100)
+
+# Plot the curve
+bspline.plot_2d(show_control_polygon=True)
+```
+
+### Trapezoidal Trajectory with Waypoints
+
+```python
+from interpolatepy.trapezoidal import TrapezoidalTrajectory, InterpolationParams
+
+# Define waypoints
+points = [0.0, 5.0, 3.0, 8.0, 2.0]
+
+# Create interpolation parameters
+params = InterpolationParams(
+    points=points, 
+    v0=0.0,         # Initial velocity
+    vn=0.0,         # Final velocity 
+    amax=10.0,      # Maximum acceleration
+    vmax=5.0        # Maximum velocity
+)
+
+# Generate trajectory
+traj_func, duration = TrapezoidalTrajectory.interpolate_waypoints(params)
+
+# Evaluate at specific time
+position, velocity, acceleration = traj_func(2.5)
+```
+
+## Mathematical Concepts
+
+The library implements several key mathematical concepts for trajectory generation:
+
+- **B-splines**: Parametric curves defined by control points and a knot vector, offering local control and customizable continuity
+- **Cubic splines**: Piecewise polynomials with C2 continuity (continuous position, velocity, and acceleration)
+- **Smoothing splines**: Splines with a controllable balance between accuracy and smoothness
+- **Trapezoidal velocity profiles**: Trajectories with linear segments of constant acceleration and velocity
+- **Double-S trajectories**: Motions with bounded jerk, acceleration, and velocity, creating smooth S-curves
+- **Frenet frames**: Local coordinate systems defined by tangent, normal, and binormal vectors along a curve
+
+## Requirements
+
+- Python 3.10+
+- NumPy 2.0.0+
+- Matplotlib 3.10.1+
+- SciPy 1.15.2+
+
+## Development
+
+InterpolatePy uses modern Python tools for development:
+
+- Black and isort for code formatting
+- Ruff and mypy for linting and type checking
+- pytest for testing
+- mkdocs for documentation
+
+To set up the development environment:
+
+```bash
+pip install -e ".[all]"
+pre-commit install
+```
+
+## License
+
+MIT License
