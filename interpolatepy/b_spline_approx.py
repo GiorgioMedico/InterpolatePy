@@ -4,8 +4,8 @@ from interpolatepy.b_spline import BSpline
 
 
 class ApproximationBSpline(BSpline):
-    """
-    A class for B-spline curve approximation of a set of points.
+    """A class for B-spline curve approximation of a set of points.
+
     Inherits from BSpline class.
 
     The approximation follows the theory described in Section 8.5 of the reference:
@@ -13,9 +13,12 @@ class ApproximationBSpline(BSpline):
     - The internal points are approximated in the least squares sense
     - Degree 3 (cubic) is typically used to ensure C2 continuity
 
-    Attributes:
-        original_points (np.ndarray): The original points being approximated.
-        original_parameters (np.ndarray): The parameter values corresponding to original points.
+    Attributes
+    ----------
+    original_points : np.ndarray
+        The original points being approximated.
+    original_parameters : np.ndarray
+        The parameter values corresponding to original points.
     """
 
     def __init__(  # noqa: PLR0913
@@ -28,22 +31,28 @@ class ApproximationBSpline(BSpline):
         method: str = "chord_length",
         debug: bool = False,
     ) -> None:
-        """
-        Initialize an approximation B-spline.
+        """Initialize an approximation B-spline.
 
-        Args:
-            points (Union[List, np.ndarray]): The points to approximate.
-            num_control_points (int): The number of control points to use.
-            degree (int, optional): The degree of the B-spline. Defaults to 3 for cubic.
-            weights (Union[List, np.ndarray], optional): Weights for points in approximation.
-                If None, uniform weighting is used.
-            method (str, optional): Method for parameter calculation.
-                Options are 'equally_spaced', 'chord_length', or 'centripetal'.
-                Defaults to 'chord_length'.
-            debug (bool, optional): Whether to print debug information. Defaults to False.
+        Parameters
+        ----------
+        points : list or np.ndarray
+            The points to approximate.
+        num_control_points : int
+            The number of control points to use.
+        degree : int, default=3
+            The degree of the B-spline. Defaults to 3 for cubic.
+        weights : list or np.ndarray or None, default=None
+            Weights for points in approximation. If None, uniform weighting is used.
+        method : str, default="chord_length"
+            Method for parameter calculation. Options are 'equally_spaced',
+            'chord_length', or 'centripetal'.
+        debug : bool, default=False
+            Whether to print debug information.
 
-        Raises:
-            ValueError: If inputs do not satisfy approximation requirements.
+        Raises
+        ------
+        ValueError
+            If inputs do not satisfy approximation requirements.
         """
         # Validate inputs
         if degree < 1:
@@ -104,16 +113,25 @@ class ApproximationBSpline(BSpline):
                 print(f"  P{i}: {cp}")
 
     def _compute_parameters(self, points: np.ndarray, method: str = "chord_length") -> np.ndarray:
-        """
-        Calculate parameter values using one of three methods.
+        """Calculate parameter values using one of three methods.
 
-        Args:
-            points (np.ndarray): The points to approximate.
-            method (str): Method for calculating the parameters.
-                Options are 'equally_spaced', 'chord_length', or 'centripetal'.
+        Parameters
+        ----------
+        points : np.ndarray
+            The points to approximate.
+        method : str, default="chord_length"
+            Method for calculating the parameters. Options are 'equally_spaced',
+            'chord_length', or 'centripetal'.
 
-        Returns:
-            np.ndarray: Parameter values for each point, normalized to [0, 1].
+        Returns
+        -------
+        np.ndarray
+            Parameter values for each point, normalized to [0, 1].
+
+        Raises
+        ------
+        ValueError
+            If an unknown method is provided.
         """
         n = len(points) - 1  # Index of the last point
 
@@ -171,17 +189,23 @@ class ApproximationBSpline(BSpline):
     def _compute_knots(
         self, degree: int, num_control_points: int, num_points: int, u_bar: np.ndarray
     ) -> np.ndarray:
-        """
-        Compute knot vector following the algorithm in Section 8.5.1.
+        """Compute knot vector following the algorithm in Section 8.5.1.
 
-        Args:
-            degree (int): The degree of the B-spline.
-            num_control_points (int): The number of control points.
-            num_points (int): The number of points to approximate.
-            u_bar (np.ndarray): Parameter values for the points.
+        Parameters
+        ----------
+        degree : int
+            The degree of the B-spline.
+        num_control_points : int
+            The number of control points.
+        num_points : int
+            The number of points to approximate.
+        u_bar : np.ndarray
+            Parameter values for the points.
 
-        Returns:
-            np.ndarray: The knot vector.
+        Returns
+        -------
+        np.ndarray
+            The knot vector.
         """
         # Total number of knots
         num_knots = num_control_points + degree + 1
@@ -244,19 +268,29 @@ class ApproximationBSpline(BSpline):
         num_control_points: int,
         weights: np.ndarray,
     ) -> np.ndarray:
-        """
-        Compute control points using least squares approximation as described in Section 8.5.
+        """Compute control points using least squares approximation.
 
-        Args:
-            points (np.ndarray): The points to approximate.
-            degree (int): The degree of the B-spline.
-            knots (np.ndarray): The knot vector.
-            u_bar (np.ndarray): Parameter values for the points.
-            num_control_points (int): The number of control points.
-            weights (np.ndarray): Weights for points in approximation.
+        Uses the approach described in Section 8.5.
 
-        Returns:
-            np.ndarray: The control points.
+        Parameters
+        ----------
+        points : np.ndarray
+            The points to approximate.
+        degree : int
+            The degree of the B-spline.
+        knots : np.ndarray
+            The knot vector.
+        u_bar : np.ndarray
+            Parameter values for the points.
+        num_control_points : int
+            The number of control points.
+        weights : np.ndarray
+            Weights for points in approximation.
+
+        Returns
+        -------
+        np.ndarray
+            The control points.
         """
         n = len(points) - 1  # Number of points minus 1
         m = num_control_points - 1  # Number of control points minus 1
@@ -425,19 +459,24 @@ class ApproximationBSpline(BSpline):
     def calculate_approximation_error(
         self, points: np.ndarray | None = None, u_bar: np.ndarray | None = None
     ) -> float:
-        """
-        Calculate the approximation error as the sum of squared distances
-        between the points and the corresponding points on the B-spline.
+        """Calculate the approximation error as the sum of squared distances.
 
-        Args:
-            points (np.ndarray, optional): The points to compare with the B-spline.
-                If None, the original points used for approximation are used.
-            u_bar (np.ndarray, optional): Parameter values for the points.
-                If None, the original parameters are used for original points,
-                or computed for new points.
+        Computes sum of squared distances between the points and the corresponding
+        points on the B-spline.
 
-        Returns:
-            float: The sum of squared distances.
+        Parameters
+        ----------
+        points : np.ndarray or None, default=None
+            The points to compare with the B-spline. If None, the original points
+            used for approximation are used.
+        u_bar : np.ndarray or None, default=None
+            Parameter values for the points. If None, the original parameters are
+            used for original points, or computed for new points.
+
+        Returns
+        -------
+        float
+            The sum of squared distances.
         """
         # Use original points and parameters if not provided
         if points is None:
@@ -459,18 +498,22 @@ class ApproximationBSpline(BSpline):
     def refine(
         self, max_error: float = 0.1, max_control_points: int = 100
     ) -> "ApproximationBSpline":
-        """
-        Refine the approximation by adding more control points until the
-        maximum error is below a threshold or the maximum number of control
-        points is reached.
+        """Refine the approximation by adding more control points.
 
-        Args:
-            max_error (float, optional): Maximum acceptable error. Defaults to 0.1.
-            max_control_points (int, optional): Maximum number of control points.
-                Defaults to 100.
+        Adds control points until the maximum error is below a threshold or the
+        maximum number of control points is reached.
 
-        Returns:
-            ApproximationBSpline: A refined approximation B-spline.
+        Parameters
+        ----------
+        max_error : float, default=0.1
+            Maximum acceptable error.
+        max_control_points : int, default=100
+            Maximum number of control points.
+
+        Returns
+        -------
+        ApproximationBSpline
+            A refined approximation B-spline.
         """
         # Start with the current number of control points
         num_control_points = len(self.control_points)
