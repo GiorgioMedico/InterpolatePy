@@ -22,8 +22,7 @@ jobs:
         pip install -e .
     - name: Testing
       run: |
-        python -m pytest --cov=ik_ur tests
-        python -m codecov
+        python -m pytest tests
 
   build-macos:
     runs-on: macos-latest

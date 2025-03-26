@@ -15,7 +15,5 @@ pyright>=1.1.335
 
 # Testing
 pytest>=7.4.3
-codecov>=2.1.13
-pytest-cov>=4.1.0
 pytest-benchmark>=4.0.0
 lark>=0.0.0

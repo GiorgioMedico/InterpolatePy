@@ -7,20 +7,41 @@
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Key Features](#key-features)
-  - [Spline Interpolation](#spline-interpolation)
-  - [Motion Profiles](#motion-profiles)
-  - [Path Generation](#path-generation)
-  - [Utility Functions](#utility-functions)
-- [Installation](#installation)
-- [Usage Examples](#usage-examples)
-- [Mathematical Concepts](#mathematical-concepts)
-- [Requirements](#requirements)
-- [Development](#development)
-- [Contributing](#contributing)
-- [License](#license)
-- [Acknowledgments](#acknowledgments)
+- [InterpolatePy](#interpolatepy)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Key Features](#key-features)
+    - [Spline Interpolation](#spline-interpolation)
+      - [B-Splines](#b-splines)
+      - [Cubic Splines](#cubic-splines)
+        - [Imposing Acceleration Constraints at Endpoints](#imposing-acceleration-constraints-at-endpoints)
+    - [Motion Profiles](#motion-profiles)
+    - [Path Generation](#path-generation)
+    - [Utility Functions](#utility-functions)
+  - [Installation](#installation)
+    - [Using pip](#using-pip)
+    - [From Source](#from-source)
+    - [Optional Dependencies](#optional-dependencies)
+  - [Usage Examples](#usage-examples)
+    - [Cubic Spline Trajectory](#cubic-spline-trajectory)
+    - [Cubic Spline with Acceleration Constraints](#cubic-spline-with-acceleration-constraints)
+    - [Double-S Trajectory](#double-s-trajectory)
+    - [B-Spline Curve](#b-spline-curve)
+    - [Trapezoidal Trajectory with Waypoints](#trapezoidal-trajectory-with-waypoints)
+    - [3D Path with Frenet Frames](#3d-path-with-frenet-frames)
+  - [Mathematical Concepts](#mathematical-concepts)
+    - [B-splines](#b-splines-1)
+    - [Cubic Splines](#cubic-splines-1)
+    - [Smoothing Splines](#smoothing-splines)
+    - [Trapezoidal Velocity Profiles](#trapezoidal-velocity-profiles)
+    - [Double-S Trajectories](#double-s-trajectories)
+    - [Frenet Frames](#frenet-frames)
+  - [Requirements](#requirements)
+  - [Development](#development)
+    - [Running Tests](#running-tests)
+  - [Contributing](#contributing)
+  - [License](#license)
+  - [Acknowledgments](#acknowledgments)
 
 ## Overview
 
@@ -307,7 +328,6 @@ InterpolatePy uses modern Python tooling for development:
 
 - **Code Quality**: Black and isort for formatting, Ruff and mypy for linting and type checking
 - **Testing**: pytest for unit tests and benchmarks
-- **Documentation**: mkdocs for documentation generation
 
 To set up the development environment:
 
@@ -320,14 +340,6 @@ pre-commit install
 
 ```bash
 python -m pytest tests
-```
-
-### Building Documentation
-
-```bash
-mkdocs build
-# or to serve locally
-mkdocs serve
 ```
 
 ## Contributing
