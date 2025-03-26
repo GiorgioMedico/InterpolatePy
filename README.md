@@ -6,6 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Table of Contents
+
 - [Overview](#overview)
 - [Key Features](#key-features)
   - [Spline Interpolation](#spline-interpolation)
@@ -74,6 +75,12 @@ InterpolatePy offers two distinct methods for implementing cubic splines with en
 
 ## Installation
 
+### Using pip
+
+```bash
+pip install InterpolatePy
+```
+
 ### From Source
 
 To install the latest development version with all dependencies:
@@ -94,9 +101,6 @@ You can install specific dependency groups:
 ```bash
 # For testing dependencies only
 pip install -e ".[test]"
-
-# For documentation dependencies only
-pip install -e ".[doc]"
 
 # For development tools only
 pip install -e ".[dev]"
@@ -267,21 +271,27 @@ plt.show()
 InterpolatePy implements several key mathematical concepts for trajectory generation:
 
 ### B-splines
+
 Piecewise parametric curves defined by control points and a knot vector. B-splines offer local control (changes to a control point only affect the curve locally) and customizable continuity.
 
 ### Cubic Splines
+
 Piecewise polynomials with C² continuity (continuous position, velocity, and acceleration) that interpolate a given set of points.
 
-### Smoothing Splines 
+### Smoothing Splines
+
 Splines with a controllable balance between accuracy (passing through points exactly) and smoothness (minimizing curvature). The μ parameter controls this tradeoff.
 
 ### Trapezoidal Velocity Profiles
+
 Trajectories with linear segments of constant acceleration and velocity, creating a trapezoidal shape in the velocity profile.
 
 ### Double-S Trajectories
+
 Motion profiles with bounded jerk, acceleration, and velocity, creating smooth S-curves in the acceleration profile. These are ideal for robotic motion to reduce stress on mechanical systems.
 
 ### Frenet Frames
+
 Local coordinate systems defined by tangent, normal, and binormal vectors along a curve, useful for tool orientation and trajectory tracking.
 
 ## Requirements
