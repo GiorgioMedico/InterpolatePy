@@ -24,15 +24,8 @@ dynamic = ["version"]
 
 [project.optional-dependencies]
 test = ["pytest", "pytest-cov", "codecov", "pre-commit"]
-doc = [
-    "mkdocs",
-    "mkdocstrings",
-    "mkdocstrings[python]",
-    "mkdocs-material",
-    "Pygments",
-]
 dev = ["black", "isort", "mypy", "pre-commit", "ruff"]
-all = ["interpolatepy[test,doc,dev]"]
+all = ["interpolatepy[test,dev]"]
 
 [tool.setuptools]
 platforms = ["unix", "linux", "osx", "cygwin", "win32"]
