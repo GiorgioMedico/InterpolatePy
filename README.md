@@ -10,6 +10,7 @@
 - [InterpolatePy](#interpolatepy)
   - [Table of Contents](#table-of-contents)
   - [Overview](#overview)
+  - [Future Implementations](#future-implementations)
   - [Key Features](#key-features)
     - [Spline Interpolation](#spline-interpolation)
       - [B-Splines](#b-splines)
@@ -42,12 +43,28 @@
   - [Contributing](#contributing)
   - [License](#license)
   - [Acknowledgments](#acknowledgments)
+  - [Citation](#citation)
 
 ## Overview
 
 InterpolatePy is a comprehensive Python library for generating smooth trajectories and curves with precise control over position, velocity, acceleration, and jerk profiles. Designed for robotics, motion planning, computer graphics, and scientific computing applications, it provides a wide range of interpolation techniques from simple linear interpolation to advanced B-splines and motion profiles.
 
 Whether you need to generate smooth robotic joint motions, create path planning for autonomous vehicles, or design animation curves with specific dynamic properties, InterpolatePy offers the tools to create trajectories that maintain continuity while adhering to physical constraints.
+
+## Future Implementations
+
+InterpolatePy is continuously evolving, with several exciting features planned for future releases:
+
+- [ ] **Bezier Curves**: Implementation of parametric Bezier curves with arbitrary degree control
+- [ ] **Linear Interpolation with Polynomial Blend**: Enhanced linear interpolation using quintic Bezier curves for smooth transitions between line segments
+- [ ] **Linear Interpolation with Parabolic Blends**: An alternative blending approach using parabolic segments for smooth connections
+- [ ] **Spherical Path**: Tools for interpolation along great circles and spherical paths
+- [ ] **LERP (Linear Interpolation)**: More comprehensive linear interpolation functions for quaternions
+- [ ] **SLERP (Spherical Linear Interpolation)**: Algorithms for smooth interpolation between orientations represented as quaternions
+- [ ] **SQUAD (Spherical and Quadrangle)**: Advanced spherical interpolation with cubic-like smoothness for quaternion interpolation
+- [ ] **B-spline Quaternion Curves**: Extension of B-spline techniques to quaternion space for smooth orientation interpolation
+
+These implementations will significantly enhance InterpolatePy's capabilities for orientation interpolation and complex curve generation, particularly for robotic applications, character animation, and camera path planning.
 
 ## Key Features
 
@@ -368,3 +385,18 @@ InterpolatePy implements algorithms and mathematical concepts primarily from the
 The library's implementation draws heavily from the theoretical frameworks, mathematical formulations, and algorithms presented in these works.
 
 I express my gratitude to these authors for their significant contributions to the field of trajectory planning and robotics, which have made this library possible.
+
+## Citation
+
+If you use InterpolatePy in your research or project, please cite it as follows:
+
+```bibtex
+@software{InterpolatePy,
+  author = {Medico, Giorgio},
+  title = {InterpolatePy: A Comprehensive Python Library for Trajectory Planning and Interpolation},
+  year = {2025},
+  url = {https://github.com/GiorgioMedico/InterpolatePy}
+}
+```
+
+For specific methods or algorithms implemented in InterpolatePy, please also consider citing the original research papers or textbooks referenced in the documentation and acknowledgments section.
