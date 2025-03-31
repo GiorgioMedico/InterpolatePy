@@ -10,7 +10,8 @@ maintainers = [
 ]
 description = "A comprehensive Python library for generating smooth trajectories and curves with precise control over position, velocity, acceleration, and jerk profiles"
 readme = "README.md"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
 keywords = [
     "interpolation",
@@ -28,7 +29,6 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Intended Audience :: Developers",
     "Intended Audience :: Education",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
