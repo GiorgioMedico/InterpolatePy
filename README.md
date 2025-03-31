@@ -5,9 +5,20 @@
 [![ci-test](https://github.com/GiorgioMedico/InterpolatePy/actions/workflows/test.yml/badge.svg)](https://github.com/GiorgioMedico/InterpolatePy/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+## Support the Project
+
+If you find InterpolatePy useful for your work, please consider giving it a star on GitHub! ⭐
+
+Your stars help make the project more visible to others who might benefit from these tools and encourage continued development and maintenance.
+
+[![GitHub stars](https://img.shields.io/github/stars/GiorgioMedico/InterpolatePy.svg?style=social&label=Star&maxAge=2592000)](https://github.com/GiorgioMedico/InterpolatePy/stargazers/)
+
+Have you implemented something cool with InterpolatePy? We'd love to hear about it in the Issues section or as a feature on our wiki!
+
 ## Table of Contents
 
 - [InterpolatePy](#interpolatepy)
+  - [Support the Project](#support-the-project)
   - [Table of Contents](#table-of-contents)
   - [Overview](#overview)
   - [Future Implementations](#future-implementations)
@@ -58,10 +69,10 @@ InterpolatePy is continuously evolving, with several exciting features planned f
 - [ ] **Bezier Curves**: Implementation of parametric Bezier curves with arbitrary degree control
 - [ ] **Linear Interpolation with Polynomial Blend**: Enhanced linear interpolation using quintic Bezier curves for smooth transitions between line segments
 - [ ] **Linear Interpolation with Parabolic Blends**: An alternative blending approach using parabolic segments for smooth connections
-- [ ] **Spherical Path**: Tools for interpolation along great circles and spherical paths
-- [ ] **LERP (Linear Interpolation)**: More comprehensive linear interpolation functions for quaternions
+- [ ] **Spherical Path**: Tools for interpolation along spherical paths
+- [ ] **LERP (Linear Interpolation)**: Linear interpolation functions for quaternions
 - [ ] **SLERP (Spherical Linear Interpolation)**: Algorithms for smooth interpolation between orientations represented as quaternions
-- [ ] **SQUAD (Spherical and Quadrangle)**: Advanced spherical interpolation with cubic-like smoothness for quaternion interpolation
+- [ ] **SQUAD (Spherical Quadrangle Interpolation)**: Advanced spherical interpolation with cubic-like smoothness for quaternion interpolation
 - [ ] **B-spline Quaternion Curves**: Extension of B-spline techniques to quaternion space for smooth orientation interpolation
 
 These implementations will significantly enhance InterpolatePy's capabilities for orientation interpolation and complex curve generation, particularly for robotic applications, character animation, and camera path planning.
