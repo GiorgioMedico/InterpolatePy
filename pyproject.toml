@@ -12,7 +12,7 @@ description = "A comprehensive Python library for generating smooth trajectories
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 keywords = [
     "interpolation",
     "trajectory planning",
@@ -30,6 +30,7 @@ classifiers = [
     "Intended Audience :: Developers",
     "Intended Audience :: Education",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Operating System :: Microsoft :: Windows",
@@ -50,8 +51,6 @@ dynamic = ["version"]
 [project.urls]
 "Homepage" = "https://github.com/GiorgioMedico/InterpolatePy"
 "Bug Tracker" = "https://github.com/GiorgioMedico/InterpolatePy/issues"
-"Repository" = "https://github.com/GiorgioMedico/InterpolatePy.git"
-"Documentation" = "https://github.com/GiorgioMedico/InterpolatePy#readme"
 
 [project.optional-dependencies]
 test = [
@@ -86,7 +85,7 @@ testpaths = "tests"
 
 ######## Tools
 [tool.black]
-target-version = ['py311']
+target-version = ['py310']
 line-length = 100
 skip-string-normalization = false
 skip-magic-trailing-comma = false
@@ -98,7 +97,7 @@ force-exclude = '''
 '''
 
 [tool.isort]
-py_version = 311
+py_version = 310
 sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
 default_section = "FIRSTPARTY"
 known_third_party = [
@@ -139,7 +138,7 @@ skip_glob = ["docs/*", "setup.py"]
 filter_files = true
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py310"
 line-length = 100
 extend-exclude = ["docs", "test", "tests"]
 
@@ -278,7 +277,7 @@ line-ending = "auto"
 
 [tool.mypy]
 # Platform configuration
-python_version = "3.11"
+python_version = "3.10"
 # imports related
 ignore_missing_imports = true
 follow_imports = "silent"
@@ -318,7 +317,7 @@ show_error_codes = true
 exclude = ["docs"]
 
 [tool.pyright]
-pythonVersion = "3.11"
+pythonVersion = "3.10"
 typeCheckingMode = "basic"
 # enable subset of "strict"
 reportDuplicateImport = true

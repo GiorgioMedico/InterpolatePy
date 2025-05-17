@@ -21,7 +21,7 @@ repos:
     -   id: black
 
 -   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 'v0.11.0'
+    rev: 'v0.11.10'
     hooks:
     -   id: ruff
         types_or: [python, pyi, jupyter]
@@ -32,3 +32,5 @@ repos:
     hooks:
     -   id: mypy
         args: [--ignore-missing-imports]
+
+# pre-commit autoupdate
