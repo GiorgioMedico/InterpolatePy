@@ -4,7 +4,6 @@ import numpy as np
 
 from interpolatepy.c_s_smoothing import CubicSmoothingSpline
 
-
 # Constants to replace magic values
 EPSILON = 1e-6  # Convergence tolerance
 
@@ -91,7 +90,13 @@ def smoothing_spline_with_tolerance(
     # Create initial (fallback) spline with μ=1.0 (most accurate)
     # This ensures we always have a valid spline to return
     default_spline = CubicSmoothingSpline(
-        t_points, q_points, mu=1.0, weights=config.weights, v0=config.v0, vn=config.vn, debug=False
+        t_points,
+        q_points,
+        mu=1.0,
+        weights=config.weights,
+        v0=config.v0,
+        vn=config.vn,
+        debug=False,
     )
     default_error = np.max(np.abs(default_spline.q - default_spline.s))
 
@@ -142,13 +147,17 @@ def smoothing_spline_with_tolerance(
                 lower_bound_new = mu
                 upper_bound_new = upper_bound
                 if config.debug:
-                    print(f"  Error > tolerance, updating lower_bound({i + 1})={lower_bound_new}")
+                    print(
+                        f"  Error > tolerance, updating lower_bound({i + 1})={lower_bound_new}"
+                    )
             else:
                 # Error is acceptable, can try more smoothing
                 upper_bound_new = mu
                 lower_bound_new = lower_bound
                 if config.debug:
-                    print(f"  Error ≤ tolerance, updating upper_bound({i + 1})={upper_bound_new}")
+                    print(
+                        f"  Error ≤ tolerance, updating upper_bound({i + 1})={upper_bound_new}"
+                    )
 
             # Update lower_bound and upper_bound for next iteration
             lower_bound = lower_bound_new
@@ -159,7 +168,9 @@ def smoothing_spline_with_tolerance(
                 e_max < tolerance and upper_bound - lower_bound < EPSILON
             ):
                 if config.debug:
-                    print(f"\nConverged to solution with error {e_max} after {i + 1} iterations")
+                    print(
+                        f"\nConverged to solution with error {e_max} after {i + 1} iterations"
+                    )
                 return spline, mu, e_max, i + 1
 
         except ValueError as e:

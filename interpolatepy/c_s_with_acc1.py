@@ -3,7 +3,6 @@ import numpy as np
 
 from interpolatepy.tridiagonal_inv import solve_tridiagonal
 
-
 # Constants to replace magic numbers
 MIN_POINTS = 2
 MIN_SEGMENTS_FOR_UPPER_DIAG = 2
@@ -433,7 +432,9 @@ class CubicSplineWithAcceleration1:
         indices = [0]
 
         # Interior original points - using list.extend instead of append in a loop
-        indices.extend([i + 1 for i in range(1, self.n_orig - 1)])  # +1 because we inserted q₁
+        indices.extend(
+            [i + 1 for i in range(1, self.n_orig - 1)]
+        )  # +1 because we inserted q₁
 
         # Last point
         indices.append(self.n - 1)
@@ -485,7 +486,9 @@ class CubicSplineWithAcceleration1:
 
         return result[0] if len(result) == 1 else result
 
-    def evaluate_velocity(self, t: float | list[float] | np.ndarray) -> float | np.ndarray:
+    def evaluate_velocity(
+        self, t: float | list[float] | np.ndarray
+    ) -> float | np.ndarray:
         """
         Evaluate the velocity at time t.
 
@@ -527,7 +530,9 @@ class CubicSplineWithAcceleration1:
 
         return result[0] if len(result) == 1 else result
 
-    def evaluate_acceleration(self, t: float | list[float] | np.ndarray) -> float | np.ndarray:
+    def evaluate_acceleration(
+        self, t: float | list[float] | np.ndarray
+    ) -> float | np.ndarray:
         """
         Evaluate the acceleration at time t.
 

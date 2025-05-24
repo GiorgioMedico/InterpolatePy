@@ -15,7 +15,9 @@ def example_bspline() -> BSpline:
     degree = 3
 
     # Define the control points (2D for this example)
-    control_points = np.array([[1, 2], [2, 3], [3, -3], [4, 4], [5, 5], [6, -5], [7, -6]])
+    control_points = np.array(
+        [[1, 2], [2, 3], [3, -3], [4, 4], [5, 5], [6, -5], [7, -6]]
+    )
 
     # Create knot vector similar to the example in the document
     knots = np.array([0, 0, 0, 0, 1, 2, 4, 7, 7, 7, 7])
@@ -172,7 +174,12 @@ def plot_basis_functions(bspline: BSpline, u_value: float) -> None:
             if 0 <= idx < len(values):
                 y_values[j] = values[idx]
 
-        ax.plot(u_range, y_values, color=colors[i % len(colors)], label=f"B_{i}^{bspline.degree}")
+        ax.plot(
+            u_range,
+            y_values,
+            color=colors[i % len(colors)],
+            label=f"B_{i}^{bspline.degree}",
+        )
 
     # Find the non-zero basis functions at u_value
     span = bspline.find_knot_span(u_value)

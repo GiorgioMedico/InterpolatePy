@@ -31,7 +31,9 @@ def textbook_example() -> list[CubicSmoothingSpline]:
     colors = ["g", "r", "b"]
 
     for i, mu in enumerate(mu_values):
-        spline = CubicSmoothingSpline(t_points, q_points, mu=mu, weights=weights, debug=True)
+        spline = CubicSmoothingSpline(
+            t_points, q_points, mu=mu, weights=weights, debug=True
+        )
         splines.append(spline)
 
         # Position
@@ -46,7 +48,11 @@ def textbook_example() -> list[CubicSmoothingSpline]:
 
         # Velocity
         ax2.plot(
-            t_eval, spline.evaluate_velocity(t_eval), line_styles[i], color=colors[i], linewidth=2
+            t_eval,
+            spline.evaluate_velocity(t_eval),
+            line_styles[i],
+            color=colors[i],
+            linewidth=2,
         )
 
         # Acceleration

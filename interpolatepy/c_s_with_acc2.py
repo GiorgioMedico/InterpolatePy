@@ -142,7 +142,10 @@ class CubicSplineWithAcceleration2(CubicSpline):
 
         # Calculate the acceleration at the end of the first segment
         # For a cubic polynomial a(t) = 2*a2 + 6*a3*t
-        a1 = 2 * self.coefficients[0, 2] + 6 * self.coefficients[0, 3] * self.t_intervals[0]
+        a1 = (
+            2 * self.coefficients[0, 2]
+            + 6 * self.coefficients[0, 3] * self.t_intervals[0]
+        )
 
         # Compute the coefficients of the quintic polynomial
         # p(tau) = b0 + b1*tau + b2*tau^2 + b3*tau^3 + b4*tau^4 + b5*tau^5
@@ -175,7 +178,14 @@ class CubicSplineWithAcceleration2(CubicSpline):
                     4 * t_interval**3,
                     5 * t_interval**4,
                 ],  # p'(T) = v1
-                [0, 0, 2, 6 * t_interval, 12 * t_interval**2, 20 * t_interval**3],  # p''(T) = a1
+                [
+                    0,
+                    0,
+                    2,
+                    6 * t_interval,
+                    12 * t_interval**2,
+                    20 * t_interval**3,
+                ],  # p''(T) = a1
             ]
         )
 
@@ -260,7 +270,14 @@ class CubicSplineWithAcceleration2(CubicSpline):
                     4 * t_interval**3,
                     5 * t_interval**4,
                 ],  # p'(T) = vn
-                [0, 0, 2, 6 * t_interval, 12 * t_interval**2, 20 * t_interval**3],  # p''(T) = an
+                [
+                    0,
+                    0,
+                    2,
+                    6 * t_interval,
+                    12 * t_interval**2,
+                    20 * t_interval**3,
+                ],  # p''(T) = an
             ]
         )
 
@@ -328,7 +345,11 @@ class CubicSplineWithAcceleration2(CubicSpline):
                 tau = ti - self.t_points[k]
 
             # Check if this segment uses a quintic polynomial
-            if k == 0 and hasattr(self, "quintic_coeffs") and "first" in self.quintic_coeffs:
+            if (
+                k == 0
+                and hasattr(self, "quintic_coeffs")
+                and "first" in self.quintic_coeffs
+            ):
                 # Use the quintic polynomial for the first segment
                 b = self.quintic_coeffs["first"]
                 result[i] = (
@@ -402,7 +423,11 @@ class CubicSplineWithAcceleration2(CubicSpline):
                 tau = ti - self.t_points[k]
 
             # Check if this segment uses a quintic polynomial
-            if k == 0 and hasattr(self, "quintic_coeffs") and "first" in self.quintic_coeffs:
+            if (
+                k == 0
+                and hasattr(self, "quintic_coeffs")
+                and "first" in self.quintic_coeffs
+            ):
                 # Use the derivative of the quintic polynomial for the first segment
                 b = self.quintic_coeffs["first"]
                 result[i] = (
@@ -474,10 +499,16 @@ class CubicSplineWithAcceleration2(CubicSpline):
                 tau = ti - self.t_points[k]
 
             # Check if this segment uses a quintic polynomial
-            if k == 0 and hasattr(self, "quintic_coeffs") and "first" in self.quintic_coeffs:
+            if (
+                k == 0
+                and hasattr(self, "quintic_coeffs")
+                and "first" in self.quintic_coeffs
+            ):
                 # Use the second derivative of the quintic polynomial for the first segment
                 b = self.quintic_coeffs["first"]
-                result[i] = 2 * b[2] + 6 * b[3] * tau + 12 * b[4] * tau**2 + 20 * b[5] * tau**3
+                result[i] = (
+                    2 * b[2] + 6 * b[3] * tau + 12 * b[4] * tau**2 + 20 * b[5] * tau**3
+                )
             elif (
                 k == self.n - 1
                 and hasattr(self, "quintic_coeffs")
@@ -485,7 +516,9 @@ class CubicSplineWithAcceleration2(CubicSpline):
             ):
                 # Use the second derivative of the quintic polynomial for the last segment
                 b = self.quintic_coeffs["last"]
-                result[i] = 2 * b[2] + 6 * b[3] * tau + 12 * b[4] * tau**2 + 20 * b[5] * tau**3
+                result[i] = (
+                    2 * b[2] + 6 * b[3] * tau + 12 * b[4] * tau**2 + 20 * b[5] * tau**3
+                )
             else:
                 # Use the second derivative of the cubic polynomial for other segments
                 a = self.coefficients[k]

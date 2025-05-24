@@ -16,11 +16,10 @@ import time
 from typing import Any
 
 import numpy as np
+import pytest
 from numpy.typing import NDArray
 
-import pytest
 from interpolatepy.tridiagonal_inv import solve_tridiagonal
-
 
 # Type alias for pytest benchmark fixture
 if not hasattr(pytest, "FixtureFunction"):
@@ -156,8 +155,8 @@ class TestTridiagonalSolver:
             Random seed for reproducibility
         """
         # Generate well-conditioned test case
-        lower_diag, main_diag, upper_diag, rhs, true_sol, matrix = self.generate_tridiagonal_system(
-            size, seed=seed
+        lower_diag, main_diag, upper_diag, rhs, true_sol, matrix = (
+            self.generate_tridiagonal_system(size, seed=seed)
         )
 
         # Solve using custom solver
@@ -171,7 +170,10 @@ class TestTridiagonalSolver:
             custom_solution, true_sol, rtol=self.REGULAR_RTOL, atol=self.REGULAR_ATOL
         )
         assert np.allclose(
-            custom_solution, numpy_solution, rtol=self.REGULAR_RTOL, atol=self.REGULAR_ATOL
+            custom_solution,
+            numpy_solution,
+            rtol=self.REGULAR_RTOL,
+            atol=self.REGULAR_ATOL,
         )
 
     @pytest.mark.parametrize("size", [4, 8, 16])
@@ -184,15 +186,17 @@ class TestTridiagonalSolver:
         size : int
             Size of the system to test
         """
-        lower_diag, main_diag, upper_diag, rhs, expected = self.get_analytical_tridiagonal_system(
-            size
+        lower_diag, main_diag, upper_diag, rhs, expected = (
+            self.get_analytical_tridiagonal_system(size)
         )
 
         # Solve with custom solver
         solution = solve_tridiagonal(lower_diag, main_diag, upper_diag, rhs)
 
         # Check against expected analytical solution
-        assert np.allclose(solution, expected, rtol=self.REGULAR_RTOL, atol=self.REGULAR_ATOL)
+        assert np.allclose(
+            solution, expected, rtol=self.REGULAR_RTOL, atol=self.REGULAR_ATOL
+        )
 
     def test_numerical_stability(self) -> None:
         """Test the solver's stability with ill-conditioned matrices."""
@@ -207,7 +211,10 @@ class TestTridiagonalSolver:
 
             # Check against true solution with more relaxed tolerances
             assert np.allclose(
-                custom_solution, true_sol, rtol=self.STABILITY_RTOL, atol=self.STABILITY_ATOL
+                custom_solution,
+                true_sol,
+                rtol=self.STABILITY_RTOL,
+                atol=self.STABILITY_ATOL,
             )
 
     def test_zero_pivot_raises_error(self) -> None:
@@ -265,7 +272,9 @@ class TestTridiagonalSolver:
             )
 
     @pytest.mark.parametrize("size", SIZES)
-    def test_custom_solver_benchmark(self, size: int, benchmark: pytest.FixtureFunction) -> None:
+    def test_custom_solver_benchmark(
+        self, size: int, benchmark: pytest.FixtureFunction
+    ) -> None:
         """
         Benchmark the custom tridiagonal solver.
 
@@ -277,16 +286,22 @@ class TestTridiagonalSolver:
             pytest-benchmark fixture for measuring performance
         """
         # Generate test case
-        lower_diag, main_diag, upper_diag, rhs, true_sol, _ = self.generate_tridiagonal_system(size)
+        lower_diag, main_diag, upper_diag, rhs, true_sol, _ = (
+            self.generate_tridiagonal_system(size)
+        )
 
         # Benchmark the custom solver
         result = benchmark(solve_tridiagonal, lower_diag, main_diag, upper_diag, rhs)
 
         # Verify result correctness
-        assert np.allclose(result, true_sol, rtol=self.REGULAR_RTOL, atol=self.REGULAR_ATOL)
+        assert np.allclose(
+            result, true_sol, rtol=self.REGULAR_RTOL, atol=self.REGULAR_ATOL
+        )
 
     @pytest.mark.parametrize("size", SIZES)
-    def test_numpy_solver_benchmark(self, size: int, benchmark: pytest.FixtureFunction) -> None:
+    def test_numpy_solver_benchmark(
+        self, size: int, benchmark: pytest.FixtureFunction
+    ) -> None:
         """
         Benchmark NumPy's general solver for comparison.
 
@@ -304,7 +319,9 @@ class TestTridiagonalSolver:
         result = benchmark(np.linalg.solve, matrix, rhs)
 
         # Verify result correctness
-        assert np.allclose(result, true_sol, rtol=self.REGULAR_RTOL, atol=self.REGULAR_ATOL)
+        assert np.allclose(
+            result, true_sol, rtol=self.REGULAR_RTOL, atol=self.REGULAR_ATOL
+        )
 
     def test_performance_scaling(self) -> None:
         """Analyze how solver performance scales with matrix size."""
@@ -314,8 +331,8 @@ class TestTridiagonalSolver:
 
         for size in sizes:
             # Generate test case
-            lower_diag, main_diag, upper_diag, rhs, _, matrix = self.generate_tridiagonal_system(
-                size
+            lower_diag, main_diag, upper_diag, rhs, _, matrix = (
+                self.generate_tridiagonal_system(size)
             )
 
             # Time the custom solver

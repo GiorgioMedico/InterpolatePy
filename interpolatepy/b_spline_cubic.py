@@ -259,7 +259,9 @@ class CubicBSplineInterpolation(BSpline):
             total_length = 0.0
             for k in range(1, n + 1):
                 total_length += (
-                    np.linalg.norm(self.interpolation_points[k] - self.interpolation_points[k - 1])
+                    np.linalg.norm(
+                        self.interpolation_points[k] - self.interpolation_points[k - 1]
+                    )
                     ** mu
                 )
 
@@ -410,7 +412,9 @@ class CubicBSplineInterpolation(BSpline):
                 # First row
                 main_diagonal[0] = b3_k1
                 upper_diagonal[0] = b3_k2
-                right_hand_side[0] = self.interpolation_points[k] - b3_k * control_points[1]
+                right_hand_side[0] = (
+                    self.interpolation_points[k] - b3_k * control_points[1]
+                )
             elif k == n - 1:
                 # Last row
                 lower_diagonal[k - 2] = b3_k

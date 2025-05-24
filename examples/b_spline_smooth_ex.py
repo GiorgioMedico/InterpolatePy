@@ -1,9 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
-from interpolatepy.b_spline_smooth import BSplineParams
-from interpolatepy.b_spline_smooth import SmoothingCubicBSpline
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
+
+from interpolatepy.b_spline_smooth import BSplineParams, SmoothingCubicBSpline
 
 
 def example_8_12() -> None:
@@ -13,7 +12,9 @@ def example_8_12() -> None:
     """
 
     # Define the points to approximate as given in the example
-    points = np.array([[0, 0, 0], [1, 2, 1], [2, 3, 0], [4, 3, 0], [5, 2, 2], [6, 0, 2]])
+    points = np.array(
+        [[0, 0, 0], [1, 2, 1], [2, 3, 0], [4, 3, 0], [5, 2, 2], [6, 0, 2]]
+    )
 
     # Initial and final tangent vectors as given in the example
     # v0 = np.array([4.43, 8.87, 4.43])

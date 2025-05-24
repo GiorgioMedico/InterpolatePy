@@ -4,7 +4,6 @@ import numpy as np
 
 from interpolatepy.b_spline import BSpline
 
-
 # Define constant to replace magic number
 EPSILON = 1e-10
 
@@ -87,7 +86,9 @@ class SmoothingCubicBSpline(BSpline):
         self.n_approximation_points = n_points
         self.dimension = dimension
         self.mu = np.clip(params.mu, 0.0, 1.0)  # Ensure mu is in [0, 1]
-        self.lambda_param = (1 - self.mu) / (6 * self.mu) if self.mu > 0 else float("inf")
+        self.lambda_param = (
+            (1 - self.mu) / (6 * self.mu) if self.mu > 0 else float("inf")
+        )
 
         # Set weights
         if params.weights is None:
@@ -231,7 +232,9 @@ class SmoothingCubicBSpline(BSpline):
             total_length = 0.0
             for k in range(1, n + 1):
                 total_length += (
-                    np.linalg.norm(self.approximation_points[k] - self.approximation_points[k - 1])
+                    np.linalg.norm(
+                        self.approximation_points[k] - self.approximation_points[k - 1]
+                    )
                     ** mu
                 )
 
@@ -239,7 +242,9 @@ class SmoothingCubicBSpline(BSpline):
             accumulated_length = 0.0
             for k in range(1, n):
                 accumulated_length += (
-                    np.linalg.norm(self.approximation_points[k] - self.approximation_points[k - 1])
+                    np.linalg.norm(
+                        self.approximation_points[k] - self.approximation_points[k - 1]
+                    )
                     ** mu
                 )
                 u_bars[k] = accumulated_length / total_length
@@ -385,7 +390,11 @@ class SmoothingCubicBSpline(BSpline):
                 uk5_k2 = self.knots[k5] - self.knots[k2]
 
                 # Avoid division by zero
-                if abs(uk4_k2) > EPSILON and abs(uk4_k1) > EPSILON and abs(uk5_k2) > EPSILON:
+                if (
+                    abs(uk4_k2) > EPSILON
+                    and abs(uk4_k1) > EPSILON
+                    and abs(uk5_k2) > EPSILON
+                ):
                     # c_k,1 coefficient (for p_k)
                     if k < size_p:
                         c_matrix[k, k] = 6 / (uk4_k2 * uk4_k1)
@@ -445,7 +454,9 @@ class SmoothingCubicBSpline(BSpline):
             print(f"Linear algebra error: {e}")
             # Fall back to least squares solution
             for d in range(self.dimension):
-                control_points[:, d] = np.linalg.lstsq(left_side, right_side[:, d], rcond=None)[0]
+                control_points[:, d] = np.linalg.lstsq(
+                    left_side, right_side[:, d], rcond=None
+                )[0]
             print("Using least squares solution instead of direct solve")
 
         return control_points
@@ -509,11 +520,15 @@ class SmoothingCubicBSpline(BSpline):
                 if span >= n:  # Basis function for pₙ₊₁ is non-zero
                     basis_idx = n + 1 - (span - self.degree)
                     if 0 <= basis_idx < len(basis_vals):
-                        q_reduced[k - 1] -= basis_vals[basis_idx] * control_points[n + 1]
+                        q_reduced[k - 1] -= (
+                            basis_vals[basis_idx] * control_points[n + 1]
+                        )
                 if span >= n + 1:  # Basis function for pₙ₊₂ is non-zero
                     basis_idx = n + 2 - (span - self.degree)
                     if 0 <= basis_idx < len(basis_vals):
-                        q_reduced[k - 1] -= basis_vals[basis_idx] * control_points[n + 2]
+                        q_reduced[k - 1] -= (
+                            basis_vals[basis_idx] * control_points[n + 2]
+                        )
 
                 # Fill B_reduced for interior control points p₂ to pₙ
                 for j in range(2, n + 1):
@@ -543,7 +558,8 @@ class SmoothingCubicBSpline(BSpline):
         pz[0] = c_matrix[0, 0] * control_points[0] + c_matrix[0, 1] * control_points[1]
         # Add terms for pₙ₊₁ and pₙ₊₂
         pz[n] = (
-            c_matrix[n, n + 1] * control_points[n + 1] + c_matrix[n, n + 2] * control_points[n + 2]
+            c_matrix[n, n + 1] * control_points[n + 1]
+            + c_matrix[n, n + 2] * control_points[n + 2]
         )
 
         # Calculate the CTAC term for reduced system
@@ -554,7 +570,9 @@ class SmoothingCubicBSpline(BSpline):
 
         # Solve the linear system for the interior control points
         # (BTW B + λ CTAC) P = BTW Q - λ CTAT*PZ
-        left_side = b_reduced.T @ w_reduced @ b_reduced + self.lambda_param * ctac_reduced
+        left_side = (
+            b_reduced.T @ w_reduced @ b_reduced + self.lambda_param * ctac_reduced
+        )
         right_side = b_reduced.T @ w_reduced @ q_reduced - self.lambda_param * ctat_pz
 
         try:
@@ -566,7 +584,9 @@ class SmoothingCubicBSpline(BSpline):
             print(f"Linear algebra error in reduced system: {e}")
             # Fall back to least squares solution
             for d in range(self.dimension):
-                interior_controls = np.linalg.lstsq(left_side, right_side[:, d], rcond=None)[0]
+                interior_controls = np.linalg.lstsq(
+                    left_side, right_side[:, d], rcond=None
+                )[0]
                 control_points[2 : n + 1, d] = interior_controls
             print("Using least squares solution for reduced system")
 

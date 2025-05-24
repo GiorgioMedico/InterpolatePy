@@ -4,7 +4,6 @@ from scipy.linalg import solve
 
 from interpolatepy.b_spline import BSpline
 
-
 CUBIC_DEGREE = 3
 QUARTIC_DEGREE = 4
 QUINTIC_DEGREE = 5
@@ -123,7 +122,9 @@ class BSplineInterpolator(BSpline):
         super().__init__(degree, knots, control_points)
 
     @staticmethod
-    def _create_knot_vector(degree: int, points: np.ndarray, times: np.ndarray) -> np.ndarray:
+    def _create_knot_vector(
+        degree: int, points: np.ndarray, times: np.ndarray
+    ) -> np.ndarray:
         """Create the knot vector based on the degree.
 
         - For odd degrees (3, 5): knots at interpolation points (eq. 4.42)
@@ -364,7 +365,9 @@ class BSplineInterpolator(BSpline):
                     f"Warning: The linear system is ill-conditioned "
                     f"(condition number: {condition_number:.2e})"
                 )
-                print("This may lead to numerical inaccuracies in the spline interpolation.")
+                print(
+                    "This may lead to numerical inaccuracies in the spline interpolation."
+                )
                 print(
                     "Consider adding more points, using a lower degree, "
                     "or adjusting the time distribution."
@@ -398,7 +401,9 @@ class BSplineInterpolator(BSpline):
             error_msg += f"(you provided {current_points}).\n"
 
             if self.cyclic:
-                error_msg += "When using cyclic conditions, you may need even more points.\n"
+                error_msg += (
+                    "When using cyclic conditions, you may need even more points.\n"
+                )
 
             if (
                 self.initial_velocity is not None
@@ -420,7 +425,10 @@ class BSplineInterpolator(BSpline):
             raise ValueError(error_msg) from e
 
     def plot_with_points(
-        self, num_points: int = 100, show_control_polygon: bool = True, ax: plt.Axes | None = None
+        self,
+        num_points: int = 100,
+        show_control_polygon: bool = True,
+        ax: plt.Axes | None = None,
     ) -> plt.Axes:
         """Plot the 2D B-spline curve along with the interpolation points.
 
@@ -444,10 +452,14 @@ class BSplineInterpolator(BSpline):
             If points are not 2D.
         """
         if self.interp_points.shape[1] != TWO_DIMENSIONAL:
-            raise ValueError(f"Points must be 2D for this plot, got {self.interp_points.shape[1]}D")
+            raise ValueError(
+                f"Points must be 2D for this plot, got {self.interp_points.shape[1]}D"
+            )
 
         # Plot the B-spline using the parent class method
-        ax = self.plot_2d(num_points=num_points, show_control_polygon=show_control_polygon, ax=ax)
+        ax = self.plot_2d(
+            num_points=num_points, show_control_polygon=show_control_polygon, ax=ax
+        )
 
         # Add interpolation points
         ax.plot(
@@ -461,13 +473,18 @@ class BSplineInterpolator(BSpline):
         # Add time labels if not too many points
         if len(self.interp_points) <= MAX_POINTS_FOR_LABELS:
             for i, (x, y) in enumerate(self.interp_points):
-                ax.text(x, y + 0.1, f"t={self.times[i]:.1f}", horizontalalignment="center")
+                ax.text(
+                    x, y + 0.1, f"t={self.times[i]:.1f}", horizontalalignment="center"
+                )
 
         ax.legend()
         return ax
 
     def plot_with_points_3d(
-        self, num_points: int = 100, show_control_polygon: bool = True, ax: plt.Axes | None = None
+        self,
+        num_points: int = 100,
+        show_control_polygon: bool = True,
+        ax: plt.Axes | None = None,
     ) -> plt.Axes:
         """Plot the 3D B-spline curve along with the interpolation points.
 
@@ -491,10 +508,14 @@ class BSplineInterpolator(BSpline):
             If points are not 3D.
         """
         if self.interp_points.shape[1] != THREE_DIMENSIONAL:
-            raise ValueError(f"Points must be 3D for this plot, got {self.interp_points.shape[1]}D")
+            raise ValueError(
+                f"Points must be 3D for this plot, got {self.interp_points.shape[1]}D"
+            )
 
         # Plot the B-spline using the parent class method
-        ax = self.plot_3d(num_points=num_points, show_control_polygon=show_control_polygon, ax=ax)
+        ax = self.plot_3d(
+            num_points=num_points, show_control_polygon=show_control_polygon, ax=ax
+        )
 
         # Add interpolation points
         ax.scatter(

@@ -4,7 +4,6 @@ from typing import NamedTuple
 
 import numpy as np
 
-
 # Constants to avoid magic numbers
 EPSILON = 1e-6  # Small value to avoid division by zero
 MIN_GAMMA = 0.01  # Lower bound for gamma in binary search
@@ -31,7 +30,10 @@ class TrajectoryBounds:
 
     def __post_init__(self) -> None:
         """Validate the bounds."""
-        if not all(isinstance(x, int | float) for x in [self.v_bound, self.a_bound, self.j_bound]):
+        if not all(
+            isinstance(x, int | float)
+            for x in [self.v_bound, self.a_bound, self.j_bound]
+        ):
             raise TypeError("All bounds must be numeric values")
 
         if self.v_bound <= 0 or self.a_bound <= 0 or self.j_bound <= 0:
@@ -86,7 +88,12 @@ class DoubleSTrajectory:
         # Input validation for state params
         if not all(
             isinstance(x, int | float)
-            for x in [state_params.q_0, state_params.q_1, state_params.v_0, state_params.v_1]
+            for x in [
+                state_params.q_0,
+                state_params.q_1,
+                state_params.v_0,
+                state_params.v_1,
+            ]
         ):
             raise TypeError("All state parameters must be numeric values")
 
@@ -95,7 +102,10 @@ class DoubleSTrajectory:
         self.bounds = bounds
 
         # Check if initial or final velocities exceed bounds
-        if abs(state_params.v_0) > bounds.v_bound or abs(state_params.v_1) > bounds.v_bound:
+        if (
+            abs(state_params.v_0) > bounds.v_bound
+            or abs(state_params.v_1) > bounds.v_bound
+        ):
             raise ValueError(
                 f"Initial or final velocities exceed the velocity bound of {bounds.v_bound}"
             )
@@ -159,21 +169,21 @@ class DoubleSTrajectory:
         self.v_1_transformed = self.sigma * vd_1
 
         # Set limits based on direction
-        self.v_max = (self.sigma + 1) / 2 * self.bounds.v_bound + (self.sigma - 1) / 2 * (
-            -self.bounds.v_bound
-        )
+        self.v_max = (self.sigma + 1) / 2 * self.bounds.v_bound + (
+            self.sigma - 1
+        ) / 2 * (-self.bounds.v_bound)
         self.v_min = (self.sigma + 1) / 2 * (-self.bounds.v_bound) + (
             self.sigma - 1
         ) / 2 * self.bounds.v_bound
-        self.a_max = (self.sigma + 1) / 2 * self.bounds.a_bound + (self.sigma - 1) / 2 * (
-            -self.bounds.a_bound
-        )
+        self.a_max = (self.sigma + 1) / 2 * self.bounds.a_bound + (
+            self.sigma - 1
+        ) / 2 * (-self.bounds.a_bound)
         self.a_min = (self.sigma + 1) / 2 * (-self.bounds.a_bound) + (
             self.sigma - 1
         ) / 2 * self.bounds.a_bound
-        self.j_max = (self.sigma + 1) / 2 * self.bounds.j_bound + (self.sigma - 1) / 2 * (
-            -self.bounds.j_bound
-        )
+        self.j_max = (self.sigma + 1) / 2 * self.bounds.j_bound + (
+            self.sigma - 1
+        ) / 2 * (-self.bounds.j_bound)
         self.j_min = (self.sigma + 1) / 2 * (-self.bounds.j_bound) + (
             self.sigma - 1
         ) / 2 * self.bounds.j_bound
@@ -249,12 +259,16 @@ class DoubleSTrajectory:
                     gamma_high = gamma_mid
                     continue
 
-                ta = (a_max_test**2 / self.j_max - 2 * self.v_0_transformed + np.sqrt(delta)) / (
-                    2 * a_max_test
-                )
-                td = (a_max_test**2 / self.j_max - 2 * self.v_1_transformed + np.sqrt(delta)) / (
-                    2 * a_max_test
-                )
+                ta = (
+                    a_max_test**2 / self.j_max
+                    - 2 * self.v_0_transformed
+                    + np.sqrt(delta)
+                ) / (2 * a_max_test)
+                td = (
+                    a_max_test**2 / self.j_max
+                    - 2 * self.v_1_transformed
+                    + np.sqrt(delta)
+                ) / (2 * a_max_test)
 
                 if ta < 0:
                     if (
@@ -271,16 +285,20 @@ class DoubleSTrajectory:
                         * (self.q_1_transformed - self.q_0_transformed)
                         / (self.v_1_transformed + self.v_0_transformed)
                     )
-                    tj_2_arg = self.j_max * (self.q_1_transformed - self.q_0_transformed) - np.sqrt(
+                    tj_2_arg = self.j_max * (
+                        self.q_1_transformed - self.q_0_transformed
+                    ) - np.sqrt(
                         self.j_max
                         * (
-                            self.j_max * (self.q_1_transformed - self.q_0_transformed) ** 2
+                            self.j_max
+                            * (self.q_1_transformed - self.q_0_transformed) ** 2
                             + (self.v_1_transformed + self.v_0_transformed) ** 2
                             * (self.v_1_transformed - self.v_0_transformed)
                         )
                     )
                     tj_2 = (
-                        tj_2_arg / (self.j_max * (self.v_1_transformed + self.v_0_transformed))
+                        tj_2_arg
+                        / (self.j_max * (self.v_1_transformed + self.v_0_transformed))
                         if abs(tj_2_arg) > EPSILON
                         else 0
                     )
@@ -299,16 +317,20 @@ class DoubleSTrajectory:
                         * (self.q_1_transformed - self.q_0_transformed)
                         / (self.v_1_transformed + self.v_0_transformed)
                     )
-                    tj_1_arg = self.j_max * (self.q_1_transformed - self.q_0_transformed) - np.sqrt(
+                    tj_1_arg = self.j_max * (
+                        self.q_1_transformed - self.q_0_transformed
+                    ) - np.sqrt(
                         self.j_max
                         * (
-                            self.j_max * (self.q_1_transformed - self.q_0_transformed) ** 2
+                            self.j_max
+                            * (self.q_1_transformed - self.q_0_transformed) ** 2
                             - (self.v_1_transformed + self.v_0_transformed) ** 2
                             * (self.v_1_transformed - self.v_0_transformed)
                         )
                     )
                     tj_1 = (
-                        tj_1_arg / (self.j_max * (self.v_1_transformed + self.v_0_transformed))
+                        tj_1_arg
+                        / (self.j_max * (self.v_1_transformed + self.v_0_transformed))
                         if abs(tj_1_arg) > EPSILON
                         else 0
                     )
@@ -462,7 +484,11 @@ class DoubleSTrajectory:
         # CONSTANT VELOCITY PHASE
         elif t <= (self.Ta + self.Tv) and self.Tv > 0:
             # t in [Ta, Ta+Tv]
-            q = q_0 + (self.v_lim + self.v_0_transformed) * self.Ta / 2 + self.v_lim * (t - self.Ta)
+            q = (
+                q_0
+                + (self.v_lim + self.v_0_transformed) * self.Ta / 2
+                + self.v_lim * (t - self.Ta)
+            )
             qp = self.v_lim
             qpp = 0
             qppp = 0
@@ -500,7 +526,11 @@ class DoubleSTrajectory:
 
         elif t <= self.T and self.Td > 0:
             # t in [Ta+Tv+(Td-Tj_2), T]
-            q = q_1 - self.v_1_transformed * (self.T - t) - self.j_max * (self.T - t) ** 3 / 6
+            q = (
+                q_1
+                - self.v_1_transformed * (self.T - t)
+                - self.j_max * (self.T - t) ** 3 / 6
+            )
             qp = self.v_1_transformed + self.j_max * (self.T - t) ** 2 / 2
             qpp = -self.j_max * (self.T - t)
             qppp = self.j_max

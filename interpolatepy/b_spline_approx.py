@@ -60,7 +60,9 @@ class ApproximationBSpline(BSpline):
         if num_control_points <= degree:
             raise ValueError("Number of control points must be greater than the degree")
         if len(points) <= num_control_points:
-            raise ValueError("Number of points must be greater than number of control points")
+            raise ValueError(
+                "Number of points must be greater than number of control points"
+            )
 
         # Store debug flag
         self.debug = debug
@@ -112,7 +114,9 @@ class ApproximationBSpline(BSpline):
             for i, cp in enumerate(control_points):
                 print(f"  P{i}: {cp}")
 
-    def _compute_parameters(self, points: np.ndarray, method: str = "chord_length") -> np.ndarray:
+    def _compute_parameters(
+        self, points: np.ndarray, method: str = "chord_length"
+    ) -> np.ndarray:
         """Calculate parameter values using one of three methods.
 
         Parameters
@@ -156,7 +160,10 @@ class ApproximationBSpline(BSpline):
 
             # Calculate parameters
             for k in range(1, n):
-                u_bar[k] = u_bar[k - 1] + np.linalg.norm(points[k] - points[k - 1]) / total_length
+                u_bar[k] = (
+                    u_bar[k - 1]
+                    + np.linalg.norm(points[k] - points[k - 1]) / total_length
+                )
 
         elif method == "centripetal":
             # Centripetal distribution
@@ -170,7 +177,8 @@ class ApproximationBSpline(BSpline):
             # Calculate parameters
             for k in range(1, n):
                 u_bar[k] = (
-                    u_bar[k - 1] + np.linalg.norm(points[k] - points[k - 1]) ** mu / total_length
+                    u_bar[k - 1]
+                    + np.linalg.norm(points[k] - points[k - 1]) ** mu / total_length
                 )
 
         else:
@@ -376,7 +384,9 @@ class ApproximationBSpline(BSpline):
             # Calculate the k-th row of matrix R
             # R_k = q_k - B_0^p(u_k)q_0 - B_m^p(u_k)q_m
             # This follows directly from the equation after (8.20) in the document
-            r_matrix[k - 1] = points[k] - all_basis[0] * points[0] - all_basis[m] * points[n]
+            r_matrix[k - 1] = (
+                points[k] - all_basis[0] * points[0] - all_basis[m] * points[n]
+            )
 
             if hasattr(self, "debug") and self.debug:
                 print(
@@ -444,7 +454,9 @@ class ApproximationBSpline(BSpline):
             internal_control_points = np.dot(np.linalg.pinv(btwb), btwr)
 
             if hasattr(self, "debug") and self.debug:
-                print("    Used np.linalg.pinv (matrix was singular or poorly conditioned)")
+                print(
+                    "    Used np.linalg.pinv (matrix was singular or poorly conditioned)"
+                )
 
         # Assign internal control points (p_1 to p_(m-1))
         control_points[1:m] = internal_control_points
@@ -540,5 +552,7 @@ class ApproximationBSpline(BSpline):
         # If we've reached max_control_points but error is still above threshold,
         # return the best approximation we have
         return ApproximationBSpline(
-            self.original_points, min(num_control_points, max_control_points), degree=self.degree
+            self.original_points,
+            min(num_control_points, max_control_points),
+            degree=self.degree,
         )

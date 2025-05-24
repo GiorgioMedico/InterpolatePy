@@ -4,7 +4,6 @@ from typing import ClassVar
 
 import numpy as np
 
-
 # Define constants for polynomial orders
 ORDER_3 = 3
 ORDER_5 = 5
@@ -305,7 +304,13 @@ class PolynomialTrajectory:
             )
 
             # Jerk
-            qddd = 6 * a3 + 24 * a4 * tau + 60 * a5 * tau**2 + 120 * a6 * tau**3 + 210 * a7 * tau**4
+            qddd = (
+                6 * a3
+                + 24 * a4 * tau
+                + 60 * a5 * tau**2
+                + 120 * a6 * tau**3
+                + 210 * a7 * tau**4
+            )
 
             return q, qd, qdd, qddd
 
@@ -336,7 +341,9 @@ class PolynomialTrajectory:
         velocities = [0.0] * n  # Initialize with zeros
 
         # Compute the slopes between consecutive points
-        slopes = [(points[i] - points[i - 1]) / (times[i] - times[i - 1]) for i in range(1, n)]
+        slopes = [
+            (points[i] - points[i - 1]) / (times[i] - times[i - 1]) for i in range(1, n)
+        ]
 
         # First and last velocities are set to 0 by default
         velocities[0] = 0.0
@@ -420,7 +427,9 @@ class PolynomialTrajectory:
             elif params.order == ORDER_7 and acc is not None and jrk is not None:
                 # 7th order trajectory
                 initial = BoundaryCondition(params.points[i], vel[i], acc[i], jrk[i])
-                final = BoundaryCondition(params.points[i + 1], vel[i + 1], acc[i + 1], jrk[i + 1])
+                final = BoundaryCondition(
+                    params.points[i + 1], vel[i + 1], acc[i + 1], jrk[i + 1]
+                )
                 segment = cls.order_7_trajectory(initial, final, time_interval)
 
             segments.append((segment, params.times[i], params.times[i + 1]))

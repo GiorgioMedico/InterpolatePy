@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 - Imported for type hinting
 
 
@@ -131,7 +130,9 @@ class BSpline:
 
         # Validate parameter range
         if u < self.u_min - self.eps or u > self.u_max + self.eps:
-            raise ValueError(f"Parameter u={u} outside valid range [{self.u_min}, {self.u_max}]")
+            raise ValueError(
+                f"Parameter u={u} outside valid range [{self.u_min}, {self.u_max}]"
+            )
 
         # Clamp parameter to valid range to handle numerical issues
         u = np.clip(u, self.u_min, self.u_max)
@@ -252,7 +253,9 @@ class BSpline:
 
         return point
 
-    def basis_function_derivatives(self, u: float, span_index: int, order: int) -> np.ndarray:
+    def basis_function_derivatives(
+        self, u: float, span_index: int, order: int
+    ) -> np.ndarray:
         """
         Calculate derivatives of basis functions up to the specified order.
 
@@ -375,7 +378,9 @@ class BSpline:
             If the order is greater than the degree of the B-spline.
         """
         if order > self.degree:
-            raise ValueError(f"Derivative order {order} exceeds B-spline degree {self.degree}")
+            raise ValueError(
+                f"Derivative order {order} exceeds B-spline degree {self.degree}"
+            )
 
         if order == 0:
             return self.evaluate(u)
@@ -402,7 +407,9 @@ class BSpline:
 
         return derivative
 
-    def generate_curve_points(self, num_points: int = 100) -> tuple[np.ndarray, np.ndarray]:
+    def generate_curve_points(
+        self, num_points: int = 100
+    ) -> tuple[np.ndarray, np.ndarray]:
         """
         Generate points along the B-spline curve for visualization.
 
@@ -478,7 +485,11 @@ class BSpline:
             )
 
         # Default styles
-        default_curve_style = {"color": "blue", "linewidth": 2, "label": "B-spline curve"}
+        default_curve_style = {
+            "color": "blue",
+            "linewidth": 2,
+            "label": "B-spline curve",
+        }
         default_control_style = {
             "color": "red",
             "linestyle": "--",
@@ -506,7 +517,11 @@ class BSpline:
 
         # Plot the control points and polygon if requested
         if show_control_polygon:
-            ax.plot(self.control_points[:, 0], self.control_points[:, 1], **default_control_style)
+            ax.plot(
+                self.control_points[:, 0],
+                self.control_points[:, 1],
+                **default_control_style,
+            )
 
         # Plot the knot points if requested
         if show_knots:
@@ -564,7 +579,11 @@ class BSpline:
             )
 
         # Default styles
-        default_curve_style = {"color": "blue", "linewidth": 2, "label": "B-spline curve"}
+        default_curve_style = {
+            "color": "blue",
+            "linewidth": 2,
+            "label": "B-spline curve",
+        }
         default_control_style = {
             "color": "red",
             "linestyle": "--",
@@ -583,7 +602,12 @@ class BSpline:
         _, curve_points = self.generate_curve_points(num_points)
 
         # Plot the curve
-        ax.plot(curve_points[:, 0], curve_points[:, 1], curve_points[:, 2], **default_curve_style)
+        ax.plot(
+            curve_points[:, 0],
+            curve_points[:, 1],
+            curve_points[:, 2],
+            **default_curve_style,
+        )
 
         # Plot the control points and polygon if requested
         if show_control_polygon:
@@ -605,7 +629,10 @@ class BSpline:
 
     @staticmethod
     def create_uniform_knots(
-        degree: int, num_control_points: int, domain_min: float = 0.0, domain_max: float = 1.0
+        degree: int,
+        num_control_points: int,
+        domain_min: float = 0.0,
+        domain_max: float = 1.0,
     ) -> np.ndarray:
         """
         Create a uniform knot vector for a B-spline with appropriate
@@ -664,7 +691,10 @@ class BSpline:
 
     @staticmethod
     def create_periodic_knots(
-        degree: int, num_control_points: int, domain_min: float = 0.0, domain_max: float = 1.0
+        degree: int,
+        num_control_points: int,
+        domain_min: float = 0.0,
+        domain_max: float = 1.0,
     ) -> np.ndarray:
         """
         Create a periodic (uniform) knot vector for a B-spline.

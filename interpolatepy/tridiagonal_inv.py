@@ -79,7 +79,9 @@ def solve_tridiagonal(
 
     # Check for zero pivot
     if b_copy[0] == 0:
-        raise ValueError("Pivot cannot be zero. The system cannot be solved with this method.")
+        raise ValueError(
+            "Pivot cannot be zero. The system cannot be solved with this method."
+        )
 
     # Forward elimination
     for k in range(1, n):

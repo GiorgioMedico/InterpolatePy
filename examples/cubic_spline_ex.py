@@ -1,6 +1,5 @@
 from interpolatepy.cubic_spline import CubicSpline
 
-
 # Example usage
 if __name__ == "__main__":
     # Define waypoints

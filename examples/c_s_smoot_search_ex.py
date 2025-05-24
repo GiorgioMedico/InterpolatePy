@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from interpolatepy.c_s_smoot_search import SplineConfig
-from interpolatepy.c_s_smoot_search import smoothing_spline_with_tolerance
+from interpolatepy.c_s_smoot_search import SplineConfig, smoothing_spline_with_tolerance
 from interpolatepy.c_s_smoothing import CubicSmoothingSpline
 
 
@@ -57,7 +56,11 @@ def example_prescribed_tolerance() -> list[CubicSmoothingSpline]:
 
         # Velocity
         ax2.plot(
-            t_eval, spline.evaluate_velocity(t_eval), line_styles[i], color=colors[i], linewidth=2
+            t_eval,
+            spline.evaluate_velocity(t_eval),
+            line_styles[i],
+            color=colors[i],
+            linewidth=2,
         )
 
         # Acceleration
