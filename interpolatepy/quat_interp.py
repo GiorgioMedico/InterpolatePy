@@ -1,17 +1,13 @@
-import os
 from collections import OrderedDict
 from typing import Union
 
-import matplotlib.pyplot as plt
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 
 
 class Quaternion:  # noqa: PLR0904
     """
-    Complete Quaternion class implementing all ROBOOP library functions.
 
-    This class implements all quaternion operations from the ROBOOP library including:
+    This class implements all quaternion operations :
     - Basic quaternion arithmetic and operations
     - Quaternion dynamics (time derivatives, integration)
     - Spherical linear interpolation (Slerp)
@@ -63,7 +59,6 @@ class Quaternion:  # noqa: PLR0904
     def from_angle_axis(cls, angle: float, axis: np.ndarray) -> "Quaternion":
         """
         Create quaternion from rotation angle and axis.
-        Implements ROBOOP constructor: Quaternion(const Real angle, const ColumnVector & axis)
 
         Args:
             angle: Rotation angle in radians
@@ -95,7 +90,6 @@ class Quaternion:  # noqa: PLR0904
     def from_rotation_matrix(cls, rotation_matrix: np.ndarray) -> "Quaternion":
         """
         Create quaternion from 3x3 or 4x4 rotation matrix.
-        Implements ROBOOP constructor: Quaternion(const Matrix & R)
         """
         if rotation_matrix.shape not in {(3, 3), (4, 4)}:
             raise ValueError("Quaternion::Quaternion: matrix input is not 3x3 or 4x4")
@@ -104,7 +98,6 @@ class Quaternion:  # noqa: PLR0904
         if rotation_matrix.shape == (4, 4):
             rotation_matrix = rotation_matrix[:3, :3]
 
-        # Follow ROBOOP algorithm exactly
         tmp = abs(
             rotation_matrix[0, 0] + rotation_matrix[1, 1] + rotation_matrix[2, 2] + 1
         )
@@ -167,21 +160,18 @@ class Quaternion:  # noqa: PLR0904
     def __add__(self, other: "Quaternion") -> "Quaternion":
         """
         Quaternion addition: q1 + q2 = [s1+s2, v1+v2]
-        Implements ROBOOP: Quaternion operator+(const Quaternion & rhs)const
         """
         return Quaternion(self.s_ + other.s_, *(self.v_ + other.v_))
 
     def __sub__(self, other: "Quaternion") -> "Quaternion":
         """
         Quaternion subtraction: q1 - q2 = [s1-s2, v1-v2]
-        Implements ROBOOP: Quaternion operator-(const Quaternion & rhs)const
         """
         return Quaternion(self.s_ - other.s_, *(self.v_ - other.v_))
 
     def __mul__(self, other: Union["Quaternion", float]) -> "Quaternion":
         """
         Quaternion multiplication or scalar multiplication.
-        Implements ROBOOP: Quaternion operator*(const Quaternion & rhs)const
         """
         if isinstance(other, Quaternion):
             # Quaternion multiplication: q = q1q2 = [s1s2 - v1·v2, v1 cross v2 + s1v2 + s2v1]
@@ -194,14 +184,12 @@ class Quaternion:  # noqa: PLR0904
     def __rmul__(self, scalar: float) -> "Quaternion":
         """
         Right scalar multiplication: c * q
-        Implements ROBOOP: operator*(const Real c, const Quaternion & q)
         """
         return Quaternion(self.s_ * scalar, *(self.v_ * scalar))
 
     def __truediv__(self, other: Union["Quaternion", float]) -> "Quaternion":
         """
         Quaternion division or scalar division.
-        Implements ROBOOP: Quaternion operator/(const Quaternion & rhs)const
         """
         if isinstance(other, Quaternion):
             return self * other.i()
@@ -216,14 +204,12 @@ class Quaternion:  # noqa: PLR0904
     def conjugate(self) -> "Quaternion":
         """
         Quaternion conjugate: q* = [s, -v]
-        Implements ROBOOP: Quaternion conjugate()const
         """
         return Quaternion(self.s_, *(-self.v_))
 
     def norm(self) -> float:
         """
         Quaternion norm: ||q|| = sqrt(s² + v·v)
-        Implements ROBOOP: Real norm()const
         """
         return np.sqrt(self.s_**2 + np.dot(self.v_, self.v_))
 
@@ -234,8 +220,7 @@ class Quaternion:  # noqa: PLR0904
     def unit(self) -> "Quaternion":
         """
         Normalize quaternion to unit length.
-        Implements ROBOOP: Quaternion & unit() - returns new quaternion instead of
-        modifying in place
+
         """
         tmp = self.norm()
         if tmp > self.EPSILON:
@@ -245,7 +230,6 @@ class Quaternion:  # noqa: PLR0904
     def i(self) -> "Quaternion":
         """
         Quaternion inverse: q^(-1) = q*/||q||²
-        Implements ROBOOP: Quaternion i()const
         """
         return self.conjugate() / self.norm_squared()
 
@@ -256,7 +240,6 @@ class Quaternion:  # noqa: PLR0904
     def exp(self) -> "Quaternion":
         """
         Quaternion exponential.
-        Implements ROBOOP: Quaternion exp() const
 
         For q = [0, θv], exp(q) = [cos(θ), v*sin(θ)]
         """
@@ -275,7 +258,6 @@ class Quaternion:  # noqa: PLR0904
     def Log(self) -> "Quaternion":  # noqa: N802
         """
         Quaternion logarithm for unit quaternions.
-        Implements ROBOOP: Quaternion Log()const
 
         For unit q = [cos(θ), v*sin(θ)], log(q) = [0, v*θ]
         """
@@ -294,14 +276,12 @@ class Quaternion:  # noqa: PLR0904
     def power(self, t: float) -> "Quaternion":
         """
         Quaternion power: q^t = exp(t * log(q))
-        Implements ROBOOP: Quaternion power(const Real t) const
         """
         return (self.Log() * t).exp()
 
     def dot_prod(self, other: "Quaternion") -> float:
         """
         Quaternion dot product: q1·q2 = s1*s2 + v1·v2
-        Implements ROBOOP: Real dot_prod(const Quaternion & q)const
         """
         return self.s_ * other.s_ + np.dot(self.v_, other.v_)
 
@@ -314,7 +294,6 @@ class Quaternion:  # noqa: PLR0904
     def dot(self, w: np.ndarray, sign: int) -> "Quaternion":
         """
         Quaternion time derivative.
-        Implements ROBOOP: Quaternion dot(const ColumnVector & w, const short sign)const
 
         The quaternion time derivative (quaternion propagation equation):
         ṡ = -½v^T*w₀
@@ -342,7 +321,6 @@ class Quaternion:  # noqa: PLR0904
     def E(self, sign: int) -> np.ndarray:  # noqa: N802
         """
         Matrix E for quaternion dynamics.
-        Implements ROBOOP: ReturnMatrix E(const short sign)const
 
         E = sI - S(v) for BASE_FRAME (sign=0)
         E = sI + S(v) for BODY_FRAME (sign=1)
@@ -371,7 +349,6 @@ class Quaternion:  # noqa: PLR0904
     def Omega(q: "Quaternion", q_dot: "Quaternion") -> np.ndarray:  # noqa: N802
         """
         Return angular velocity from quaternion and its time derivative.
-        Implements ROBOOP: ReturnMatrix Omega(const Quaternion & q, const Quaternion & q_dot)
 
         Solves: q̇ = ½E*ω for ω
         """
@@ -401,8 +378,6 @@ class Quaternion:  # noqa: PLR0904
     ) -> tuple["Quaternion", "Quaternion", "Quaternion", int]:
         """
         Trapezoidal quaternion integration.
-        Implements ROBOOP: short Integ_quat(Quaternion & dquat_present, Quaternion & dquat_past,
-                                           Quaternion & quat, const Real dt)
 
         Returns: (updated_quat, updated_dquat_present, updated_dquat_past, status)
         """
@@ -436,8 +411,7 @@ class Quaternion:  # noqa: PLR0904
     ) -> float:
         """
         Trapezoidal quaternion scalar part integration.
-        Implements ROBOOP: Real integ_trap_quat_s(const Quaternion & present, Quaternion & past,
-                                                  const Real dt)
+
         """
         return 0.5 * (present.s_ + past.s_) * dt
 
@@ -447,8 +421,7 @@ class Quaternion:  # noqa: PLR0904
     ) -> np.ndarray:
         """
         Trapezoidal quaternion vector part integration.
-        Implements ROBOOP: ReturnMatrix integ_trap_quat_v(const Quaternion & present,
-                                                          Quaternion & past, const Real dt)
+
         """
         return 0.5 * (present.v_ + past.v_) * dt
 
@@ -457,7 +430,6 @@ class Quaternion:  # noqa: PLR0904
     def R(self) -> np.ndarray:  # noqa: N802
         """
         Rotation matrix from unit quaternion.
-        Implements ROBOOP: ReturnMatrix R()const
 
         R = (s² - v·v)I + 2vv^T + 2s*S(v)
         """
@@ -491,7 +463,6 @@ class Quaternion:  # noqa: PLR0904
     def T(self) -> np.ndarray:  # noqa: N802
         """
         Transformation matrix from quaternion.
-        Implements ROBOOP: ReturnMatrix T()const
         """
         transformation_matrix = np.eye(4)
         transformation_matrix[:3, :3] = self.R()
@@ -541,8 +512,7 @@ class Quaternion:  # noqa: PLR0904
     def slerp(self, other: "Quaternion", t: float) -> "Quaternion":
         """
         Spherical Linear Interpolation (Slerp).
-        Implements ROBOOP: Quaternion Slerp(const Quaternion & q0, const Quaternion & q1,
-                                           const Real t)
+
         """
         if t < 0 or t > 1:
             print("Slerp(q0, q1, t): t < 0 or t > 1. t is set to 0.")
@@ -560,14 +530,12 @@ class Quaternion:  # noqa: PLR0904
 
     @staticmethod
     def Slerp(q0: "Quaternion", q1: "Quaternion", t: float) -> "Quaternion":  # noqa: N802
-        """Static version of slerp - implements ROBOOP interface exactly"""
         return q0.slerp(q1, t)
 
     def slerp_prime(self, other: "Quaternion", t: float) -> "Quaternion":
         """
         Spherical Linear Interpolation derivative.
-        Implements ROBOOP: Quaternion Slerp_prime(const Quaternion & q0, const Quaternion & q1,
-                                                  const Real t)
+
         """
         if t < 0 or t > 1:
             print("Slerp_prime(q0, q1, t): t < 0 or t > 1. t is set to 0.")
@@ -588,8 +556,7 @@ class Quaternion:  # noqa: PLR0904
     ) -> "Quaternion":
         """
         Spherical Cubic Interpolation (Squad).
-        Implements ROBOOP: Quaternion Squad(const Quaternion & p, const Quaternion & a,
-                                           const Quaternion & b, const Quaternion & q, const Real t)
+
         """
         if t < 0 or t > 1:
             print("Squad(p,a,b,q, t): t < 0 or t > 1. t is set to 0.")
@@ -605,9 +572,7 @@ class Quaternion:  # noqa: PLR0904
     ) -> "Quaternion":
         """
         Spherical Cubic Interpolation derivative.
-        Implements ROBOOP: Quaternion Squad_prime(const Quaternion & p, const Quaternion & a,
-                                                 const Quaternion & b, const Quaternion & q,
-                                                 const Real t)
+
         """
         if t < 0 or t > 1:
             print("Squad_prime(p,a,b,q, t): t < 0 or t > 1. t is set to 0.")
@@ -640,15 +605,12 @@ class Quaternion:  # noqa: PLR0904
     # ==================== PROPERTIES AND UTILITIES ====================
 
     def s(self) -> float:
-        """Get scalar part - implements ROBOOP interface"""
         return self.s_
 
     def v(self) -> np.ndarray:
-        """Get vector part - implements ROBOOP interface"""
         return self.v_.copy()
 
     def set_s(self, s: float) -> None:
-        """Set scalar part - implements ROBOOP interface"""
         self.s_ = float(s)
 
     def _validate_vector_dimension(self, v: np.ndarray) -> None:
@@ -657,7 +619,6 @@ class Quaternion:  # noqa: PLR0904
             raise ValueError("Quaternion::set_v: input has a wrong size.")
 
     def set_v(self, v: np.ndarray) -> None:
-        """Set vector part - implements ROBOOP interface"""
         self._validate_vector_dimension(v)
         self.v_ = np.array(v, dtype=float)
 
@@ -704,54 +665,16 @@ class Quaternion:  # noqa: PLR0904
             self.v_, other.v_, atol=self.EPSILON
         )
 
-    # ==================== VISUALIZATION METHODS ====================
-
-    def plot_on_sphere(
-        self,
-        ax: plt.Axes | None = None,
-        color: str = "red",
-        size: int = 100,
-        label: str = "",
-    ) -> plt.Axes:
-        """Plot quaternion as point on unit sphere"""
-        if ax is None:
-            fig = plt.figure(figsize=(10, 8))
-            ax = fig.add_subplot(111, projection="3d")
-
-        q_norm = self.unit()
-        ax.scatter(
-            q_norm.v_[0],
-            q_norm.v_[1],
-            q_norm.v_[2],
-            color=color,
-            s=size,
-            label=label,
-            alpha=0.8,
-        )
-        return ax
-
-    @staticmethod
-    def create_sphere_wireframe(ax: plt.Axes, alpha: float = 0.1) -> None:
-        """Add wireframe sphere to the plot"""
-        u = np.linspace(0, 2 * np.pi, 20)
-        v = np.linspace(0, np.pi, 20)
-        x = np.outer(np.cos(u), np.sin(v))
-        y = np.outer(np.sin(u), np.sin(v))
-        z = np.outer(np.ones(np.size(u)), np.cos(v))
-        ax.plot_wireframe(x, y, z, alpha=alpha, color="gray")
-
 
 class QuaternionSpline:
     """
     Quaternion spline interpolation with file I/O capabilities.
-    Implements ROBOOP's Spl_Quaternion class functionality.
     """
 
     def __init__(
         self,
         time_points: list[float] | None = None,
         quaternions: list[Quaternion] | None = None,
-        filename: str | None = None,
     ) -> None:
         """
         Initialize quaternion spline.
@@ -764,9 +687,7 @@ class QuaternionSpline:
         self.quat_data: dict[float, Quaternion] = {}
         self.intermediate_quaternions: dict[float, Quaternion] = {}
 
-        if filename is not None:
-            self._load_from_file(filename)
-        elif time_points is not None and quaternions is not None:
+        if time_points is not None and quaternions is not None:
             QuaternionSpline._validate_input_data(time_points, quaternions)
             # Create ordered dictionary
             sorted_data = sorted(zip(time_points, quaternions))
@@ -815,80 +736,6 @@ class QuaternionSpline:
         if type_line not in {"R", "Q"}:
             raise ValueError(f"Unknown type '{type_line}', expected 'R' or 'Q'")
 
-    def _load_from_file(self, filename: str) -> None:
-        """
-        Load quaternion spline data from file.
-        Implements ROBOOP: Spl_Quaternion(const string & filename)
-
-        File format examples:
-        # Comments start with #
-        0
-        R
-        1.000000 0.000000 0.000000 0.000000 -1.000000 0.000000 0.000000 -0.000000 -1.000000
-        0.5
-        Q
-        0.999943 0.008696 -0.006149 0.058659
-        """
-        if not os.path.exists(filename):
-            raise FileNotFoundError(
-                f"Spl_Quaternion::Spl_Quaternion: can not open file {filename}"
-            )
-
-        self.quat_data = OrderedDict()
-
-        with open(filename, encoding="utf-8") as file:
-            lines = file.readlines()
-
-        i = 0
-        while i < len(lines):
-            line = lines[i].strip()
-
-            # Skip comments and empty lines
-            if line.startswith("#") or not line:
-                i += 1
-                continue
-
-            try:
-                # Parse time
-                time = float(line)
-                i += 1
-
-                if i >= len(lines):
-                    break
-
-                # Parse type (R for rotation matrix, Q for quaternion)
-                type_line = lines[i].strip().upper()
-                i += 1
-
-                if i >= len(lines):
-                    break
-
-                # Parse data
-                data_line = lines[i].strip()
-                values = list(map(float, data_line.split()))
-                i += 1
-
-                if type_line == "R":
-                    # Rotation matrix (9 elements)
-                    QuaternionSpline._validate_rotation_matrix_values(values)
-                    rotation_matrix = np.array(values).reshape(3, 3)
-                    q = Quaternion.from_rotation_matrix(rotation_matrix)
-                elif type_line == "Q":
-                    # Quaternion (4 elements: w, x, y, z)
-                    QuaternionSpline._validate_quaternion_values(values)
-                    q = Quaternion(values[0], values[1], values[2], values[3])
-                else:
-                    QuaternionSpline._validate_type_line(type_line)
-
-                self.quat_data[time] = q
-
-            except (ValueError, IndexError) as e:
-                print(
-                    f"Spl_Quaternion::Spl_Quaternion: format of input file {filename} is incorrect"
-                )
-                print(f"Error at line {i}: {e}")
-                raise
-
     def _compute_intermediate_quaternions(self) -> None:
         """Precompute intermediate quaternions for smooth Squad interpolation"""
         times = list(self.quat_data.keys())
@@ -911,7 +758,6 @@ class QuaternionSpline:
     def quat(self, t: float) -> tuple[Quaternion, int]:
         """
         Quaternion interpolation.
-        Implements ROBOOP: short quat(const Real t, Quaternion & s)
 
         Returns: (interpolated_quaternion, status_code)
         """
@@ -952,7 +798,6 @@ class QuaternionSpline:
     def quat_w(self, t: float) -> tuple[Quaternion, np.ndarray, int]:
         """
         Quaternion interpolation and angular velocity.
-        Implements ROBOOP: short quat_w(const Real t, Quaternion & s, ColumnVector & w)
 
         Returns: (interpolated_quaternion, angular_velocity, status_code)
         """
@@ -982,104 +827,3 @@ class QuaternionSpline:
         """Get the time range of the spline"""
         times = list(self.quat_data.keys())
         return times[0], times[-1]
-
-    def save_to_file(self, filename: str, format_type: str = "Q") -> None:
-        """
-        Save quaternion spline to file.
-
-        Args:
-            filename: Output file name
-            format_type: 'Q' for quaternion format, 'R' for rotation matrix format
-        """
-        with open(filename, "w", encoding="utf-8") as f:
-            f.write("# Quaternion spline data\n")
-            f.write("# Format: time, type, data\n")
-            f.write("#\n")
-
-            for time, quat in self.quat_data.items():
-                f.write(f"{time}\n")
-                f.write(f"{format_type}\n")
-
-                if format_type.upper() == "Q":
-                    f.write(f"{quat.s_} {quat.v_[0]} {quat.v_[1]} {quat.v_[2]}\n")
-                elif format_type.upper() == "R":
-                    rotation_matrix = quat.R()
-                    f.write(
-                        " ".join(
-                            [
-                                f"{rotation_matrix[i, j]}"
-                                for i in range(3)
-                                for j in range(3)
-                            ]
-                        )
-                        + "\n"
-                    )
-
-    def plot_spline(
-        self,
-        num_samples: int = 100,
-        ax: plt.Axes | None = None,
-        show_control_points: bool = True,
-        show_sphere: bool = True,
-        title: str = "Quaternion Spline",
-    ) -> plt.Figure:
-        """Visualize the quaternion spline"""
-        if ax is None:
-            fig = plt.figure(figsize=(12, 10))
-            ax = fig.add_subplot(111, projection="3d")
-        else:
-            fig = ax.figure
-
-        # Sample the spline
-        times = list(self.quat_data.keys())
-        t_start, t_end = times[0], times[-1]
-        t_samples = np.linspace(t_start, t_end, num_samples)
-
-        path_points = []
-        for t in t_samples:
-            q, _ = self.quat(t)
-            path_points.append(q.unit().v_)
-
-        path_points_array = np.array(path_points)
-
-        # Plot spline curve
-        ax.plot(
-            path_points_array[:, 0],
-            path_points_array[:, 1],
-            path_points_array[:, 2],
-            "b-",
-            linewidth=3,
-            alpha=0.8,
-            label="Spline curve",
-        )
-
-        # Plot control points
-        if show_control_points:
-            control_points = np.array([q.unit().v_ for q in self.quat_data.values()])
-            ax.scatter(
-                control_points[:, 0],
-                control_points[:, 1],
-                control_points[:, 2],
-                color="red",
-                s=150,
-                alpha=0.9,
-                label="Control points",
-                zorder=5,
-            )
-
-            # Add time labels
-            for t, q in self.quat_data.items():
-                pos = q.unit().v_
-                ax.text(pos[0], pos[1], pos[2], f"t={t:.2f}", fontsize=8)
-
-        if show_sphere:
-            Quaternion.create_sphere_wireframe(ax)
-
-        ax.set_xlabel("X")
-        ax.set_ylabel("Y")
-        ax.set_zlabel("Z")
-        ax.set_title(title)
-        ax.legend()
-        ax.set_box_aspect([1, 1, 1])
-
-        return fig

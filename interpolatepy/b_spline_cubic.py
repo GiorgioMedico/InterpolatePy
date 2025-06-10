@@ -142,6 +142,7 @@ class CubicBSplineInterpolation(BSpline):
                 v0 = v0.astype(np.float64)
 
             # Ensure correct shape
+            assert isinstance(v0, np.ndarray)  # Help mypy understand v0 is an ndarray
             if v0.ndim == 0:  # scalar
                 self.v0 = np.zeros(dimension, dtype=np.float64)
             elif v0.ndim == 1 and len(v0) == dimension:
@@ -168,6 +169,7 @@ class CubicBSplineInterpolation(BSpline):
                 vn = vn.astype(np.float64)
 
             # Ensure correct shape
+            assert isinstance(vn, np.ndarray)  # Help mypy understand vn is an ndarray
             if vn.ndim == 0:  # scalar
                 self.vn = np.zeros(dimension, dtype=np.float64)
             elif vn.ndim == 1 and len(vn) == dimension:
