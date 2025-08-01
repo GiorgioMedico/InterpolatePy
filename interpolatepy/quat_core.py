@@ -1,45 +1,36 @@
-from collections import OrderedDict
 from typing import Union
 
 import numpy as np
 
 
-class Quaternion:  # noqa: PLR0904
+class Quaternion:
     """
-    Comprehensive quaternion class that implements:
+    Core quaternion class that implements:
     - Basic quaternion arithmetic and operations
     - Quaternion dynamics (time derivatives, integration)
     - Spherical linear interpolation (Slerp)
     - Spherical cubic interpolation (Squad)
-    - Quaternion splines with interpolation capabilities
-    - 3D visualization capabilities
+    - Matrix conversions and utilities
 
     A quaternion is represented as q = [s, v] where:
     - s is the scalar part (w component)
     - v is the vector part [v1, v2, v3] (x, y, z components)
 
-    Example usage for spline interpolation:
+    Example usage:
         # Create quaternions
         q1 = Quaternion.identity()
         q2 = Quaternion.from_euler_angles(0.1, 0.2, 0.3)
-        q3 = Quaternion.from_euler_angles(0.2, 0.4, 0.6)
-        q4 = Quaternion.identity()
 
-        # Create spline with SLERP interpolation
-        spline_slerp = Quaternion.from_spline([0, 1, 2, 3], [q1, q2, q3, q4], Quaternion.SLERP)
+        # Basic operations
+        q3 = q1 * q2
+        q_normalized = q3.unit()
 
-        # Create spline with SQUAD interpolation
-        spline_squad = Quaternion.from_spline([0, 1, 2, 3], [q1, q2, q3, q4], Quaternion.SQUAD)
+        # Interpolation
+        q_interp = q1.slerp(q2, 0.5)
 
-        # Interpolate at specific time
-        result, status = spline_slerp.interpolate_at_time(1.5)
-
-        # Change interpolation method
-        spline_slerp.set_interpolation_method(Quaternion.SQUAD)
-
-        # Force specific interpolation regardless of setting
-        slerp_result, _ = spline_squad.interpolate_slerp(1.5)
-        squad_result, _ = spline_slerp.interpolate_squad(1.5)
+        # Conversions
+        rotation_matrix = q2.R()
+        roll, pitch, yaw = q2.to_euler_angles()
     """
 
     EPSILON = 1e-7
@@ -59,9 +50,7 @@ class Quaternion:  # noqa: PLR0904
     MIN_INTERPOLATION_POINTS = 2
     INTEGRATION_TIME_TOLERANCE = 0.01
 
-    def __init__(
-        self, s: float = 1.0, v1: float = 0.0, v2: float = 0.0, v3: float = 0.0
-    ) -> None:
+    def __init__(self, s: float = 1.0, v1: float = 0.0, v2: float = 0.0, v3: float = 0.0) -> None:
         """
         Initialize quaternion with scalar and vector components.
         Default constructor creates identity quaternion [1, 0, 0, 0].
@@ -74,11 +63,6 @@ class Quaternion:  # noqa: PLR0904
         """
         self.s_ = float(s)
         self.v_ = np.array([float(v1), float(v2), float(v3)])
-
-        # Spline data - only used when this quaternion instance represents a spline
-        self.quat_data: dict[float, Quaternion] = {}
-        self.intermediate_quaternions: dict[float, Quaternion] = {}
-        self.interpolation_method: str = self.AUTO
 
     # ==================== CONSTRUCTORS AND FACTORY METHODS ====================
 
@@ -130,9 +114,7 @@ class Quaternion:  # noqa: PLR0904
         if rotation_matrix.shape == (4, 4):
             rotation_matrix = rotation_matrix[:3, :3]
 
-        tmp = abs(
-            rotation_matrix[0, 0] + rotation_matrix[1, 1] + rotation_matrix[2, 2] + 1
-        )
+        tmp = abs(rotation_matrix[0, 0] + rotation_matrix[1, 1] + rotation_matrix[2, 2] + 1)
         s = 0.5 * np.sqrt(tmp)
 
         if s > cls.EPSILON:
@@ -153,10 +135,7 @@ class Quaternion:  # noqa: PLR0904
             k = s_i_next[j]
 
             f_root = np.sqrt(
-                rotation_matrix[i, i]
-                - rotation_matrix[j, j]
-                - rotation_matrix[k, k]
-                + 1.0
+                rotation_matrix[i, i] - rotation_matrix[j, j] - rotation_matrix[k, k] + 1.0
             )
 
             v = np.zeros(3)
@@ -186,31 +165,6 @@ class Quaternion:  # noqa: PLR0904
         v3 = cr * cp * sy - sr * sp * cy
 
         return cls(s, v1, v2, v3)
-
-    @classmethod
-    def from_spline(
-        cls,
-        time_points: list[float],
-        quaternions: list["Quaternion"],
-        interpolation_method: str = AUTO
-    ) -> "Quaternion":
-        """
-        Create a quaternion spline interpolator.
-
-        Args:
-            time_points: List of time values (must be sorted)
-            quaternions: List of quaternions at each time point
-            interpolation_method: Interpolation method - "slerp", "squad", or "auto"
-
-        Returns:
-            Quaternion instance configured as a spline
-        """
-        if interpolation_method not in {cls.SLERP, cls.SQUAD, cls.AUTO}:
-            raise ValueError(f"Invalid interpolation method: {interpolation_method}")
-
-        spline_quat = cls()
-        spline_quat._setup_spline(time_points, quaternions, interpolation_method)
-        return spline_quat
 
     # ==================== BASIC ARITHMETIC OPERATIONS ====================
 
@@ -462,8 +416,7 @@ class Quaternion:  # noqa: PLR0904
         # Apply quaternion algebraic constraint for numerical stability
         k_lambda = 0.5 * (1 - quat.norm_squared())
         corrected_dquat = Quaternion(
-            dquat_present.s_ + k_lambda * quat.s_,
-            *(dquat_present.v_ + k_lambda * quat.v_)
+            dquat_present.s_ + k_lambda * quat.s_, *(dquat_present.v_ + k_lambda * quat.v_)
         )
 
         # Integrate using trapezoidal rule
@@ -486,18 +439,14 @@ class Quaternion:  # noqa: PLR0904
         return new_quat, corrected_dquat, new_dquat_past, 0
 
     @staticmethod
-    def integ_trap_quat_s(
-        present: "Quaternion", past: "Quaternion", dt: float
-    ) -> float:
+    def integ_trap_quat_s(present: "Quaternion", past: "Quaternion", dt: float) -> float:
         """
         Trapezoidal quaternion scalar part integration.
         """
         return 0.5 * (present.s_ + past.s_) * dt
 
     @staticmethod
-    def integ_trap_quat_v(
-        present: "Quaternion", past: "Quaternion", dt: float
-    ) -> np.ndarray:
+    def integ_trap_quat_v(present: "Quaternion", past: "Quaternion", dt: float) -> np.ndarray:
         """
         Trapezoidal quaternion vector part integration.
         """
@@ -672,257 +621,6 @@ class Quaternion:  # noqa: PLR0904
         log_prev = (q_curr.i() * q_prev).Log()
         return q_curr * ((log_next + log_prev) * (-0.25)).exp()
 
-    # ==================== SPLINE METHODS ====================
-
-    def _setup_spline(
-        self,
-        time_points: list[float],
-        quaternions: list["Quaternion"],
-        interpolation_method: str = AUTO
-    ) -> None:
-        """
-        Setup this quaternion as a spline interpolator.
-
-        Args:
-            time_points: List of time values (must be sorted)
-            quaternions: List of quaternions at each time point
-            interpolation_method: Interpolation method to use
-        """
-        self._validate_input_data(time_points, quaternions)
-
-        # Store interpolation method
-        self.interpolation_method = interpolation_method
-
-        # Create ordered dictionary
-        sorted_data = sorted(zip(time_points, quaternions))
-        self.quat_data = OrderedDict(sorted_data)
-
-        # Only precompute intermediate quaternions if using Squad interpolation
-        if interpolation_method in {self.SQUAD, self.AUTO}:
-            self._compute_intermediate_quaternions()
-        else:
-            self.intermediate_quaternions = {}
-
-    @staticmethod
-    def _validate_input_data(
-        time_points: list[float], quaternions: list["Quaternion"]
-    ) -> None:
-        """Validate input data for spline construction."""
-        if len(time_points) != len(quaternions):
-            raise ValueError("Time points and quaternions must have same length")
-        if len(time_points) < Quaternion.MIN_INTERPOLATION_POINTS:
-            raise ValueError("Need at least 2 points for interpolation")
-
-    def _compute_intermediate_quaternions(self) -> None:
-        """Precompute intermediate quaternions for smooth Squad interpolation"""
-        times = list(self.quat_data.keys())
-        self.intermediate_quaternions = {}
-
-        if len(times) < self.MIN_SQUAD_POINTS:
-            # Not enough points for Squad, will use Slerp
-            return
-
-        for i in range(1, len(times) - 1):
-            t_prev, t_curr, t_next = times[i - 1], times[i], times[i + 1]
-            q_prev = self.quat_data[t_prev]
-            q_curr = self.quat_data[t_curr]
-            q_next = self.quat_data[t_next]
-
-            self.intermediate_quaternions[t_curr] = (
-                Quaternion.compute_intermediate_quaternion(q_prev, q_curr, q_next)
-            )
-
-    def interpolate_at_time(self, t: float) -> tuple["Quaternion", int]:  # noqa: PLR0911
-        """
-        Quaternion interpolation at given time (for spline functionality).
-
-        Returns: (interpolated_quaternion, status_code)
-        """
-        if not self.quat_data:
-            return Quaternion.identity(), -1
-
-        times = list(self.quat_data.keys())
-
-        if t <= times[0]:
-            return self.quat_data[times[0]], 0
-        if t >= times[-1]:
-            return self.quat_data[times[-1]], 0
-
-        # Find surrounding time points
-        for i in range(len(times) - 1):
-            if times[i] <= t <= times[i + 1]:
-                t0, t1 = times[i], times[i + 1]
-                q0, q1 = self.quat_data[t0], self.quat_data[t1]
-
-                # Normalized parameter
-                dt = (t - t0) / (t1 - t0)
-
-                # Choose interpolation method based on user preference
-                if self.interpolation_method == self.SLERP:
-                    return Quaternion.Slerp(q0, q1, dt), 0
-                if self.interpolation_method == self.SQUAD:
-                    # Check if we have enough points for Squad
-                    if len(times) < self.MIN_SQUAD_POINTS:
-                        print("Warning: Not enough points for SQUAD interpolation, falling back to SLERP")  # noqa: E501
-                        return Quaternion.Slerp(q0, q1, dt), 0
-
-                    # For boundary segments in SQUAD, we still need special handling
-                    if i == 0 or i == len(times) - 2:
-                        # Use Slerp for first and last segments in SQUAD mode
-                        return Quaternion.Slerp(q0, q1, dt), 0
-                    # Squad interpolation for interior segments
-                    a = self.intermediate_quaternions[t0]
-                    b = self.intermediate_quaternions[t1]
-                    return Quaternion.Squad(q0, a, b, q1, dt), 0
-                # AUTO mode
-                # Use original logic for automatic selection
-                if (
-                    i == 0
-                    or i == len(times) - 2
-                    or len(times) < self.MIN_SQUAD_POINTS
-                ):
-                    return Quaternion.Slerp(q0, q1, dt), 0
-                # Squad interpolation
-                a = self.intermediate_quaternions[t0]
-                b = self.intermediate_quaternions[t1]
-                return Quaternion.Squad(q0, a, b, q1, dt), 0
-
-        print("Quaternion::interpolate_at_time: t not in range.")
-        return Quaternion.identity(), -3  # NOT_IN_RANGE
-
-    def interpolate_with_velocity(self, t: float) -> tuple["Quaternion", np.ndarray, int]:
-        """
-        Quaternion interpolation with angular velocity (for spline functionality).
-
-        Returns: (interpolated_quaternion, angular_velocity, status_code)
-        """
-        q, status = self.interpolate_at_time(t)
-        if status != 0:
-            return q, np.zeros(3), status
-
-        # Compute derivative using finite differences
-        dt = 1e-6
-        times = list(self.quat_data.keys())
-
-        if t + dt <= times[-1]:
-            q_next, _ = self.interpolate_at_time(t + dt)
-            dq = (q_next - q) * (1.0 / dt)
-        elif t - dt >= times[0]:
-            q_prev, _ = self.interpolate_at_time(t - dt)
-            dq = (q - q_prev) * (1.0 / dt)
-        else:
-            return q, np.zeros(3), 0
-
-        # Convert to angular velocity
-        w = Quaternion.Omega(q, dq)
-
-        return q, w, 0
-
-    def get_time_range(self) -> tuple[float, float]:
-        """Get the time range of the spline"""
-        if not self.quat_data:
-            return 0.0, 0.0
-        times = list(self.quat_data.keys())
-        return times[0], times[-1]
-
-    def is_spline(self) -> bool:
-        """Check if this quaternion instance is configured as a spline"""
-        return len(self.quat_data) > 0
-
-    def set_interpolation_method(self, method: str) -> None:
-        """
-        Set the interpolation method for this spline.
-
-        Args:
-            method: "slerp", "squad", or "auto"
-        """
-        if method not in {self.SLERP, self.SQUAD, self.AUTO}:
-            raise ValueError(f"Invalid interpolation method: {method}")
-
-        old_method = self.interpolation_method
-        self.interpolation_method = method
-
-        # Recompute intermediate quaternions if switching to/from Squad methods
-        if (method in {self.SQUAD, self.AUTO} and
-            old_method not in {self.SQUAD, self.AUTO}):
-            self._compute_intermediate_quaternions()
-        elif (method == self.SLERP and
-              old_method in {self.SQUAD, self.AUTO}):
-            self.intermediate_quaternions = {}
-
-    def get_interpolation_method(self) -> str:
-        """Get the current interpolation method"""
-        return self.interpolation_method
-
-    def interpolate_slerp(self, t: float) -> tuple["Quaternion", int]:
-        """
-        Force SLERP interpolation at given time, regardless of current method setting.
-
-        Returns: (interpolated_quaternion, status_code)
-        """
-        if not self.quat_data:
-            return Quaternion.identity(), -1
-
-        times = list(self.quat_data.keys())
-
-        if t <= times[0]:
-            return self.quat_data[times[0]], 0
-        if t >= times[-1]:
-            return self.quat_data[times[-1]], 0
-
-        # Find surrounding time points
-        for i in range(len(times) - 1):
-            if times[i] <= t <= times[i + 1]:
-                t0, t1 = times[i], times[i + 1]
-                q0, q1 = self.quat_data[t0], self.quat_data[t1]
-
-                # Normalized parameter
-                dt = (t - t0) / (t1 - t0)
-                return Quaternion.Slerp(q0, q1, dt), 0
-
-        print("Quaternion::interpolate_slerp: t not in range.")
-        return Quaternion.identity(), -3
-
-    def interpolate_squad(self, t: float) -> tuple["Quaternion", int]:  # noqa: PLR0911
-        """
-        Force SQUAD interpolation at given time, regardless of current method setting.
-
-        Returns: (interpolated_quaternion, status_code)
-        """
-        if not self.quat_data:
-            return Quaternion.identity(), -1
-
-        times = list(self.quat_data.keys())
-
-        if len(times) < self.MIN_SQUAD_POINTS:
-            print("Error: Not enough points for SQUAD interpolation (need at least 4)")
-            return Quaternion.identity(), -2
-
-        if t <= times[0]:
-            return self.quat_data[times[0]], 0
-        if t >= times[-1]:
-            return self.quat_data[times[-1]], 0
-
-        # Find surrounding time points
-        for i in range(len(times) - 1):
-            if times[i] <= t <= times[i + 1]:
-                t0, t1 = times[i], times[i + 1]
-                q0, q1 = self.quat_data[t0], self.quat_data[t1]
-
-                # Normalized parameter
-                dt = (t - t0) / (t1 - t0)
-
-                # For boundary segments, use linear blending to boundary quaternions
-                if i == 0 or i == len(times) - 2:
-                    return Quaternion.Slerp(q0, q1, dt), 0
-                # Squad interpolation for interior segments
-                a = self.intermediate_quaternions[t0]
-                b = self.intermediate_quaternions[t1]
-                return Quaternion.Squad(q0, a, b, q1, dt), 0
-
-        print("Quaternion::interpolate_squad: t not in range.")
-        return Quaternion.identity(), -3
-
     # ==================== PROPERTIES AND UTILITIES ====================
 
     def s(self) -> float:
@@ -965,12 +663,7 @@ class Quaternion:  # noqa: PLR0904
 
     def copy(self) -> "Quaternion":
         """Create a copy of this quaternion"""
-        new_quat = Quaternion(self.s_, *self.v_)
-        # Copy spline data if it exists
-        new_quat.quat_data = self.quat_data.copy()
-        new_quat.intermediate_quaternions = self.intermediate_quaternions.copy()
-        new_quat.interpolation_method = self.interpolation_method
-        return new_quat
+        return Quaternion(self.s_, *self.v_)
 
     def __str__(self) -> str:
         """String representation"""

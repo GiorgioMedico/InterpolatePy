@@ -20,7 +20,8 @@ from typing import Any
 import numpy as np
 import pytest
 
-from interpolatepy.quat_interp import Quaternion
+from interpolatepy.quat_core import Quaternion
+from interpolatepy.quat_spline import QuaternionSpline
 
 # Type alias for pytest benchmark fixture
 if not hasattr(pytest, "FixtureFunction"):
@@ -921,9 +922,9 @@ class TestQuaternionSpline:
 
         # Test different interpolation methods
         for method in [Quaternion.SLERP, Quaternion.SQUAD, Quaternion.AUTO]:
-            spline = Quaternion.from_spline(time_points, quaternions, method)
+            spline = QuaternionSpline(time_points, quaternions, method)
 
-            assert spline.is_spline()
+            assert not spline.is_empty()
             assert spline.get_interpolation_method() == method
 
             t_min, t_max = spline.get_time_range()
@@ -936,20 +937,20 @@ class TestQuaternionSpline:
 
         # Mismatched lengths
         with pytest.raises(ValueError, match="Time points and quaternions must have same length"):
-            Quaternion.from_spline(time_points[:-1], quaternions, Quaternion.SLERP)
+            QuaternionSpline(time_points[:-1], quaternions, Quaternion.SLERP)
 
         # Too few points
         with pytest.raises(ValueError, match="Need at least 2 points for interpolation"):
-            Quaternion.from_spline([0.0], [Quaternion.identity()], Quaternion.SLERP)
+            QuaternionSpline([0.0], [Quaternion.identity()], Quaternion.SLERP)
 
         # Invalid interpolation method
         with pytest.raises(ValueError, match="Invalid interpolation method"):
-            Quaternion.from_spline(time_points, quaternions, "invalid_method")
+            QuaternionSpline(time_points, quaternions, "invalid_method")
 
     def test_spline_interpolation_basic(self) -> None:
         """Test basic spline interpolation."""
         time_points, quaternions = self.setup_test_spline_data()
-        spline = Quaternion.from_spline(time_points, quaternions, Quaternion.SLERP)
+        spline = QuaternionSpline(time_points, quaternions, Quaternion.SLERP)
 
         # Test interpolation at control points
         for i, t in enumerate(time_points):
@@ -963,7 +964,7 @@ class TestQuaternionSpline:
     def test_spline_interpolation_between_points(self) -> None:
         """Test spline interpolation between control points."""
         time_points, quaternions = self.setup_test_spline_data()
-        spline = Quaternion.from_spline(time_points, quaternions, Quaternion.SLERP)
+        spline = QuaternionSpline(time_points, quaternions, Quaternion.SLERP)
 
         # Test interpolation between points
         for t in [0.5, 1.5, 2.5, 3.5]:
@@ -974,7 +975,7 @@ class TestQuaternionSpline:
     def test_spline_boundary_conditions(self) -> None:
         """Test spline boundary conditions."""
         time_points, quaternions = self.setup_test_spline_data()
-        spline = Quaternion.from_spline(time_points, quaternions, Quaternion.SLERP)
+        spline = QuaternionSpline(time_points, quaternions, Quaternion.SLERP)
 
         # Before first time point
         q_interp, status = spline.interpolate_at_time(-1.0)
@@ -991,7 +992,7 @@ class TestQuaternionSpline:
     def test_spline_method_switching(self) -> None:
         """Test changing interpolation method on existing spline."""
         time_points, quaternions = self.setup_test_spline_data()
-        spline = Quaternion.from_spline(time_points, quaternions, Quaternion.SLERP)
+        spline = QuaternionSpline(time_points, quaternions, Quaternion.SLERP)
 
         # Switch to SQUAD
         spline.set_interpolation_method(Quaternion.SQUAD)
@@ -1009,7 +1010,7 @@ class TestQuaternionSpline:
     def test_spline_method_validation(self) -> None:
         """Test spline method validation."""
         time_points, quaternions = self.setup_test_spline_data()
-        spline = Quaternion.from_spline(time_points, quaternions, Quaternion.SLERP)
+        spline = QuaternionSpline(time_points, quaternions, Quaternion.SLERP)
 
         # Invalid method should raise error
         with pytest.raises(ValueError, match="Invalid interpolation method"):
@@ -1018,7 +1019,7 @@ class TestQuaternionSpline:
     def test_forced_interpolation_methods(self) -> None:
         """Test forced interpolation methods regardless of spline setting."""
         time_points, quaternions = self.setup_test_spline_data()
-        spline = Quaternion.from_spline(time_points, quaternions, Quaternion.AUTO)
+        spline = QuaternionSpline(time_points, quaternions, Quaternion.AUTO)
 
         # Force SLERP
         q_slerp, status = spline.interpolate_slerp(1.5)
@@ -1044,7 +1045,7 @@ class TestQuaternionSpline:
             Quaternion.from_euler_angles(0.2, 0.4, 0.6),
         ]
 
-        spline = Quaternion.from_spline(time_points, quaternions, Quaternion.SQUAD)
+        spline = QuaternionSpline(time_points, quaternions, Quaternion.SQUAD)
 
         # Should fallback to SLERP
         q_interp, status = spline.interpolate_at_time(0.5)
@@ -1057,7 +1058,7 @@ class TestQuaternionSpline:
     def test_spline_with_velocity(self) -> None:
         """Test spline interpolation with velocity computation."""
         time_points, quaternions = self.setup_test_spline_data()
-        spline = Quaternion.from_spline(time_points, quaternions, Quaternion.SLERP)
+        spline = QuaternionSpline(time_points, quaternions, Quaternion.SLERP)
 
         # Test at various time points
         for t in [0.5, 1.5, 2.5]:
@@ -1068,13 +1069,9 @@ class TestQuaternionSpline:
 
     def test_empty_spline(self) -> None:
         """Test behavior with empty spline."""
-        empty_spline = Quaternion()
-
-        assert not empty_spline.is_spline()
-
-        q_interp, status = empty_spline.interpolate_at_time(1.0)
-        assert status == -1
-        assert q_interp == Quaternion.identity()
+        # Empty spline creation should raise an error now
+        with pytest.raises(ValueError, match="Need at least 2 points for interpolation"):
+            QuaternionSpline([], [], Quaternion.SLERP)
 
 
 class TestQuaternionEdgeCases:
@@ -1216,7 +1213,7 @@ class TestQuaternionPerformance:
             for i in range(num_points)
         ]
 
-        spline = Quaternion.from_spline(time_points, quaternions, Quaternion.SLERP)
+        spline = QuaternionSpline(time_points, quaternions, Quaternion.SLERP)
 
         def run_spline_evaluation() -> None:
             for i in range(num_evaluations):
