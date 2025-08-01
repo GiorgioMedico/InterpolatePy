@@ -104,9 +104,7 @@ class CubicSpline:
 
         # Check input validity
         if len(self.t_points) != len(self.q_points):
-            raise ValueError(
-                "Time points and position points must have the same length"
-            )
+            raise ValueError("Time points and position points must have the same length")
 
         if not np.all(np.diff(self.t_points) > 0):
             raise ValueError("Time points must be strictly increasing")

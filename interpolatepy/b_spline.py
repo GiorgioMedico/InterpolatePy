@@ -130,9 +130,7 @@ class BSpline:
 
         # Validate parameter range
         if u < self.u_min - self.eps or u > self.u_max + self.eps:
-            raise ValueError(
-                f"Parameter u={u} outside valid range [{self.u_min}, {self.u_max}]"
-            )
+            raise ValueError(f"Parameter u={u} outside valid range [{self.u_min}, {self.u_max}]")
 
         # Clamp parameter to valid range to handle numerical issues
         u = np.clip(u, self.u_min, self.u_max)
@@ -253,9 +251,7 @@ class BSpline:
 
         return point
 
-    def basis_function_derivatives(
-        self, u: float, span_index: int, order: int
-    ) -> np.ndarray:
+    def basis_function_derivatives(self, u: float, span_index: int, order: int) -> np.ndarray:
         """
         Calculate derivatives of basis functions up to the specified order.
 
@@ -378,9 +374,7 @@ class BSpline:
             If the order is greater than the degree of the B-spline.
         """
         if order > self.degree:
-            raise ValueError(
-                f"Derivative order {order} exceeds B-spline degree {self.degree}"
-            )
+            raise ValueError(f"Derivative order {order} exceeds B-spline degree {self.degree}")
 
         if order == 0:
             return self.evaluate(u)
@@ -407,9 +401,7 @@ class BSpline:
 
         return derivative
 
-    def generate_curve_points(
-        self, num_points: int = 100
-    ) -> tuple[np.ndarray, np.ndarray]:
+    def generate_curve_points(self, num_points: int = 100) -> tuple[np.ndarray, np.ndarray]:
         """
         Generate points along the B-spline curve for visualization.
 

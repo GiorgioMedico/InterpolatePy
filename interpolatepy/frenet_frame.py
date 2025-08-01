@@ -57,9 +57,7 @@ def compute_trajectory_frames(
 
         # Compute the derivative of tangent vector with respect to u
         # When parameter is not arc length, this formula applies (from footnote 11)
-        det_du = d2p_du2 / dp_du_norm - (dp_du * np.dot(dp_du, d2p_du2)) / (
-            dp_du_norm**3
-        )
+        det_du = d2p_du2 / dp_du_norm - (dp_du * np.dot(dp_du, d2p_du2)) / (dp_du_norm**3)
 
         # Compute normal vector (normalized derivative of tangent)
         det_du_norm = np.linalg.norm(det_du)
@@ -212,7 +210,7 @@ def circular_trajectory_with_derivatives(
     return p, dp_du, d2p_du2
 
 
-def plot_frames(  # noqa: PLR0913, PLR0917
+def plot_frames(  # noqa: PLR0913
     ax: Axes,
     points: np.ndarray,
     frames: np.ndarray,

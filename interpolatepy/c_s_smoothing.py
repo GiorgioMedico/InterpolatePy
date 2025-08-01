@@ -76,7 +76,7 @@ class CubicSmoothingSpline:
     HIGH_CONDITION_THRESHOLD = 1e12
     REGULARIZATION_FACTOR = 1e-8
 
-    def __init__(  # noqa: PLR0913, PLR0917
+    def __init__(  # noqa: PLR0913
         self,
         t_points: list[float],
         q_points: list[float],
@@ -285,9 +285,7 @@ class CubicSmoothingSpline:
             c[0] = 6 * ((self.q[1] - self.q[0]) / self.time_intervals[0] - self.v0)
 
             # Last element - with final velocity constraint
-            c[n - 1] = 6 * (
-                self.vn - (self.q[n - 1] - self.q[n - 2]) / self.time_intervals[n - 2]
-            )
+            c[n - 1] = 6 * (self.vn - (self.q[n - 1] - self.q[n - 2]) / self.time_intervals[n - 2])
 
             # Interior elements
             for i in range(1, n - 1):
@@ -342,9 +340,7 @@ class CubicSmoothingSpline:
         except np.linalg.LinAlgError:
             print("Warning: Linear system is singular or poorly conditioned.")
             # Use least squares to find a solution
-            omega, _residuals, _rank, _s = np.linalg.lstsq(
-                system_matrix, rhs, rcond=None
-            )
+            omega, _residuals, _rank, _s = np.linalg.lstsq(system_matrix, rhs, rcond=None)
 
         return omega
 
@@ -420,9 +416,7 @@ class CubicSmoothingSpline:
             coeffs[k, 2] = self.omega[k] / 2
 
             # Jerk coefficient
-            coeffs[k, 3] = (self.omega[k + 1] - self.omega[k]) / (
-                6 * self.time_intervals[k]
-            )
+            coeffs[k, 3] = (self.omega[k + 1] - self.omega[k]) / (6 * self.time_intervals[k])
 
         if self.debug:
             print("Polynomial coefficients:")
@@ -477,9 +471,7 @@ class CubicSmoothingSpline:
 
         return result[0] if len(t_array) == 1 else result
 
-    def evaluate_velocity(
-        self, t: float | list[float] | np.ndarray
-    ) -> float | np.ndarray:
+    def evaluate_velocity(self, t: float | list[float] | np.ndarray) -> float | np.ndarray:
         """
         Evaluate the velocity at time t.
 
@@ -521,9 +513,7 @@ class CubicSmoothingSpline:
 
         return result[0] if len(t_array) == 1 else result
 
-    def evaluate_acceleration(
-        self, t: float | list[float] | np.ndarray
-    ) -> float | np.ndarray:
+    def evaluate_acceleration(self, t: float | list[float] | np.ndarray) -> float | np.ndarray:
         """
         Evaluate the acceleration at time t.
 

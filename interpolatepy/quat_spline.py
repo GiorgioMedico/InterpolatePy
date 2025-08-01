@@ -4,6 +4,9 @@ import numpy as np
 
 from .quat_core import Quaternion
 
+# Constants
+INTERPOLATION_OUT_OF_RANGE_ERROR = -3
+
 
 class QuaternionSpline:
     """
@@ -143,7 +146,8 @@ class QuaternionSpline:
                     # Check if we have enough points for Squad
                     if len(times) < Quaternion.MIN_SQUAD_POINTS:
                         print(
-                            "Warning: Not enough points for SQUAD interpolation, falling back to SLERP"
+                            "Warning: Not enough points for SQUAD interpolation, "
+                            "falling back to SLERP"
                         )
                         return Quaternion.Slerp(q0, q1, dt), 0
 
@@ -312,7 +316,7 @@ class QuaternionSpline:
         if status != 0:
             if status == -1:
                 raise ValueError("Spline is empty")
-            if status == -3:
+            if status == INTERPOLATION_OUT_OF_RANGE_ERROR:
                 raise ValueError(f"Time {t} is out of range")
             raise ValueError(f"Interpolation failed with status {status}")
         return result

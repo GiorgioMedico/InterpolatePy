@@ -92,9 +92,7 @@ class TrapezoidalTrajectory:
 
         # Check feasibility using equation (3.14)
         if amax * h < abs(v0**2 - v1**2) / 2:
-            raise ValueError(
-                "Trajectory not feasible. Try increasing amax or reducing velocities."
-            )
+            raise ValueError("Trajectory not feasible. Try increasing amax or reducing velocities.")
 
         # Check minimum required acceleration (equation 3.15)
         term_under_sqrt = (
@@ -110,9 +108,7 @@ class TrapezoidalTrajectory:
                     "Trajectory not feasible with given duration. Try increasing duration."
                 )
 
-        alim = (2 * h - duration * (v0 + v1) + np.sqrt(term_under_sqrt)) / max(
-            duration**2, EPSILON
-        )
+        alim = (2 * h - duration * (v0 + v1) + np.sqrt(term_under_sqrt)) / max(duration**2, EPSILON)
 
         if amax < alim:
             # Adjust amax to minimum required
@@ -121,10 +117,7 @@ class TrapezoidalTrajectory:
 
         # Calculate constant velocity (vv) from equation in section 3.2.7
         sqrt_term = (
-            amax**2 * duration**2
-            - 4 * amax * h
-            + 2 * amax * (v0 + v1) * duration
-            - (v0 - v1) ** 2
+            amax**2 * duration**2 - 4 * amax * h + 2 * amax * (v0 + v1) * duration - (v0 - v1) ** 2
         )
 
         # Ensure sqrt term is non-negative
@@ -267,9 +260,7 @@ class TrapezoidalTrajectory:
             raise ValueError("Maximum acceleration (amax) must be provided")
 
         if t_duration is None and vmax is None:
-            raise ValueError(
-                "Either duration or maximum velocity (vmax) must be provided"
-            )
+            raise ValueError("Either duration or maximum velocity (vmax) must be provided")
 
         # Ensure amax and vmax are positive using absolute values if provided
         amax = abs(amax)
@@ -309,10 +300,8 @@ class TrapezoidalTrajectory:
 
         elif vmax is not None and t_duration is None:
             # Case 2: Preassigned acceleration and velocity
-            vv, ta, td, duration = (
-                TrapezoidalTrajectory._calculate_velocity_based_trajectory(
-                    calc_params, vmax
-                )
+            vv, ta, td, duration = TrapezoidalTrajectory._calculate_velocity_based_trajectory(
+                calc_params, vmax
             )
 
         else:
@@ -435,12 +424,8 @@ class TrapezoidalTrajectory:
             # OPTION 1: Time-Based Approach
             # Estimate a reasonable total duration for the path and derive velocity
             total_distance = sum(abs(h) for h in h_values)
-            estimated_duration = np.sqrt(
-                2 * total_distance / amax
-            )  # From acceleration equation
-            v_max = (
-                total_distance / estimated_duration * 0.75
-            )  # 75% of average velocity
+            estimated_duration = np.sqrt(2 * total_distance / amax)  # From acceleration equation
+            v_max = total_distance / estimated_duration * 0.75  # 75% of average velocity
 
             # OPTION 2: Segment-Optimized Approach
             # Calculate optimal velocity for each segment based on its length
@@ -474,9 +459,7 @@ class TrapezoidalTrajectory:
 
             # More direction changes or sharper changes suggest lower velocity
             avg_change = sum(direction_changes) / max(len(direction_changes), 1)
-            v_max_curvature = np.sqrt(
-                amax * total_distance / (len(h_values) + 5 * avg_change)
-            )
+            v_max_curvature = np.sqrt(amax * total_distance / (len(h_values) + 5 * avg_change))
 
             # Choose the minimum of all approaches for safety
             v_max = min(v_max, v_max_segments, v_max_curvature)

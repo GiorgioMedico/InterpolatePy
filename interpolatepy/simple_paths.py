@@ -34,11 +34,7 @@ class LinearPath:
         s = np.clip(s, 0, self.length)
 
         # Equation 4.34: p(s) = pi + (s/||pf-pi||)(pf-pi)
-        return (
-            self.pi + (s / self.length) * (self.pf - self.pi)
-            if self.length > 0
-            else self.pi
-        )
+        return self.pi + (s / self.length) * (self.pf - self.pi) if self.length > 0 else self.pi
 
     def velocity(self, _s: float | None = None) -> np.ndarray:
         """
@@ -69,9 +65,7 @@ class LinearPath:
         # Equation 4.36: d²p/ds² = 0
         return np.zeros(3)
 
-    def evaluate_at(
-        self, s_values: float | list[float] | np.ndarray
-    ) -> dict[str, np.ndarray]:
+    def evaluate_at(self, s_values: float | list[float] | np.ndarray) -> dict[str, np.ndarray]:
         """
         Evaluate position, velocity, and acceleration at specific arc length values.
 
@@ -242,9 +236,7 @@ class CircularPath:
         # Acceleration in global coordinate system
         return self.R @ d2p_prime_ds2
 
-    def evaluate_at(
-        self, s_values: float | list[float] | np.ndarray
-    ) -> dict[str, np.ndarray]:
+    def evaluate_at(self, s_values: float | list[float] | np.ndarray) -> dict[str, np.ndarray]:
         """
         Evaluate position, velocity, and acceleration at specific arc length values.
 

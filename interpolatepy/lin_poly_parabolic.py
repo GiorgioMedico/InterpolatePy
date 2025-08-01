@@ -98,9 +98,7 @@ class ParabolicBlendTrajectory:
             # Calculate position at start of constant velocity segment
             dt0 = t0_c - reg_t0[reg_idx - 1]
             q0_c = (
-                reg_q0[reg_idx - 1]
-                + reg_v0[reg_idx - 1] * dt0
-                + 0.5 * reg_a[reg_idx - 1] * dt0**2
+                reg_q0[reg_idx - 1] + reg_v0[reg_idx - 1] * dt0 + 0.5 * reg_a[reg_idx - 1] * dt0**2
             )
 
             # Store constant velocity segment
@@ -170,11 +168,7 @@ class ParabolicBlendTrajectory:
 
             # Calculate values
             u = t_abs - reg_t0[region_idx]
-            pos = (
-                reg_q0[region_idx]
-                + reg_v0[region_idx] * u
-                + 0.5 * reg_a[region_idx] * u**2
-            )
+            pos = reg_q0[region_idx] + reg_v0[region_idx] * u + 0.5 * reg_a[region_idx] * u**2
             vel = reg_v0[region_idx] + reg_a[region_idx] * u
             acc = reg_a[region_idx]
 
