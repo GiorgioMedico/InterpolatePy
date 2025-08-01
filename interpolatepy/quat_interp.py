@@ -142,7 +142,7 @@ class Quaternion:  # noqa: PLR0904
             v3 = (rotation_matrix[1, 0] - rotation_matrix[0, 1]) / (4 * s)
         else:
             # |s| <= 1/2, use alternative method
-            s_i_next = [1, 2, 0]  # Equivalent to static int s_iNext[3] = { 2, 3, 1 };
+            s_i_next = [1, 2, 0]  # Index mapping: i -> (i+1)%3
             i = 0
             if rotation_matrix[1, 1] > rotation_matrix[0, 0]:
                 i = 1
@@ -281,13 +281,18 @@ class Quaternion:  # noqa: PLR0904
         tmp = self.norm()
         if tmp > self.EPSILON:
             return Quaternion(self.s_ / tmp, *(self.v_ / tmp))
-        return Quaternion(self.s_, *self.v_)
+        # If norm is too small, return identity quaternion to avoid numerical issues
+        print("Warning: Quaternion norm too small for normalization, returning identity")
+        return Quaternion.identity()
 
     def i(self) -> "Quaternion":
         """
         Quaternion inverse: q^(-1) = q*/||q||²
         """
-        return self.conjugate() / self.norm_squared()
+        norm_sq = self.norm_squared()
+        if norm_sq < self.EPSILON:
+            raise ValueError("Cannot compute inverse of zero quaternion")
+        return self.conjugate() / norm_sq
 
     def inverse(self) -> "Quaternion":
         """Alias for i() - quaternion inverse"""
@@ -300,14 +305,14 @@ class Quaternion:  # noqa: PLR0904
         For q = [0, θv], exp(q) = [cos(θ), v*sin(θ)]
         """
         theta = np.linalg.norm(self.v_)
-        sin_theta = np.sin(theta)
 
+        if theta < self.EPSILON:
+            # For small angles, use first-order approximation to avoid numerical issues
+            return Quaternion(1.0, *self.v_)
+
+        sin_theta = np.sin(theta)
         s = np.cos(theta)
-        v = (
-            self.v_ * sin_theta / theta
-            if abs(sin_theta) > self.EPSILON
-            else self.v_.copy()
-        )
+        v = self.v_ * sin_theta / theta
 
         return Quaternion(s, v[0], v[1], v[2])
 
@@ -317,15 +322,22 @@ class Quaternion:  # noqa: PLR0904
 
         For unit q = [cos(θ), v*sin(θ)], log(q) = [0, v*θ]
         """
-        theta = np.acos(min(1.0, abs(self.s_)))
+        # Clamp s to avoid numerical issues with acos
+        s_clamped = max(-1.0, min(1.0, abs(self.s_)))
+        theta = np.acos(s_clamped)
+
+        if theta < self.EPSILON:
+            # For small angles, return vector part directly to avoid division by zero
+            return Quaternion(0.0, *self.v_)
+
         sin_theta = np.sin(theta)
 
+        # Additional safety check for sin_theta
+        if abs(sin_theta) < self.EPSILON:
+            return Quaternion(0.0, *self.v_)
+
         s = 0.0
-        v = (
-            self.v_ / sin_theta * theta
-            if abs(sin_theta) > self.EPSILON
-            else self.v_.copy()
-        )
+        v = self.v_ / sin_theta * theta
 
         return Quaternion(s, v[0], v[1], v[2])
 
@@ -438,28 +450,40 @@ class Quaternion:  # noqa: PLR0904
         Returns: (updated_quat, updated_dquat_present, updated_dquat_past, status)
         """
         if dt < 0:
-            print("Integ_Trap(quat1, quat2, dt): dt < 0. dt is set to 0.")
             return quat, dquat_present, dquat_past, -1
+        if dt == 0:
+            return quat, dquat_present, dquat_past, 0
 
-        # Quaternion algebraic constraint (commented out in original)
-        # K_lambda = 0.5 * (1 - quat.norm_squared())
-        # dquat_present.s_ += K_lambda * quat.s_
-        # dquat_present.v_ += K_lambda * quat.v_
+        # Validate input quaternions
+        if quat.norm() < Quaternion.EPSILON:
+            print("Warning: Input quaternion has near-zero norm")
+            return quat, dquat_present, dquat_past, -2
+
+        # Apply quaternion algebraic constraint for numerical stability
+        k_lambda = 0.5 * (1 - quat.norm_squared())
+        corrected_dquat = Quaternion(
+            dquat_present.s_ + k_lambda * quat.s_,
+            *(dquat_present.v_ + k_lambda * quat.v_)
+        )
 
         # Integrate using trapezoidal rule
-        s_integrated = Quaternion.integ_trap_quat_s(dquat_present, dquat_past, dt)
-        v_integrated = Quaternion.integ_trap_quat_v(dquat_present, dquat_past, dt)
+        s_integrated = Quaternion.integ_trap_quat_s(corrected_dquat, dquat_past, dt)
+        v_integrated = Quaternion.integ_trap_quat_v(corrected_dquat, dquat_past, dt)
 
         # Update quaternion
         new_quat = Quaternion(quat.s_ + s_integrated, *(quat.v_ + v_integrated))
 
         # Update past derivative
-        new_dquat_past = Quaternion(dquat_present.s_, *dquat_present.v_)
+        new_dquat_past = Quaternion(corrected_dquat.s_, *corrected_dquat.v_)
 
         # Normalize quaternion to maintain unit constraint
-        new_quat = new_quat.unit()
+        try:
+            new_quat = new_quat.unit()
+        except ValueError:
+            print("Warning: Failed to normalize quaternion during integration")
+            return quat, dquat_present, dquat_past, -3
 
-        return new_quat, dquat_present, new_dquat_past, 0
+        return new_quat, corrected_dquat, new_dquat_past, 0
 
     @staticmethod
     def integ_trap_quat_s(
@@ -567,9 +591,8 @@ class Quaternion:  # noqa: PLR0904
         """
         Spherical Linear Interpolation (Slerp).
         """
-        if t < 0 or t > 1:
-            print("Slerp(q0, q1, t): t < 0 or t > 1. t is set to 0.")
-            t = max(0, min(1, t))
+        # Clamp t to valid range without printing warning
+        t = max(0.0, min(1.0, t))
 
         if t == 0:
             return Quaternion(self.s_, *self.v_)
@@ -589,9 +612,8 @@ class Quaternion:  # noqa: PLR0904
         """
         Spherical Linear Interpolation derivative.
         """
-        if t < 0 or t > 1:
-            print("Slerp_prime(q0, q1, t): t < 0 or t > 1. t is set to 0.")
-            t = max(0, min(1, t))
+        # Clamp t to valid range without printing warning
+        t = max(0.0, min(1.0, t))
 
         q_rel = self.i() * other if self.dot_prod(other) >= 0 else self.i() * (-other)
 
@@ -609,9 +631,8 @@ class Quaternion:  # noqa: PLR0904
         """
         Spherical Cubic Interpolation (Squad).
         """
-        if t < 0 or t > 1:
-            print("Squad(p,a,b,q, t): t < 0 or t > 1. t is set to 0.")
-            t = max(0, min(1, t))
+        # Clamp t to valid range without printing warning
+        t = max(0.0, min(1.0, t))
 
         return Quaternion.Slerp(
             Quaternion.Slerp(p, q, t), Quaternion.Slerp(a, b, t), 2 * t * (1 - t)
@@ -624,9 +645,8 @@ class Quaternion:  # noqa: PLR0904
         """
         Spherical Cubic Interpolation derivative.
         """
-        if t < 0 or t > 1:
-            print("Squad_prime(p,a,b,q, t): t < 0 or t > 1. t is set to 0.")
-            t = max(0, min(1, t))
+        # Clamp t to valid range without printing warning
+        t = max(0.0, min(1.0, t))
 
         u_interp = Quaternion.Slerp(p, q, t)
         v_interp = Quaternion.Slerp(a, b, t)
@@ -677,8 +697,11 @@ class Quaternion:  # noqa: PLR0904
         sorted_data = sorted(zip(time_points, quaternions))
         self.quat_data = OrderedDict(sorted_data)
 
-        # Precompute intermediate quaternions for Squad (even if not used)
-        self._compute_intermediate_quaternions()
+        # Only precompute intermediate quaternions if using Squad interpolation
+        if interpolation_method in {self.SQUAD, self.AUTO}:
+            self._compute_intermediate_quaternions()
+        else:
+            self.intermediate_quaternions = {}
 
     @staticmethod
     def _validate_input_data(
@@ -815,7 +838,17 @@ class Quaternion:  # noqa: PLR0904
         """
         if method not in {self.SLERP, self.SQUAD, self.AUTO}:
             raise ValueError(f"Invalid interpolation method: {method}")
+
+        old_method = self.interpolation_method
         self.interpolation_method = method
+
+        # Recompute intermediate quaternions if switching to/from Squad methods
+        if (method in {self.SQUAD, self.AUTO} and
+            old_method not in {self.SQUAD, self.AUTO}):
+            self._compute_intermediate_quaternions()
+        elif (method == self.SLERP and
+              old_method in {self.SQUAD, self.AUTO}):
+            self.intermediate_quaternions = {}
 
     def get_interpolation_method(self) -> str:
         """Get the current interpolation method"""
