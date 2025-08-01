@@ -168,6 +168,16 @@ pre-commit install
 python -m pytest tests
 ```
 
+### Coverage Reports
+
+Generate HTML coverage report to see test coverage:
+
+```bash
+python -m pytest tests --cov=interpolatepy --cov-report=html
+```
+
+Then open `htmlcov/index.html` in your browser for an interactive coverage report.
+
 ## Contributing
 
 We love pull requests — thanks for helping improve **InterpolatePy**!

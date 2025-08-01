@@ -1,0 +1,27 @@
+coverage:
+  precision: 2
+  round: down
+  range: 70...100
+  
+  status:
+    project:
+      default:
+        target: 80%
+        threshold: 1%
+        if_no_uploads: error
+    patch:
+      default:
+        target: 70%
+        threshold: 2%
+
+comment:
+  layout: "reach,diff,flags,tree"
+  behavior: default
+  require_changes: false
+
+ignore:
+  - "tests/*"
+  - "docs/*"
+  - "examples/*"
+  - "setup.py"
+  - "**/__init__.py"

@@ -521,16 +521,25 @@ class TestQuaternionConversions:
     ])
     def test_euler_angles_round_trip(self, roll: float, pitch: float, yaw: float) -> None:
         """Test Euler angles conversion round trip."""
-        # Skip gimbal lock cases for round trip testing
-        if abs(pitch - np.pi/2) < self.NUMERICAL_ATOL or abs(pitch + np.pi/2) < self.NUMERICAL_ATOL:
-            pytest.skip("Skipping gimbal lock case for round trip test")
-
         q = Quaternion.from_euler_angles(roll, pitch, yaw)
         recovered_roll, recovered_pitch, recovered_yaw = q.to_euler_angles()
 
-        assert abs(recovered_roll - roll) < self.NUMERICAL_ATOL
-        assert abs(recovered_pitch - pitch) < self.NUMERICAL_ATOL
-        assert abs(recovered_yaw - yaw) < self.NUMERICAL_ATOL
+        # Handle angle wrapping and gimbal lock cases
+        if abs(pitch - np.pi/2) < self.NUMERICAL_ATOL or abs(pitch + np.pi/2) < self.NUMERICAL_ATOL:
+            # Gimbal lock case - only verify that rotation is equivalent
+            q_expected = Quaternion.from_euler_angles(roll, pitch, yaw)
+            q_recovered = Quaternion.from_euler_angles(
+                recovered_roll, recovered_pitch, recovered_yaw
+            )
+
+            # Check if quaternions represent same rotation (q or -q)
+            dot_product = q_expected.dot_product(q_recovered)
+            assert abs(abs(dot_product) - 1.0) < self.NUMERICAL_ATOL
+        else:
+            # Normal case - angles should match within tolerance
+            assert abs(recovered_roll - roll) < self.NUMERICAL_ATOL
+            assert abs(recovered_pitch - pitch) < self.NUMERICAL_ATOL
+            assert abs(recovered_yaw - yaw) < self.NUMERICAL_ATOL
 
     def test_rotation_matrix_round_trip(self) -> None:
         """Test rotation matrix conversion round trip."""
