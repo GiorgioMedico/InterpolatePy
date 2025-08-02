@@ -514,7 +514,7 @@ class TestCubicSplineNumericalStability:
             q_true = [test_function(t) for t in t_test]
             q_spline = spline.evaluate(t_test)
 
-            error = np.max(np.abs(q_spline - q_true))
+            error = np.max(np.abs(np.array(q_spline) - np.array(q_true)))
             errors.append(error)
 
         # Error should generally decrease as we add more points

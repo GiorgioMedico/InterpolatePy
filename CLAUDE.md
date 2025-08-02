@@ -51,8 +51,10 @@ pre-commit install
 # Run all tests
 python -m pytest tests
 
-# Run specific test file
-python -m pytest tests/inv_test.py
+# Run specific test files
+python -m pytest tests/test_cubic_spline.py
+python -m pytest tests/test_quat_interp.py
+python -m pytest tests/test_motion_profiles.py
 ```
 
 ### Code Quality
@@ -68,6 +70,9 @@ mypy interpolatepy/
 
 # Run all pre-commit hooks
 pre-commit run --all-files
+
+# Generate coverage report
+python -m pytest tests --cov=interpolatepy --cov-report=xml
 ```
 
 ### Running Examples
@@ -77,7 +82,12 @@ python examples/main.py
 
 # Run specific examples
 python examples/cubic_spline_ex.py
+python examples/c_s_smoothing_ex.py
+python examples/c_s_smoot_search_ex.py
 python examples/double_s_ex.py
+python examples/b_spline_ex.py
+python examples/polynomials_ex.py
+python examples/frenet_frame_ex.py
 ```
 
 ## Architecture Overview
@@ -88,6 +98,10 @@ InterpolatePy is organized into distinct categories of interpolation and traject
 
 1. **Spline Interpolation**
    - `cubic_spline.py` - C2 continuous cubic splines with boundary conditions
+   - `c_s_smoothing.py` - Cubic splines with smoothing parameter
+   - `c_s_smoot_search.py` - Automatic smoothing parameter search
+   - `c_s_with_acc1.py` - Cubic splines with acceleration constraints (method 1)
+   - `c_s_with_acc2.py` - Cubic splines with acceleration constraints (method 2)
    - `b_spline.py` - General B-spline curves with configurable degree
    - `b_spline_*` variants - Approximation, cubic, interpolation, smoothing
    
@@ -101,7 +115,9 @@ InterpolatePy is organized into distinct categories of interpolation and traject
    - `linear.py` - Simple linear interpolation
 
 4. **Specialized Algorithms**
-   - `quat_interp.py` - Quaternion interpolation (SLERP, SQUAD)
+   - `quat_core.py` - Core quaternion interpolation (SLERP, SQUAD)
+   - `quat_spline.py` - Quaternion spline interpolation
+   - `log_quat.py` - Logarithmic quaternion operations
    - `frenet_frame.py` - Path-following with Frenet-Serret frames
    - `simple_paths.py` - Linear and circular path utilities
 

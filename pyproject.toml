@@ -145,6 +145,8 @@ ignore = [
     "PLW1641",
     "PLR0914", # Too many local variables
     "PLR0915", # Too many statements
+    "PLR0917", # Too many arguments
+    "PLR0904", # Too many public methods
     "C901",
     "PLR0912",
 ]

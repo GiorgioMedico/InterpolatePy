@@ -71,7 +71,7 @@ class TestTrajectoryBounds:
     def test_bounds_validation_non_numeric(self) -> None:
         """Test that non-numeric bounds raise TypeError."""
         with pytest.raises(TypeError, match="All bounds must be numeric values"):
-            TrajectoryBounds(v_bound="invalid", a_bound=1.0, j_bound=0.5)
+            TrajectoryBounds(v_bound=1.0, a_bound="invalid", j_bound=0.5)  # type: ignore
 
 
 class TestStateParams:
@@ -91,7 +91,7 @@ class TestStateParams:
         params = StateParams(q_0=0.0, q_1=10.0, v_0=0.0, v_1=0.0)
         
         with pytest.raises(AttributeError):
-            params.q_0 = 5.0
+            params.q_0 = 5.0  # type: ignore
 
 
 class TestDoubleSTrajectoryConstruction:
@@ -112,7 +112,7 @@ class TestDoubleSTrajectoryConstruction:
         bounds = TrajectoryBounds(v_bound=2.0, a_bound=1.0, j_bound=0.5)
         
         with pytest.raises(TypeError, match="All state parameters must be numeric values"):
-            invalid_params = StateParams(q_0="invalid", q_1=10.0, v_0=0.0, v_1=0.0)
+            invalid_params = StateParams(q_0=1.0, q_1="invalid", v_0=0.0, v_1=0.0)  # type: ignore
             DoubleSTrajectory(invalid_params, bounds)
 
     def test_construction_with_various_states(self) -> None:
@@ -455,7 +455,8 @@ class TestTrapezoidalTrajectoryGeneration:
         
         for t in t_samples:
             _, v, _ = trajectory_func(t)
-            assert abs(v) <= params.vmax + self.NUMERICAL_ATOL
+            vmax = params.vmax or 0.0
+            assert abs(v) <= vmax + self.NUMERICAL_ATOL
 
     def test_acceleration_constraints(self) -> None:
         """Test that acceleration constraints are respected."""
@@ -470,7 +471,8 @@ class TestTrapezoidalTrajectoryGeneration:
         
         for t in t_samples:
             _, _, a = trajectory_func(t)
-            assert abs(a) <= params.amax + self.NUMERICAL_ATOL
+            amax = params.amax or 0.0
+            assert abs(a) <= amax + self.NUMERICAL_ATOL
 
     def test_duration_based_trajectory(self) -> None:
         """Test trajectory generation with duration constraints."""
@@ -549,7 +551,8 @@ class TestTrapezoidalWaypointInterpolation:
         trajectory_func, total_duration = TrapezoidalTrajectory.interpolate_waypoints(params)
         
         # Check timing constraints
-        for i, (point, time) in enumerate(zip(params.points, params.times)):
+        times = params.times or []
+        for i, (point, time) in enumerate(zip(params.points, times)):
             q, _, _ = trajectory_func(time)
             assert abs(q - point) < self.NUMERICAL_ATOL
 
@@ -672,7 +675,8 @@ class TestMotionProfilePerformance:
         t_values = np.linspace(0, duration, n_evaluations)
         
         def evaluate_trajectory() -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-            return trajectory.evaluate(t_values)
+            q, v, a, j = trajectory.evaluate(t_values)
+            return q, v, a, j
         
         q, v, a, j = benchmark(evaluate_trajectory)
         assert len(q) == n_evaluations

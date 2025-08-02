@@ -85,7 +85,7 @@ class QuaternionSpline:
         if interpolation_method in {Quaternion.SQUAD, Quaternion.AUTO}:
             self._compute_intermediate_quaternions()
         else:
-            self.intermediate_quaternions = {}
+            self.intermediate_quaternions: dict[float, Quaternion] = {}
 
     @staticmethod
     def _validate_input_data(time_points: list[float], quaternions: list[Quaternion]) -> None:

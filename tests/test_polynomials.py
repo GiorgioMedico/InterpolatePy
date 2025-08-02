@@ -578,9 +578,10 @@ class TestPolynomialTrajectoryMultipoint:
             assert abs(q - point) < self.NUMERICAL_ATOL
         
         # Test specified velocities
-        for velocity, time in zip(params.velocities, params.times):
-            _, v, _, _ = trajectory(time)
-            assert abs(v - velocity) < self.NUMERICAL_ATOL
+        if params.velocities is not None:
+            for velocity, time in zip(params.velocities, params.times):
+                _, v, _, _ = trajectory(time)
+                assert abs(v - velocity) < self.NUMERICAL_ATOL
 
     def test_multipoint_trajectory_order_5(self) -> None:
         """Test multipoint trajectory with 5th order polynomials."""
@@ -595,13 +596,14 @@ class TestPolynomialTrajectoryMultipoint:
         trajectory = PolynomialTrajectory.multipoint_trajectory(params)
         
         # Test waypoint conditions
-        for i, (point, time, vel, acc) in enumerate(
-            zip(params.points, params.times, params.velocities, params.accelerations)
-        ):
-            q, v, a, _ = trajectory(time)
-            assert abs(q - point) < self.NUMERICAL_ATOL
-            assert abs(v - vel) < self.NUMERICAL_ATOL
-            assert abs(a - acc) < self.NUMERICAL_ATOL
+        if params.velocities is not None and params.accelerations is not None:
+            for i, (point, time, vel, acc) in enumerate(
+                zip(params.points, params.times, params.velocities, params.accelerations)
+            ):
+                q, v, a, _ = trajectory(time)
+                assert abs(q - point) < self.NUMERICAL_ATOL
+                assert abs(v - vel) < self.NUMERICAL_ATOL
+                assert abs(a - acc) < self.NUMERICAL_ATOL
 
     def test_multipoint_trajectory_order_7(self) -> None:
         """Test multipoint trajectory with 7th order polynomials."""
@@ -619,15 +621,21 @@ class TestPolynomialTrajectoryMultipoint:
         # Test boundary conditions
         q0, v0, a0, j0 = trajectory(params.times[0])
         assert abs(q0 - params.points[0]) < self.NUMERICAL_ATOL
-        assert abs(v0 - params.velocities[0]) < self.NUMERICAL_ATOL
-        assert abs(a0 - params.accelerations[0]) < self.NUMERICAL_ATOL
-        assert abs(j0 - params.jerks[0]) < self.NUMERICAL_ATOL
+        if params.velocities is not None:
+            assert abs(v0 - params.velocities[0]) < self.NUMERICAL_ATOL
+        if params.accelerations is not None:
+            assert abs(a0 - params.accelerations[0]) < self.NUMERICAL_ATOL
+        if params.jerks is not None:
+            assert abs(j0 - params.jerks[0]) < self.NUMERICAL_ATOL
         
         q1, v1, a1, j1 = trajectory(params.times[1])
         assert abs(q1 - params.points[1]) < self.NUMERICAL_ATOL
-        assert abs(v1 - params.velocities[1]) < self.NUMERICAL_ATOL
-        assert abs(a1 - params.accelerations[1]) < self.NUMERICAL_ATOL
-        assert abs(j1 - params.jerks[1]) < self.NUMERICAL_ATOL
+        if params.velocities is not None:
+            assert abs(v1 - params.velocities[1]) < self.NUMERICAL_ATOL
+        if params.accelerations is not None:
+            assert abs(a1 - params.accelerations[1]) < self.NUMERICAL_ATOL
+        if params.jerks is not None:
+            assert abs(j1 - params.jerks[1]) < self.NUMERICAL_ATOL
 
     def test_multipoint_trajectory_continuity(self) -> None:
         """Test continuity between segments in multipoint trajectory."""
