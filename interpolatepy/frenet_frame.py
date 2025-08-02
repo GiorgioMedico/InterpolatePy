@@ -53,11 +53,16 @@ def compute_trajectory_frames(
 
         # Compute tangent vector (normalized first derivative)
         dp_du_norm = np.linalg.norm(dp_du)
-        et = dp_du / dp_du_norm
+        if dp_du_norm < EPS:
+            # Handle degenerate case where velocity is zero
+            et = np.array([1.0, 0.0, 0.0])  # Default tangent
+            det_du = np.zeros(3)  # Zero curvature vector
+        else:
+            et = dp_du / dp_du_norm
 
-        # Compute the derivative of tangent vector with respect to u
-        # When parameter is not arc length, this formula applies (from footnote 11)
-        det_du = d2p_du2 / dp_du_norm - (dp_du * np.dot(dp_du, d2p_du2)) / (dp_du_norm**3)
+            # Compute the derivative of tangent vector with respect to u
+            # When parameter is not arc length, this formula applies (from footnote 11)
+            det_du = d2p_du2 / dp_du_norm - (dp_du * np.dot(dp_du, d2p_du2)) / (dp_du_norm**3)
 
         # Compute normal vector (normalized derivative of tangent)
         det_du_norm = np.linalg.norm(det_du)
