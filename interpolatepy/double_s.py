@@ -1,6 +1,5 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import NamedTuple
 
 import numpy as np
 
@@ -43,7 +42,8 @@ class TrajectoryBounds:
             raise ValueError("Bounds must be positive values")
 
 
-class StateParams(NamedTuple):
+@dataclass(frozen=True)
+class StateParams:
     """Parameters representing position and velocity state.
 
     Parameters

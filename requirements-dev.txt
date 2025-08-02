@@ -1,41 +1,26 @@
 # Runtime requirements
 --requirement requirements.txt
 
+# Build and packaging
 setuptools>=68.2.2
 build>=1.0.3
 twine>=4.0.2
 
-# Linting/Tooling
-black>=23.11.0
-isort>=5.12.0
-mypy>=1.6.1
-pre-commit>=4.1.0
+# Linting and type checking (ruff now handles formatting, so no black/isort needed)
 ruff>=0.1.5
+mypy>=1.6.1
 pyright>=1.1.335
+pre-commit>=4.1.0
 
 # Testing
 pytest>=7.4.3
-codecov>=2.1.13
 pytest-cov>=4.1.0
 pytest-benchmark>=4.0.0
-lark>=0.0.0
+codecov>=2.1.13
 
-# Documentation
+# Documentation (optional, only if needed)
 mkdocs>=1.5.3
 mkdocstrings>=0.23.0
 mkdocstrings-python>=1.7.3
 mkdocs-material>=9.4.8
 Pygments>=2.16.1
-
-# Resolve existing dependency-conflicts
-jinja2>=3.0,<4.0
-markupsafe>=2.0.1
-typeguard>=2.0.0
-colorama~=0.4
-pytz>=2020.1
-lxml>=4.9.0
-beautifulsoup4>=4.12.2
-webencodings>=0.5.1
-psutil>=5.9.5
-decorator>=5.1.1
-pexpect>=4.8.0

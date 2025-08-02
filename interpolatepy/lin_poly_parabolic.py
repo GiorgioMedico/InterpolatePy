@@ -1,7 +1,11 @@
 from collections.abc import Callable  # noqa: EXE002
 
-import matplotlib.pyplot as plt
 import numpy as np
+
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt = None
 
 
 class ParabolicBlendTrajectory:

@@ -1,6 +1,17 @@
-import matplotlib.pyplot as plt
+from __future__ import annotations
+
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D
+from typing import TYPE_CHECKING
+
+try:
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D
+except ImportError:
+    plt = None
+    Axes3D = None
+
+if TYPE_CHECKING:
+    from mpl_toolkits.mplot3d import Axes3D
 
 
 class BSpline:

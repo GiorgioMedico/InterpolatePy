@@ -1,6 +1,16 @@
-import matplotlib.pyplot as plt
+from __future__ import annotations
+
 import numpy as np
 from scipy.linalg import solve
+from typing import TYPE_CHECKING
+
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt = None
+
+if TYPE_CHECKING:
+    import matplotlib.pyplot as plt
 
 from interpolatepy.b_spline import BSpline
 

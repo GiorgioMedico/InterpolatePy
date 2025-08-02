@@ -1,3 +1,5 @@
+import matplotlib.pyplot as plt
+
 from interpolatepy.c_s_with_acc2 import CubicSplineWithAcceleration2
 from interpolatepy.c_s_with_acc2 import SplineParameters
 
@@ -22,6 +24,7 @@ if __name__ == "__main__":
 
     # Plot the trajectory
     spline.plot(1000)
+    plt.show()
 
     # Verify initial and final conditions
     print("\nVerifying boundary conditions:")

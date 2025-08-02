@@ -1,7 +1,11 @@
-import matplotlib.pyplot as plt
 import numpy as np
 
 from interpolatepy.tridiagonal_inv import solve_tridiagonal
+
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt = None
 
 # Constants to replace magic numbers
 MIN_POINTS = 2
