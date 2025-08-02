@@ -12,15 +12,13 @@ from collections.abc import Callable
 import matplotlib.pyplot as plt
 import numpy as np
 
-from interpolatepy.polynomials import (
-    ORDER_3,
-    ORDER_5,
-    ORDER_7,
-    BoundaryCondition,
-    PolynomialTrajectory,
-    TimeInterval,
-    TrajectoryParams,
-)
+from interpolatepy.polynomials import ORDER_3
+from interpolatepy.polynomials import ORDER_5
+from interpolatepy.polynomials import ORDER_7
+from interpolatepy.polynomials import BoundaryCondition
+from interpolatepy.polynomials import PolynomialTrajectory
+from interpolatepy.polynomials import TimeInterval
+from interpolatepy.polynomials import TrajectoryParams
 
 
 def plot_trajectory(
@@ -94,28 +92,18 @@ def two_point_interpolation_example() -> None:
     print("----------------------------------------------------------")
 
     # Define common boundary conditions and time interval
-    initial_pos = BoundaryCondition(
-        position=0.0, velocity=0.0, acceleration=0.0, jerk=0.0
-    )
-    final_pos = BoundaryCondition(
-        position=1.0, velocity=0.0, acceleration=0.0, jerk=0.0
-    )
+    initial_pos = BoundaryCondition(position=0.0, velocity=0.0, acceleration=0.0, jerk=0.0)
+    final_pos = BoundaryCondition(position=1.0, velocity=0.0, acceleration=0.0, jerk=0.0)
     time_interval = TimeInterval(start=0.0, end=2.0)
 
     # 3rd order polynomial
-    traj_3 = PolynomialTrajectory.order_3_trajectory(
-        initial_pos, final_pos, time_interval
-    )
+    traj_3 = PolynomialTrajectory.order_3_trajectory(initial_pos, final_pos, time_interval)
 
     # 5th order polynomial
-    traj_5 = PolynomialTrajectory.order_5_trajectory(
-        initial_pos, final_pos, time_interval
-    )
+    traj_5 = PolynomialTrajectory.order_5_trajectory(initial_pos, final_pos, time_interval)
 
     # 7th order polynomial
-    traj_7 = PolynomialTrajectory.order_7_trajectory(
-        initial_pos, final_pos, time_interval
-    )
+    traj_7 = PolynomialTrajectory.order_7_trajectory(initial_pos, final_pos, time_interval)
 
     # Compare the different orders on a single plot
     times = np.linspace(time_interval.start, time_interval.end, 100)

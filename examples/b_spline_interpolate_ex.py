@@ -125,9 +125,7 @@ def example_cyclic_bspline() -> None:
     points = np.array([3, -2, -5, 0, 6, 12, 3])  # Note last point = first point
 
     # Create a degree 4 cyclic interpolator
-    interpolator = BSplineInterpolator(
-        degree=4, points=points, times=times, cyclic=True
-    )
+    interpolator = BSplineInterpolator(degree=4, points=points, times=times, cyclic=True)
 
     # Generate curve points for plotting
     t_values = np.linspace(times[0], times[-1], 500)
@@ -194,9 +192,7 @@ def simple_3d_example() -> None:
     # Demonstrate with different degrees
     try:
         degree = 3  # This should work fine with 5 points
-        print(
-            f"\nTrying to create a B-spline with degree {degree} using {len(points)} points..."
-        )
+        print(f"\nTrying to create a B-spline with degree {degree} using {len(points)} points...")
         interpolator = BSplineInterpolator(degree=degree, points=points, times=times)
 
         # Plot the 3D curve with interpolation points
@@ -227,9 +223,7 @@ def simple_3d_example() -> None:
         # Print the original points and a few interpolated points
         print("\nOriginal points to interpolate:")
         for i, point in enumerate(points):
-            print(
-                f"Point {i} (t={times[i]}): ({point[0]:.1f}, {point[1]:.1f}, {point[2]:.1f})"
-            )
+            print(f"Point {i} (t={times[i]}): ({point[0]:.1f}, {point[1]:.1f}, {point[2]:.1f})")
 
         print("\nInterpolated points:")
         for t in [0.5, 1.5, 2.5, 3.5]:
@@ -242,9 +236,7 @@ def simple_3d_example() -> None:
     try:
         # Try with degree 4 - this will likely show a warning or fail
         degree = 4
-        print(
-            f"\nTrying to create a B-spline with degree {degree} using {len(points)} points..."
-        )
+        print(f"\nTrying to create a B-spline with degree {degree} using {len(points)} points...")
         interpolator = BSplineInterpolator(degree=degree, points=points, times=times)
         print(f"Succeeded with degree {degree}!")
     except ValueError as e:
@@ -253,9 +245,7 @@ def simple_3d_example() -> None:
     try:
         # Try with degree 5 - this should fail
         degree = 5
-        print(
-            f"\nTrying to create a B-spline with degree {degree} using {len(points)} points..."
-        )
+        print(f"\nTrying to create a B-spline with degree {degree} using {len(points)} points...")
         interpolator = BSplineInterpolator(degree=degree, points=points, times=times)
         print(f"Succeeded with degree {degree}!")
     except ValueError as e:

@@ -15,9 +15,7 @@ def example_bspline() -> BSpline:
     degree = 3
 
     # Define the control points (2D for this example)
-    control_points = np.array(
-        [[1, 2], [2, 3], [3, -3], [4, 4], [5, 5], [6, -5], [7, -6]]
-    )
+    control_points = np.array([[1, 2], [2, 3], [3, -3], [4, 4], [5, 5], [6, -5], [7, -6]])
 
     # Create knot vector similar to the example in the document
     knots = np.array([0, 0, 0, 0, 1, 2, 4, 7, 7, 7, 7])

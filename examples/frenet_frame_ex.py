@@ -9,12 +9,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 
-from interpolatepy.frenet_frame import (
-    circular_trajectory_with_derivatives,
-    compute_trajectory_frames,
-    helicoidal_trajectory_with_derivatives,
-    plot_frames,
-)
+from interpolatepy.frenet_frame import circular_trajectory_with_derivatives
+from interpolatepy.frenet_frame import compute_trajectory_frames
+from interpolatepy.frenet_frame import helicoidal_trajectory_with_derivatives
+from interpolatepy.frenet_frame import plot_frames
 
 
 def example_8_5() -> None:
@@ -64,9 +62,7 @@ def example_8_6() -> None:
     points, frenet_frames = compute_trajectory_frames(circle_func, u_values)
 
     # Compute tool frames with orientation alpha
-    _, tool_frames = compute_trajectory_frames(
-        circle_func, u_values, tool_orientation=alpha
-    )
+    _, tool_frames = compute_trajectory_frames(circle_func, u_values, tool_orientation=alpha)
 
     # Visualize
     fig = plt.figure(figsize=(12, 6))

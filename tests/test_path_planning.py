@@ -3,7 +3,7 @@ Comprehensive tests for path planning implementations.
 
 This module contains extensive tests for the path planning classes covering:
 1. Frenet frame computation functions
-2. LinearPath - Linear path implementation  
+2. LinearPath - Linear path implementation
 3. CircularPath - Circular path implementation
 
 Test coverage includes:
@@ -19,8 +19,8 @@ The tests verify that path planning algorithms correctly implement
 geometric computations and maintain expected mathematical properties.
 """
 
-from typing import Any
 from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 import pytest
@@ -28,6 +28,7 @@ import pytest
 from interpolatepy.frenet_frame import compute_trajectory_frames
 from interpolatepy.simple_paths import CircularPath
 from interpolatepy.simple_paths import LinearPath
+
 
 # Type alias for pytest benchmark fixture
 if not hasattr(pytest, "FixtureFunction"):
@@ -67,7 +68,7 @@ class TestLinearPath:
         assert len(path.pi) == 3
         assert len(path.pf) == 3
 
-        expected_length = np.sqrt((4-1)**2 + (6-2)**2 + (3-3)**2)  # 5.0
+        expected_length = np.sqrt((4 - 1) ** 2 + (6 - 2) ** 2 + (3 - 3) ** 2)  # 5.0
         assert abs(path.length - expected_length) < self.NUMERICAL_ATOL
 
     def test_zero_length_path(self) -> None:
@@ -288,7 +289,7 @@ class TestCircularPath:
         assert abs(vel_magnitude_quarter - 1.0) < self.NUMERICAL_ATOL
 
         # Velocity magnitude should always be 1 (unit tangent)
-        for s in [0.0, np.pi/4, np.pi/2, np.pi, 3*np.pi/2]:
+        for s in [0.0, np.pi / 4, np.pi / 2, np.pi, 3 * np.pi / 2]:
             vel = path.velocity(s)
             vel_magnitude = np.linalg.norm(vel)
             assert abs(vel_magnitude - 1.0) < self.NUMERICAL_ATOL
@@ -307,7 +308,7 @@ class TestCircularPath:
         assert abs(acc_magnitude - 1.0) < self.NUMERICAL_ATOL
 
         # Test acceleration at different points
-        for s in [0.0, np.pi/4, np.pi/2, np.pi]:
+        for s in [0.0, np.pi / 4, np.pi / 2, np.pi]:
             acc = path.acceleration(s)
             acc_magnitude = np.linalg.norm(acc)
             assert abs(acc_magnitude - 1.0) < self.NUMERICAL_ATOL
@@ -321,13 +322,13 @@ class TestCircularPath:
         path = CircularPath(r, d, pi)
 
         # All points should be at distance radius from center
-        for s in np.linspace(0, 2*np.pi*path.radius, 20):
+        for s in np.linspace(0, 2 * np.pi * path.radius, 20):
             pos = path.position(s)
             distance_to_center = np.linalg.norm(pos - path.center)
             assert abs(distance_to_center - path.radius) < self.NUMERICAL_ATOL
 
         # Velocity should always be perpendicular to radius vector
-        for s in np.linspace(0, 2*np.pi*path.radius, 10):
+        for s in np.linspace(0, 2 * np.pi * path.radius, 10):
             pos = path.position(s)
             vel = path.velocity(s)
             radius_vector = pos - path.center
@@ -346,8 +347,8 @@ class TestCircularPath:
 
         # Test beyond full circle (should wrap around)
         full_circle = 2 * np.pi * path.radius
-        pos_beyond = path.position(full_circle + np.pi/2)
-        pos_quarter = path.position(np.pi/2)
+        pos_beyond = path.position(full_circle + np.pi / 2)
+        pos_quarter = path.position(np.pi / 2)
 
         # Should be the same due to periodicity
         assert np.allclose(pos_beyond, pos_quarter, atol=self.NUMERICAL_ATOL)
@@ -476,7 +477,7 @@ class TestLinearPathAdvanced:
         for i in range(1, num_points - 1):
             # Check that points are collinear (cross product is zero)
             v1 = positions[i] - positions[0]
-            v2 = positions[i+1] - positions[0]
+            v2 = positions[i + 1] - positions[0]
             cross = np.cross(v1, v2)
             # For 3D vectors, cross product magnitude should be zero for collinear points
             assert np.linalg.norm(cross) < self.NUMERICAL_ATOL
@@ -510,7 +511,7 @@ class TestCircularPathAdvanced:
         path = CircularPath(r, d, pi)
 
         # Test with single scalar value
-        result = path.evaluate_at(np.pi/2)  # Quarter circle
+        result = path.evaluate_at(np.pi / 2)  # Quarter circle
 
         assert "position" in result
         assert "velocity" in result
@@ -535,7 +536,7 @@ class TestCircularPathAdvanced:
         path = CircularPath(r, d, pi)
 
         # Test with array of values
-        s_values = [0.0, np.pi, 2*np.pi, 3*np.pi]  # Multiple positions around circle
+        s_values = [0.0, np.pi, 2 * np.pi, 3 * np.pi]  # Multiple positions around circle
         result = path.evaluate_at(s_values)
 
         # Check shapes
@@ -546,19 +547,25 @@ class TestCircularPathAdvanced:
 
         # Check specific positions on circle with radius 2
         # For radius=2, s=π means angle=π/2, s=2π means angle=π, etc.
-        expected_positions = np.array([
-            [2.0, 0.0, 0.0],    # s = 0, angle = 0
-            [0.0, 2.0, 0.0],    # s = π, angle = π/2
-            [-2.0, 0.0, 0.0],   # s = 2π, angle = π
-            [0.0, -2.0, 0.0],   # s = 3π, angle = 3π/2
-        ])
+        expected_positions = np.array(
+            [
+                [2.0, 0.0, 0.0],  # s = 0, angle = 0
+                [0.0, 2.0, 0.0],  # s = π, angle = π/2
+                [-2.0, 0.0, 0.0],  # s = 2π, angle = π
+                [0.0, -2.0, 0.0],  # s = 3π, angle = 3π/2
+            ]
+        )
 
         for i in range(4):
-            assert np.allclose(result["position"][i], expected_positions[i], atol=self.NUMERICAL_ATOL)
+            assert np.allclose(
+                result["position"][i], expected_positions[i], atol=self.NUMERICAL_ATOL
+            )
             # Velocity magnitude should be constant = 1 (unit tangent scaled by radius/radius = 1)
             assert np.isclose(np.linalg.norm(result["velocity"][i]), 1.0, atol=self.NUMERICAL_ATOL)
             # Acceleration magnitude should be constant = 1/radius = 1/2 = 0.5
-            assert np.isclose(np.linalg.norm(result["acceleration"][i]), 0.5, atol=self.NUMERICAL_ATOL)
+            assert np.isclose(
+                np.linalg.norm(result["acceleration"][i]), 0.5, atol=self.NUMERICAL_ATOL
+            )
 
     def test_evaluate_at_with_numpy_array(self) -> None:
         """Test evaluate_at method with numpy array input."""
@@ -642,7 +649,9 @@ class TestCircularPathAdvanced:
             acceleration_vec = result["acceleration"][i]
             expected_acc_direction = -radius_vec / np.linalg.norm(radius_vec)
             actual_acc_direction = acceleration_vec / np.linalg.norm(acceleration_vec)
-            assert np.allclose(actual_acc_direction, expected_acc_direction, atol=self.NUMERICAL_ATOL)
+            assert np.allclose(
+                actual_acc_direction, expected_acc_direction, atol=self.NUMERICAL_ATOL
+            )
 
     def test_position_array_evaluation(self) -> None:
         """Test position method with array input."""
@@ -652,19 +661,21 @@ class TestCircularPathAdvanced:
         path = CircularPath(r, d, pi)
 
         # Test with array input
-        s_values = np.array([0.0, np.pi/2, np.pi, 3*np.pi/2])
+        s_values = np.array([0.0, np.pi / 2, np.pi, 3 * np.pi / 2])
         positions = path.position(s_values)
 
         # Should return array of positions
         assert positions.shape == (4, 3)
 
         # Check specific positions
-        expected_positions = np.array([
-            [1.0, 0.0, 0.0],    # s = 0
-            [0.0, 1.0, 0.0],    # s = π/2
-            [-1.0, 0.0, 0.0],   # s = π
-            [0.0, -1.0, 0.0],   # s = 3π/2
-        ])
+        expected_positions = np.array(
+            [
+                [1.0, 0.0, 0.0],  # s = 0
+                [0.0, 1.0, 0.0],  # s = π/2
+                [-1.0, 0.0, 0.0],  # s = π
+                [0.0, -1.0, 0.0],  # s = 3π/2
+            ]
+        )
 
         assert np.allclose(positions, expected_positions, atol=self.NUMERICAL_ATOL)
 
@@ -728,6 +739,7 @@ class TestFrenetFrames:
         self, pi: np.ndarray, pf: np.ndarray
     ) -> Callable[[float], tuple[np.ndarray, np.ndarray, np.ndarray]]:
         """Create a trajectory function for linear path."""
+
         def trajectory_func(u: float) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
             # Linear interpolation: p(u) = pi + u*(pf - pi), u ∈ [0,1]
             position = pi + u * (pf - pi)
@@ -743,6 +755,7 @@ class TestFrenetFrames:
         self, center: np.ndarray, radius: float
     ) -> Callable[[float], tuple[np.ndarray, np.ndarray, np.ndarray]]:
         """Create a trajectory function for circular path."""
+
         def trajectory_func(u: float) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
             # Circular path: p(u) = center + radius*(cos(u), sin(u), 0)
             # u is the angle parameter
@@ -797,17 +810,19 @@ class TestFrenetFrames:
         radius = 1.0
 
         trajectory_func = self.create_circular_trajectory_func(center, radius)
-        u_values = np.array([0.0, np.pi/2, np.pi])
+        u_values = np.array([0.0, np.pi / 2, np.pi])
 
         points, frames = compute_trajectory_frames(trajectory_func, u_values)
 
         # Check points
         assert points.shape == (3, 3)
-        expected_points = np.array([
-            [1.0, 0.0, 0.0],    # u = 0
-            [0.0, 1.0, 0.0],    # u = π/2
-            [-1.0, 0.0, 0.0]    # u = π
-        ])
+        expected_points = np.array(
+            [
+                [1.0, 0.0, 0.0],  # u = 0
+                [0.0, 1.0, 0.0],  # u = π/2
+                [-1.0, 0.0, 0.0],  # u = π
+            ]
+        )
         assert np.allclose(points, expected_points, atol=self.NUMERICAL_ATOL)
 
         # Check frames
@@ -861,7 +876,7 @@ class TestFrenetFrames:
         u_values = np.array([0.5])  # Single point
 
         # Test with RPY angles
-        rpy_angles = (np.pi/6, np.pi/4, np.pi/3)  # Roll, pitch, yaw
+        rpy_angles = (np.pi / 6, np.pi / 4, np.pi / 3)  # Roll, pitch, yaw
 
         points, frames = compute_trajectory_frames(
             trajectory_func, u_values, tool_orientation=rpy_angles
@@ -878,6 +893,7 @@ class TestFrenetFrames:
 
     def test_frames_edge_cases(self) -> None:
         """Test Frenet frames with edge cases."""
+
         # Degenerate case: zero velocity (stationary point)
         def stationary_func(u: float) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
             position = np.array([1.0, 1.0, 1.0])  # Constant position
@@ -961,11 +977,13 @@ class TestPathPlanningPerformance:
     ) -> None:
         """Benchmark path construction performance."""
         if path_type == "linear":
+
             def construct_path():
                 pi = np.array([0.0, 0.0, 0.0])
                 pf = np.array([10.0, 5.0, 3.0])
                 return LinearPath(pi, pf)
         else:  # circular
+
             def construct_path():
                 r = np.array([0.0, 0.0, 1.0])  # z-axis
                 d = np.array([2.0, 3.0, 1.0])  # center
@@ -992,15 +1010,13 @@ class TestPathPlanningPerformance:
         positions = benchmark(evaluate_positions)
         assert len(positions) == n_evaluations
 
-    def test_frenet_frame_performance(
-        self, benchmark: pytest.FixtureFunction
-    ) -> None:
+    def test_frenet_frame_performance(self, benchmark: pytest.FixtureFunction) -> None:
         """Benchmark Frenet frame computation performance."""
         center = np.array([0.0, 0.0, 0.0])
         radius = 2.0
 
         trajectory_func = self.create_circular_trajectory_func(center, radius)
-        u_values = np.linspace(0, 2*np.pi, 50)
+        u_values = np.linspace(0, 2 * np.pi, 50)
 
         def compute_frames():
             return compute_trajectory_frames(trajectory_func, u_values)
@@ -1013,12 +1029,14 @@ class TestPathPlanningPerformance:
         self, center: np.ndarray, radius: float
     ) -> Callable[[float], tuple[np.ndarray, np.ndarray, np.ndarray]]:
         """Helper method for creating circular trajectory function."""
+
         def trajectory_func(u: float) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
             cos_u, sin_u = np.cos(u), np.sin(u)
             position = center + radius * np.array([cos_u, sin_u, 0.0])
             velocity = radius * np.array([-sin_u, cos_u, 0.0])
             acceleration = radius * np.array([-cos_u, -sin_u, 0.0])
             return position, velocity, acceleration
+
         return trajectory_func
 
 

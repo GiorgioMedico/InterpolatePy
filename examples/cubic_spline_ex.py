@@ -1,4 +1,6 @@
 from interpolatepy.cubic_spline import CubicSpline
+import matplotlib.pyplot as plt
+
 
 # Example usage
 if __name__ == "__main__":
@@ -11,3 +13,4 @@ if __name__ == "__main__":
 
     # Plot the trajectory
     spline.plot(1000)
+    plt.show()

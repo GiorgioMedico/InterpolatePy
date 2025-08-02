@@ -90,10 +90,14 @@ def smoothing_spline_with_tolerance(
     # Create initial (fallback) spline with μ=1.0 (most accurate)
     # This ensures we always have a valid spline to return
     default_spline = CubicSmoothingSpline(
-        t_points,
-        q_points,
+        t_points.tolist() if hasattr(t_points, "tolist") else list(t_points),
+        q_points.tolist() if hasattr(q_points, "tolist") else list(q_points),
         mu=1.0,
-        weights=config.weights,
+        weights=(
+            config.weights.tolist()
+            if config.weights is not None and hasattr(config.weights, "tolist")
+            else config.weights
+        ),
         v0=config.v0,
         vn=config.vn,
         debug=False,
@@ -117,10 +121,14 @@ def smoothing_spline_with_tolerance(
         try:
             # Create spline with current μ
             spline = CubicSmoothingSpline(
-                t_points,
-                q_points,
+                t_points.tolist() if hasattr(t_points, "tolist") else list(t_points),
+                q_points.tolist() if hasattr(q_points, "tolist") else list(q_points),
                 mu=mu,
-                weights=config.weights,
+                weights=(
+                    config.weights.tolist()
+                    if config.weights is not None and hasattr(config.weights, "tolist")
+                    else config.weights
+                ),
                 v0=config.v0,
                 vn=config.vn,
                 debug=False,

@@ -1,4 +1,5 @@
-from collections.abc import Callable, Sequence
+from collections.abc import Callable
+from collections.abc import Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -92,6 +93,7 @@ if __name__ == "__main__":
     # Option 1: Use the built-in plot method
     print("\nPlotting trajectory using built-in plot method...")
     traj.plot()
+    plt.show()
 
     # Option 2: Custom plotting with waypoints highlighted
     print("\nPlotting trajectory with highlighted waypoints...")

@@ -64,9 +64,7 @@ def example_approximation(debug: bool = False) -> None:
         print(f"{'-' * 80}")
 
         # Create the approximation B-spline
-        approx_spline = ApproximationBSpline(
-            sample_points, num_cps, degree=degree, debug=debug
-        )
+        approx_spline = ApproximationBSpline(sample_points, num_cps, degree=degree, debug=debug)
 
         # Calculate error
         error = approx_spline.calculate_approximation_error()
@@ -160,9 +158,7 @@ def create_test_shapes() -> dict[str, np.ndarray]:
     # 4. Heart shape
     t = np.linspace(0, 2 * np.pi, 100)
     heart_x = 16 * np.sin(t) ** 3 * 10 + 150
-    heart_y = (
-        13 * np.cos(t) - 5 * np.cos(2 * t) - 2 * np.cos(3 * t) - np.cos(4 * t)
-    ) * 10 + 150
+    heart_y = (13 * np.cos(t) - 5 * np.cos(2 * t) - 2 * np.cos(3 * t) - np.cos(4 * t)) * 10 + 150
     shapes["Heart"] = np.column_stack((heart_x, heart_y))
 
     return shapes
@@ -198,9 +194,7 @@ def example_different_shapes(debug: bool = False) -> None:
             print(f"\nUsing {num_cps} control points:")
 
             # Create the approximation B-spline
-            approx_spline = ApproximationBSpline(
-                sample_points, num_cps, degree=degree, debug=debug
-            )
+            approx_spline = ApproximationBSpline(sample_points, num_cps, degree=degree, debug=debug)
 
             # Calculate error
             error = approx_spline.calculate_approximation_error()
@@ -281,9 +275,7 @@ def example_method_comparison(debug: bool = False) -> None:
         print(f"{'-' * 80}")
 
         # Create the approximation B-spline
-        approx_spline = ApproximationBSpline(
-            sample_points, num_cps, degree=degree, debug=debug
-        )
+        approx_spline = ApproximationBSpline(sample_points, num_cps, degree=degree, debug=debug)
 
         # Calculate error
         error = approx_spline.calculate_approximation_error()
@@ -360,9 +352,7 @@ def example_degree_comparison(debug: bool = False) -> None:
         print(f"{'-' * 80}")
 
         # Create the approximation B-spline with the specific degree
-        approx_spline = ApproximationBSpline(
-            sample_points, num_cps, degree=degree, debug=debug
-        )
+        approx_spline = ApproximationBSpline(sample_points, num_cps, degree=degree, debug=debug)
 
         # Calculate error
         error = approx_spline.calculate_approximation_error()
@@ -456,9 +446,7 @@ def example_noise_sensitivity(debug: bool = False) -> None:
         # Create the approximation B-spline
         num_cps = 12
         degree = 3
-        approx_spline = ApproximationBSpline(
-            points, num_cps, degree=degree, debug=debug
-        )
+        approx_spline = ApproximationBSpline(points, num_cps, degree=degree, debug=debug)
 
         # Calculate error
         error = approx_spline.calculate_approximation_error()

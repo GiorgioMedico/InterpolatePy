@@ -31,9 +31,7 @@ def textbook_example() -> list[CubicSmoothingSpline]:
     colors = ["g", "r", "b"]
 
     for i, mu in enumerate(mu_values):
-        spline = CubicSmoothingSpline(
-            t_points, q_points, mu=mu, weights=weights, debug=True
-        )
+        spline = CubicSmoothingSpline(t_points, q_points, mu=mu, weights=weights, debug=True)
         splines.append(spline)
 
         # Position

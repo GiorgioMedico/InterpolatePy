@@ -207,7 +207,7 @@ class ParabolicBlendTrajectory:
             acc = np.zeros_like(times)
 
             for i, t in enumerate(times):
-                pos[i], vel[i], acc[i] = traj_func(t)
+                pos[i], vel[i], acc[i] = traj_func(float(t))
 
         fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True)
         ax1.plot(times, pos)
@@ -218,4 +218,3 @@ class ParabolicBlendTrajectory:
         ax3.set_ylabel("Acceleration")
         ax3.set_xlabel("Time")
         fig.tight_layout()
-        plt.show()

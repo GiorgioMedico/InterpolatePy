@@ -11,12 +11,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 
-from interpolatepy.polynomials import (
-    BoundaryCondition,
-    PolynomialTrajectory,
-    TimeInterval,
-)
-from interpolatepy.simple_paths import CircularPath, LinearPath
+from interpolatepy.polynomials import BoundaryCondition
+from interpolatepy.polynomials import PolynomialTrajectory
+from interpolatepy.polynomials import TimeInterval
+from interpolatepy.simple_paths import CircularPath
+from interpolatepy.simple_paths import LinearPath
 
 
 def plot_3d_path(
@@ -163,9 +162,7 @@ def linear_path_example() -> None:
     a_values = np.array([trajectory(t)[2] for t in times])  # Acceleration (d²s/dt²)
 
     # Plot the motion profiles
-    plot_motion_profiles(
-        times, s_values, v_values, a_values, "Motion Profiles for Linear Path"
-    )
+    plot_motion_profiles(times, s_values, v_values, a_values, "Motion Profiles for Linear Path")
 
     # Now let's map the motion profile to 3D positions along the path
     positions_3d = np.zeros((len(times), 3))
@@ -243,9 +240,7 @@ def circular_path_example() -> None:
     a_values = np.array([trajectory(t)[2] for t in times])
 
     # Plot the motion profiles
-    plot_motion_profiles(
-        times, s_values, v_values, a_values, "Motion Profiles for Circular Path"
-    )
+    plot_motion_profiles(times, s_values, v_values, a_values, "Motion Profiles for Circular Path")
 
     # Now let's map the motion profile to 3D positions along the path
     positions_3d = np.zeros((len(times), 3))

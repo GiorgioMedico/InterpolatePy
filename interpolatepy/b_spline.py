@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 - Imported for type hinting
+from mpl_toolkits.mplot3d import Axes3D
 
 
 class BSpline:
@@ -505,14 +505,25 @@ class BSpline:
         _, curve_points = self.generate_curve_points(num_points)
 
         # Plot the curve
-        ax.plot(curve_points[:, 0], curve_points[:, 1], **default_curve_style)
+        ax.plot(
+            curve_points[:, 0],
+            curve_points[:, 1],
+            color=default_curve_style["color"],
+            linewidth=default_curve_style["linewidth"],
+            label=default_curve_style["label"],
+        )
 
         # Plot the control points and polygon if requested
         if show_control_polygon:
             ax.plot(
                 self.control_points[:, 0],
                 self.control_points[:, 1],
-                **default_control_style,
+                color=default_control_style["color"],
+                linestyle=default_control_style["linestyle"],
+                marker=default_control_style["marker"],
+                linewidth=default_control_style["linewidth"],
+                markersize=default_control_style["markersize"],
+                label=default_control_style["label"],
             )
 
         # Plot the knot points if requested
@@ -522,7 +533,15 @@ class BSpline:
             unique_knots = np.unique(valid_knots)
 
             knot_points = np.array([self.evaluate(k) for k in unique_knots])
-            ax.plot(knot_points[:, 0], knot_points[:, 1], **default_knot_style)
+            ax.plot(
+                knot_points[:, 0],
+                knot_points[:, 1],
+                color=default_knot_style["color"],
+                marker=default_knot_style["marker"],
+                markersize=default_knot_style["markersize"],
+                linestyle="none",
+                label=default_knot_style["label"],
+            )
 
         # Set labels and title
         ax.set_xlabel("X")
@@ -537,8 +556,8 @@ class BSpline:
         self,
         num_points: int = 100,
         show_control_polygon: bool = True,
-        ax: plt.Axes | None = None,
-    ) -> plt.Axes:
+        ax: Axes3D | None = None,
+    ) -> Axes3D:
         """
         Plot a 3D B-spline curve.
 
@@ -598,7 +617,9 @@ class BSpline:
             curve_points[:, 0],
             curve_points[:, 1],
             curve_points[:, 2],
-            **default_curve_style,
+            color=default_curve_style["color"],
+            linewidth=default_curve_style["linewidth"],
+            label=default_curve_style["label"],
         )
 
         # Plot the control points and polygon if requested
@@ -607,7 +628,12 @@ class BSpline:
                 self.control_points[:, 0],
                 self.control_points[:, 1],
                 self.control_points[:, 2],
-                **default_control_style,
+                color=default_control_style["color"],
+                linestyle=default_control_style["linestyle"],
+                marker=default_control_style["marker"],
+                linewidth=default_control_style["linewidth"],
+                markersize=default_control_style["markersize"],
+                label=default_control_style["label"],
             )
 
         # Set labels and title

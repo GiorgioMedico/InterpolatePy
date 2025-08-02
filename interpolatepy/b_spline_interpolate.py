@@ -514,7 +514,7 @@ class BSplineInterpolator(BSpline):
         # Add time labels if not too many points
         if len(self.interp_points) <= MAX_POINTS_FOR_LABELS:
             for i, (x, y, z) in enumerate(self.interp_points):
-                ax.text(x, y, z, f"t={self.times[i]:.1f}", horizontalalignment="center")
+                ax.text(x, y, z, f"t={self.times[i]:.1f}")
 
         ax.legend()
         return ax

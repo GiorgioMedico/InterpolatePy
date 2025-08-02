@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from interpolatepy.c_s_smoot_search import SplineConfig, smoothing_spline_with_tolerance
+from interpolatepy.c_s_smoot_search import SplineConfig
+from interpolatepy.c_s_smoot_search import smoothing_spline_with_tolerance
 from interpolatepy.c_s_smoothing import CubicSmoothingSpline
 
 

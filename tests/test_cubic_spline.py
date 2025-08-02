@@ -16,11 +16,11 @@ trajectories with continuous position, velocity, and acceleration profiles.
 
 from typing import Any
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 
 from interpolatepy.cubic_spline import CubicSpline
+
 
 # Type alias for pytest benchmark fixture
 if not hasattr(pytest, "FixtureFunction"):
@@ -140,7 +140,7 @@ class TestCubicSplineMathematicalAccuracy:
         spline = CubicSpline(t_points, q_points, v0=2.0, vn=2.0)
 
         # Check at waypoints
-        for i, (t, q) in enumerate(zip(t_points, q_points)):
+        for _i, (t, q) in enumerate(zip(t_points, q_points)):
             assert abs(spline.evaluate(t) - q) < self.REGULAR_ATOL
             assert abs(spline.evaluate_velocity(t) - 2.0) < self.NUMERICAL_ATOL
             assert abs(spline.evaluate_acceleration(t) - 0.0) < self.NUMERICAL_ATOL
@@ -307,9 +307,9 @@ class TestCubicSplineEvaluationMethods:
         v = spline.evaluate_velocity(t_test)
         a = spline.evaluate_acceleration(t_test)
 
-        assert isinstance(q, (int, float, np.number))
-        assert isinstance(v, (int, float, np.number))
-        assert isinstance(a, (int, float, np.number))
+        assert isinstance(q, int | float | np.number)
+        assert isinstance(v, int | float | np.number)
+        assert isinstance(a, int | float | np.number)
 
     def test_array_evaluation(self) -> None:
         """Test evaluation with array time inputs."""
@@ -489,6 +489,7 @@ class TestCubicSplineNumericalStability:
 
     def test_convergence_with_increasing_points(self) -> None:
         """Test convergence behavior as number of waypoints increases."""
+
         # Test function: sin(x) on [0, π]
         def test_function(t: float) -> float:
             return np.sin(t)
@@ -580,9 +581,7 @@ class TestCubicSplinePerformance:
         result = benchmark(evaluate_spline)
         assert len(result) == n_evaluations
 
-    def test_derivative_evaluation_performance(
-        self, benchmark: pytest.FixtureFunction
-    ) -> None:
+    def test_derivative_evaluation_performance(self, benchmark: pytest.FixtureFunction) -> None:
         """Benchmark derivative evaluation performance."""
         t_points = np.linspace(0, 10, 50)
         q_points = np.sin(t_points)

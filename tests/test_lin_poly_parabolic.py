@@ -19,12 +19,14 @@ between linear segments with appropriate continuity constraints.
 """
 
 from typing import Any
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
+from unittest.mock import patch
 
 import numpy as np
 import pytest
 
 from interpolatepy.lin_poly_parabolic import ParabolicBlendTrajectory
+
 
 # Type alias for pytest benchmark fixture
 if not hasattr(pytest, "FixtureFunction"):
@@ -131,9 +133,9 @@ class TestParabolicBlendTrajectoryGeneration:
 
         # Test trajectory function returns tuple of 3 values
         pos, vel, acc = traj_func(0.0)
-        assert isinstance(pos, (int, float, np.number))
-        assert isinstance(vel, (int, float, np.number))
-        assert isinstance(acc, (int, float, np.number))
+        assert isinstance(pos, int | float | np.number)
+        assert isinstance(vel, int | float | np.number)
+        assert isinstance(acc, int | float | np.number)
 
     def test_three_point_trajectory(self) -> None:
         """Test trajectory generation with three waypoints."""
@@ -148,7 +150,7 @@ class TestParabolicBlendTrajectoryGeneration:
         assert duration > 0.0
 
         # Check continuity at several points
-        for test_time in [0.0, duration/4, duration/2, 3*duration/4, duration]:
+        for test_time in [0.0, duration / 4, duration / 2, 3 * duration / 4, duration]:
             pos, vel, acc = traj_func(test_time)
             assert np.isfinite(pos)
             assert np.isfinite(vel)
@@ -333,7 +335,9 @@ class TestParabolicBlendTrajectoryMathematicalProperties:
         accelerations = np.array(accelerations)
         has_nonzero_acc = np.any(np.abs(accelerations) > 1e-10)
 
-        assert has_nonzero_acc, "Trajectory should have some non-zero accelerations in blend regions"
+        assert has_nonzero_acc, (
+            "Trajectory should have some non-zero accelerations in blend regions"
+        )
 
     def test_energy_and_smoothness_properties(self) -> None:
         """Test energy-related properties of the trajectory."""
@@ -385,7 +389,7 @@ class TestParabolicBlendTrajectoryEdgeCases:
         traj_func, duration = traj.generate()
 
         # Should handle identical waypoints gracefully
-        pos_mid, vel_mid, acc_mid = traj_func(duration/2)
+        pos_mid, vel_mid, acc_mid = traj_func(duration / 2)
 
         assert np.isfinite(pos_mid)
         assert np.isfinite(vel_mid)
@@ -404,7 +408,7 @@ class TestParabolicBlendTrajectoryEdgeCases:
         assert duration > 0.0
 
         # Check that we can evaluate without numerical issues
-        pos, vel, acc = traj_func(duration/2)
+        pos, vel, acc = traj_func(duration / 2)
         assert np.isfinite(pos)
         assert np.isfinite(vel)
         assert np.isfinite(acc)
@@ -434,7 +438,7 @@ class TestParabolicBlendTrajectoryEdgeCases:
         traj_func, duration = traj.generate()
 
         # Single point should create a trivial trajectory
-        pos, vel, acc = traj_func(duration/2)
+        pos, vel, acc = traj_func(duration / 2)
 
         assert np.isfinite(pos)
         assert np.isfinite(vel)
@@ -447,12 +451,12 @@ class TestParabolicBlendTrajectoryEdgeCases:
 class TestParabolicBlendTrajectoryPlotting:
     """Test suite for plotting functionality."""
 
-    @patch("matplotlib.pyplot.show")
     @patch("matplotlib.pyplot.subplots")
-    def test_plot_without_data(self, mock_subplots: Mock, mock_show: Mock) -> None:
+    def test_plot_without_data(self, mock_subplots: Mock) -> None:
         """Test plot method without providing trajectory data."""
         # Setup mock - subplots returns (fig, axes) tuple
         from unittest.mock import MagicMock
+
         mock_fig = MagicMock()
         mock_axes = [MagicMock(), MagicMock(), MagicMock()]
         mock_subplots.return_value = (mock_fig, mock_axes)
@@ -468,14 +472,13 @@ class TestParabolicBlendTrajectoryPlotting:
 
         # Verify plot was called
         mock_subplots.assert_called_once()
-        mock_show.assert_called_once()
 
-    @patch("matplotlib.pyplot.show")
     @patch("matplotlib.pyplot.subplots")
-    def test_plot_with_provided_data(self, mock_subplots: Mock, mock_show: Mock) -> None:
+    def test_plot_with_provided_data(self, mock_subplots: Mock) -> None:
         """Test plot method with provided trajectory data."""
         # Setup mock - subplots returns (fig, axes) tuple
         from unittest.mock import MagicMock
+
         mock_fig = MagicMock()
         mock_axes = [MagicMock(), MagicMock(), MagicMock()]
         mock_subplots.return_value = (mock_fig, mock_axes)
@@ -497,14 +500,13 @@ class TestParabolicBlendTrajectoryPlotting:
 
         # Verify plot was called
         mock_subplots.assert_called_once()
-        mock_show.assert_called_once()
 
-    @patch("matplotlib.pyplot.show")
     @patch("matplotlib.pyplot.subplots")
-    def test_plot_with_custom_dt(self, mock_subplots: Mock, mock_show: Mock) -> None:
+    def test_plot_with_custom_dt(self, mock_subplots: Mock) -> None:
         """Test plot method with custom sampling interval."""
         # Setup mock - subplots returns (fig, axes) tuple
         from unittest.mock import MagicMock
+
         mock_fig = MagicMock()
         mock_axes = [MagicMock(), MagicMock(), MagicMock()]
         mock_subplots.return_value = (mock_fig, mock_axes)
@@ -520,7 +522,6 @@ class TestParabolicBlendTrajectoryPlotting:
 
         # Verify plot was called
         mock_subplots.assert_called_once()
-        mock_show.assert_called_once()
 
 
 class TestParabolicBlendTrajectoryPerformance:

@@ -19,6 +19,7 @@ import pytest
 
 from interpolatepy.linear import linear_traj
 
+
 # Type alias for pytest benchmark fixture
 if not hasattr(pytest, "FixtureFunction"):
     pytest.FixtureFunction = Any
@@ -35,17 +36,17 @@ class TestLinearTrajectoryScalar:
         p0, p1 = 0.0, 10.0
         t0, t1 = 0.0, 2.0
         time_array = np.array([0.0, 1.0, 2.0])
-        
+
         positions, velocities, accelerations = linear_traj(p0, p1, t0, t1, time_array)
-        
+
         # Check positions
         expected_positions = np.array([0.0, 5.0, 10.0])
         assert np.allclose(positions, expected_positions, atol=self.NUMERICAL_ATOL)
-        
+
         # Check velocities (should be constant)
         expected_velocity = 5.0  # (10-0)/(2-0)
         assert np.allclose(velocities, expected_velocity, atol=self.NUMERICAL_ATOL)
-        
+
         # Check accelerations (should be zero)
         assert np.allclose(accelerations, 0.0, atol=self.NUMERICAL_ATOL)
 
@@ -54,17 +55,17 @@ class TestLinearTrajectoryScalar:
         p0, p1 = 5.0, 2.0
         t0, t1 = 0.0, 3.0
         time_array = np.array([0.0, 1.5, 3.0])
-        
+
         positions, velocities, accelerations = linear_traj(p0, p1, t0, t1, time_array)
-        
+
         # Check positions
         expected_positions = np.array([5.0, 3.5, 2.0])
         assert np.allclose(positions, expected_positions, atol=self.NUMERICAL_ATOL)
-        
+
         # Check velocities (should be negative)
         expected_velocity = -1.0  # (2-5)/(3-0)
         assert np.allclose(velocities, expected_velocity, atol=self.NUMERICAL_ATOL)
-        
+
         # Check accelerations
         assert np.allclose(accelerations, 0.0, atol=self.NUMERICAL_ATOL)
 
@@ -73,16 +74,16 @@ class TestLinearTrajectoryScalar:
         p0, p1 = 3.0, 3.0
         t0, t1 = 0.0, 2.0
         time_array = np.array([0.0, 1.0, 2.0])
-        
+
         positions, velocities, accelerations = linear_traj(p0, p1, t0, t1, time_array)
-        
+
         # Check positions (should remain constant)
         expected_positions = np.array([3.0, 3.0, 3.0])
         assert np.allclose(positions, expected_positions, atol=self.NUMERICAL_ATOL)
-        
+
         # Check velocities (should be zero)
         assert np.allclose(velocities, 0.0, atol=self.NUMERICAL_ATOL)
-        
+
         # Check accelerations
         assert np.allclose(accelerations, 0.0, atol=self.NUMERICAL_ATOL)
 
@@ -91,13 +92,13 @@ class TestLinearTrajectoryScalar:
         p0, p1 = 1.0, 7.0
         t0, t1 = 2.0, 5.0
         time_array = np.array([2.0, 3.5, 5.0])
-        
+
         positions, velocities, accelerations = linear_traj(p0, p1, t0, t1, time_array)
-        
+
         # Check positions
         expected_positions = np.array([1.0, 4.0, 7.0])
         assert np.allclose(positions, expected_positions, atol=self.NUMERICAL_ATOL)
-        
+
         # Check velocities
         expected_velocity = 2.0  # (7-1)/(5-2)
         assert np.allclose(velocities, expected_velocity, atol=self.NUMERICAL_ATOL)
@@ -107,13 +108,13 @@ class TestLinearTrajectoryScalar:
         p0, p1 = 0.0, 4.0
         t0, t1 = 1.0, 3.0
         time_array = np.array([0.0, 1.0, 2.0, 3.0, 4.0])  # Includes extrapolation
-        
+
         positions, velocities, accelerations = linear_traj(p0, p1, t0, t1, time_array)
-        
+
         # Check positions (including extrapolated values)
         expected_positions = np.array([-2.0, 0.0, 2.0, 4.0, 6.0])
         assert np.allclose(positions, expected_positions, atol=self.NUMERICAL_ATOL)
-        
+
         # Velocity should remain constant even during extrapolation
         expected_velocity = 2.0  # (4-0)/(3-1)
         assert np.allclose(velocities, expected_velocity, atol=self.NUMERICAL_ATOL)
@@ -123,21 +124,21 @@ class TestLinearTrajectoryScalar:
         p0, p1 = 2.0, 8.0
         t0, t1 = 0.0, 3.0
         time_array = np.array([1.5])
-        
+
         positions, velocities, accelerations = linear_traj(p0, p1, t0, t1, time_array)
-        
+
         # Check dimensions
         assert positions.shape == (1,)
         assert velocities.shape == (1,)
         assert accelerations.shape == (1,)
-        
+
         # Check values
         expected_position = 5.0  # 2 + (8-2)*(1.5-0)/(3-0)
         assert abs(positions[0] - expected_position) < self.NUMERICAL_ATOL
-        
+
         expected_velocity = 2.0  # (8-2)/(3-0)
         assert abs(velocities[0] - expected_velocity) < self.NUMERICAL_ATOL
-        
+
         assert abs(accelerations[0]) < self.NUMERICAL_ATOL
 
 
@@ -153,22 +154,18 @@ class TestLinearTrajectoryVector:
         p1 = [4.0, 6.0]
         t0, t1 = 0.0, 2.0
         time_array = np.array([0.0, 1.0, 2.0])
-        
+
         positions, velocities, accelerations = linear_traj(p0, p1, t0, t1, time_array)
-        
+
         # Check positions
-        expected_positions = np.array([
-            [0.0, 0.0],
-            [2.0, 3.0],
-            [4.0, 6.0]
-        ])
+        expected_positions = np.array([[0.0, 0.0], [2.0, 3.0], [4.0, 6.0]])
         assert np.allclose(positions, expected_positions, atol=self.NUMERICAL_ATOL)
-        
+
         # Check velocities (should be constant)
         expected_velocity = [2.0, 3.0]  # (p1-p0)/(t1-t0)
         expected_velocities = np.tile(expected_velocity, (3, 1))
         assert np.allclose(velocities, expected_velocities, atol=self.NUMERICAL_ATOL)
-        
+
         # Check accelerations (should be zero)
         assert np.allclose(accelerations, 0.0, atol=self.NUMERICAL_ATOL)
 
@@ -178,17 +175,13 @@ class TestLinearTrajectoryVector:
         p1 = [4.0, 8.0, 0.0]
         t0, t1 = 0.0, 3.0
         time_array = np.array([0.0, 1.5, 3.0])
-        
+
         positions, velocities, accelerations = linear_traj(p0, p1, t0, t1, time_array)
-        
+
         # Check positions
-        expected_positions = np.array([
-            [1.0, 2.0, 3.0],
-            [2.5, 5.0, 1.5],
-            [4.0, 8.0, 0.0]
-        ])
+        expected_positions = np.array([[1.0, 2.0, 3.0], [2.5, 5.0, 1.5], [4.0, 8.0, 0.0]])
         assert np.allclose(positions, expected_positions, atol=self.NUMERICAL_ATOL)
-        
+
         # Check velocities
         expected_velocity = [1.0, 2.0, -1.0]  # (p1-p0)/(t1-t0)
         expected_velocities = np.tile(expected_velocity, (3, 1))
@@ -200,17 +193,13 @@ class TestLinearTrajectoryVector:
         p1 = np.array([8.0, 1.0])
         t0, t1 = 1.0, 3.0
         time_array = np.array([1.0, 2.0, 3.0])
-        
+
         positions, velocities, accelerations = linear_traj(p0, p1, t0, t1, time_array)
-        
+
         # Check positions
-        expected_positions = np.array([
-            [0.0, 5.0],
-            [4.0, 3.0],
-            [8.0, 1.0]
-        ])
+        expected_positions = np.array([[0.0, 5.0], [4.0, 3.0], [8.0, 1.0]])
         assert np.allclose(positions, expected_positions, atol=self.NUMERICAL_ATOL)
-        
+
         # Check shapes
         assert positions.shape == (3, 2)
         assert velocities.shape == (3, 2)
@@ -223,14 +212,14 @@ class TestLinearTrajectoryVector:
             p1 = np.ones(dim) * 2.0
             t0, t1 = 0.0, 2.0
             time_array = np.array([0.0, 1.0, 2.0])
-            
+
             positions, velocities, accelerations = linear_traj(p0, p1, t0, t1, time_array)
-            
+
             # Check shapes
             assert positions.shape == (3, dim)
             assert velocities.shape == (3, dim)
             assert accelerations.shape == (3, dim)
-            
+
             # Check values
             expected_velocity = np.ones(dim)  # (2-0)/(2-0) = 1 for each dimension
             assert np.allclose(velocities[0], expected_velocity, atol=self.NUMERICAL_ATOL)
@@ -242,12 +231,12 @@ class TestLinearTrajectoryVector:
         p1 = [3.0, 2.0, 4.0]
         t0, t1 = 0.0, 2.0
         time_array = np.array([0.0, 0.5, 1.0, 1.5, 2.0])
-        
+
         positions, velocities, accelerations = linear_traj(p0, p1, t0, t1, time_array)
-        
+
         # Check that trajectory moves correctly in each dimension
         expected_velocity = [1.0, -1.5, 3.0]  # (p1-p0)/(t1-t0)
-        
+
         for i in range(len(time_array)):
             assert np.allclose(velocities[i], expected_velocity, atol=self.NUMERICAL_ATOL)
 
@@ -263,11 +252,11 @@ class TestLinearTrajectoryEdgeCases:
         p0, p1 = 0.0, 5.0
         t0 = t1 = 2.0  # Zero duration
         time_array = np.array([2.0])
-        
+
         # This should produce warnings but not crash
         with pytest.warns(RuntimeWarning):
             positions, velocities, accelerations = linear_traj(p0, p1, t0, t1, time_array)
-            
+
             # Should still return arrays of correct shape
             assert positions.shape == (1,)
             assert velocities.shape == (1,)
@@ -278,9 +267,9 @@ class TestLinearTrajectoryEdgeCases:
         p0, p1 = 0.0, 1.0
         t0, t1 = 0.0, 1e-10
         time_array = np.array([0.0, 5e-11, 1e-10])
-        
+
         positions, velocities, accelerations = linear_traj(p0, p1, t0, t1, time_array)
-        
+
         # Should handle small durations
         assert np.all(np.isfinite(positions))
         assert np.all(np.isfinite(velocities))
@@ -291,13 +280,13 @@ class TestLinearTrajectoryEdgeCases:
         p0, p1 = 0.0, 1.0
         t0, t1 = 0.0, 1e6
         time_array = np.array([0.0, 5e5, 1e6])
-        
+
         positions, velocities, accelerations = linear_traj(p0, p1, t0, t1, time_array)
-        
+
         # Should handle large durations
         expected_positions = np.array([0.0, 0.5, 1.0])
         assert np.allclose(positions, expected_positions, atol=self.NUMERICAL_ATOL)
-        
+
         expected_velocity = 1e-6  # 1/(1e6)
         assert np.allclose(velocities, expected_velocity, atol=self.NUMERICAL_ATOL)
 
@@ -306,13 +295,13 @@ class TestLinearTrajectoryEdgeCases:
         p0, p1 = 2.0, 6.0
         t0, t1 = -3.0, -1.0
         time_array = np.array([-3.0, -2.0, -1.0])
-        
+
         positions, velocities, accelerations = linear_traj(p0, p1, t0, t1, time_array)
-        
+
         # Should handle negative times correctly
         expected_positions = np.array([2.0, 4.0, 6.0])
         assert np.allclose(positions, expected_positions, atol=self.NUMERICAL_ATOL)
-        
+
         expected_velocity = 2.0  # (6-2)/(-1-(-3))
         assert np.allclose(velocities, expected_velocity, atol=self.NUMERICAL_ATOL)
 
@@ -321,9 +310,9 @@ class TestLinearTrajectoryEdgeCases:
         p0, p1 = 0.0, 5.0
         t0, t1 = 0.0, 2.0
         time_array = np.array([])
-        
+
         positions, velocities, accelerations = linear_traj(p0, p1, t0, t1, time_array)
-        
+
         # Should return empty arrays
         assert positions.shape == (0,)
         assert velocities.shape == (0,)
@@ -334,13 +323,13 @@ class TestLinearTrajectoryEdgeCases:
         p0, p1 = 1e6, 2e6
         t0, t1 = 0.0, 10.0
         time_array = np.array([0.0, 5.0, 10.0])
-        
+
         positions, velocities, accelerations = linear_traj(p0, p1, t0, t1, time_array)
-        
+
         # Should handle large values correctly
         expected_positions = np.array([1e6, 1.5e6, 2e6])
         assert np.allclose(positions, expected_positions, rtol=self.NUMERICAL_RTOL)
-        
+
         expected_velocity = 1e5  # (2e6-1e6)/10
         assert np.allclose(velocities, expected_velocity, rtol=self.NUMERICAL_RTOL)
 
@@ -354,9 +343,9 @@ class TestLinearTrajectoryInputValidation:
         p1 = [3.0, 4.0]
         t0, t1 = 0.0, 1.0
         time_array = [0.0, 0.5, 1.0]  # List instead of array
-        
+
         positions, velocities, accelerations = linear_traj(p0, p1, t0, t1, time_array)
-        
+
         # Should convert to numpy arrays internally
         assert isinstance(positions, np.ndarray)
         assert isinstance(velocities, np.ndarray)
@@ -368,9 +357,9 @@ class TestLinearTrajectoryInputValidation:
         p1 = 5.0  # Float
         t0, t1 = 0.0, 2.0
         time_array = np.array([0.0, 1.0, 2.0])
-        
+
         positions, velocities, accelerations = linear_traj(p0, p1, t0, t1, time_array)
-        
+
         # Should handle mixed types correctly
         expected_positions = np.array([0.0, 2.5, 5.0])
         assert np.allclose(positions, expected_positions)
@@ -381,9 +370,9 @@ class TestLinearTrajectoryInputValidation:
         p1 = np.array([7.0])
         t0, t1 = 0.0, 2.0
         time_array = np.array([0.0, 1.0, 2.0])
-        
+
         positions, velocities, accelerations = linear_traj(p0, p1, t0, t1, time_array)
-        
+
         # Should treat as vector trajectory
         assert positions.shape == (3, 1)
         assert velocities.shape == (3, 1)
@@ -401,13 +390,13 @@ class TestLinearTrajectoryMathematicalProperties:
         p0, p1 = 1.0, 9.0
         t0, t1 = 0.0, 4.0
         time_array = np.linspace(0.0, 4.0, 20)
-        
+
         positions, velocities, accelerations = linear_traj(p0, p1, t0, t1, time_array)
-        
+
         # Verify linearity: second differences should be zero
         second_diffs = np.diff(positions, n=2)
         assert np.allclose(second_diffs, 0.0, atol=self.NUMERICAL_ATOL)
-        
+
         # Verify constant velocity
         first_diffs = np.diff(positions)
         dt = time_array[1] - time_array[0]
@@ -419,11 +408,11 @@ class TestLinearTrajectoryMathematicalProperties:
         """Test that trajectory interpolates correctly at boundary points."""
         p0, p1 = 3.0, 11.0
         t0, t1 = 1.0, 5.0
-        
+
         # Test exactly at boundary points
         time_array = np.array([t0, t1])
         positions, _, _ = linear_traj(p0, p1, t0, t1, time_array)
-        
+
         assert abs(positions[0] - p0) < self.NUMERICAL_ATOL
         assert abs(positions[1] - p1) < self.NUMERICAL_ATOL
 
@@ -432,10 +421,10 @@ class TestLinearTrajectoryMathematicalProperties:
         p0, p1 = 2.0, 8.0
         t0, t1 = 0.0, 4.0
         t_mid = (t0 + t1) / 2
-        
+
         time_array = np.array([t_mid])
         positions, _, _ = linear_traj(p0, p1, t0, t1, time_array)
-        
+
         expected_mid_position = (p0 + p1) / 2
         assert abs(positions[0] - expected_mid_position) < self.NUMERICAL_ATOL
 
@@ -446,18 +435,18 @@ class TestLinearTrajectoryMathematicalProperties:
         p0_y, p1_y = 1.0, 5.0
         t0, t1 = 0.0, 2.0
         time_array = np.array([0.0, 1.0, 2.0])
-        
+
         # Separate trajectories
         pos_x, vel_x, acc_x = linear_traj(p0_x, p1_x, t0, t1, time_array)
         pos_y, vel_y, acc_y = linear_traj(p0_y, p1_y, t0, t1, time_array)
-        
+
         # Combined trajectory
         p0_combined = [p0_x, p0_y]
         p1_combined = [p1_x, p1_y]
         pos_combined, vel_combined, acc_combined = linear_traj(
             p0_combined, p1_combined, t0, t1, time_array
         )
-        
+
         # Should satisfy superposition
         assert np.allclose(pos_combined[:, 0], pos_x, atol=self.NUMERICAL_ATOL)
         assert np.allclose(pos_combined[:, 1], pos_y, atol=self.NUMERICAL_ATOL)
@@ -476,10 +465,10 @@ class TestLinearTrajectoryPerformance:
         p0, p1 = 0.0, 100.0
         t0, t1 = 0.0, 10.0
         time_array = np.linspace(t0, t1, n_points)
-        
+
         def compute_trajectory():
             return linear_traj(p0, p1, t0, t1, time_array)
-        
+
         positions, velocities, accelerations = benchmark(compute_trajectory)
         assert len(positions) == n_points
 
@@ -492,25 +481,23 @@ class TestLinearTrajectoryPerformance:
         p1 = np.ones(dimension) * 10.0
         t0, t1 = 0.0, 5.0
         time_array = np.linspace(t0, t1, 1000)
-        
+
         def compute_trajectory():
             return linear_traj(p0, p1, t0, t1, time_array)
-        
+
         positions, velocities, accelerations = benchmark(compute_trajectory)
         assert positions.shape == (1000, dimension)
 
-    def test_large_dataset_performance(
-        self, benchmark: pytest.FixtureFunction
-    ) -> None:
+    def test_large_dataset_performance(self, benchmark: pytest.FixtureFunction) -> None:
         """Benchmark performance with large datasets."""
         p0 = np.random.rand(100)  # 100D trajectory
         p1 = np.random.rand(100) * 10
         t0, t1 = 0.0, 10.0
         time_array = np.linspace(t0, t1, 5000)  # 5000 time points
-        
+
         def compute_large_trajectory():
             return linear_traj(p0, p1, t0, t1, time_array)
-        
+
         positions, velocities, accelerations = benchmark(compute_large_trajectory)
         assert positions.shape == (5000, 100)
 

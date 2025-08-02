@@ -23,6 +23,7 @@ import pytest
 from interpolatepy.quat_core import Quaternion
 from interpolatepy.quat_spline import QuaternionSpline
 
+
 # Type alias for pytest benchmark fixture
 if not hasattr(pytest, "FixtureFunction"):
     pytest.FixtureFunction = Any
@@ -67,13 +68,16 @@ class TestQuaternionBasicOperations:
         assert np.allclose(q.v(), [0.0, 0.0, 0.0])
         assert q.norm() == 1.0
 
-    @pytest.mark.parametrize("angle", [0.0, np.pi/4, np.pi/2, np.pi, 2*np.pi])
-    @pytest.mark.parametrize("axis", [
-        [1.0, 0.0, 0.0],  # X-axis
-        [0.0, 1.0, 0.0],  # Y-axis
-        [0.0, 0.0, 1.0],  # Z-axis
-        [1.0, 1.0, 1.0],  # Non-unit vector (should be normalized)
-    ])
+    @pytest.mark.parametrize("angle", [0.0, np.pi / 4, np.pi / 2, np.pi, 2 * np.pi])
+    @pytest.mark.parametrize(
+        "axis",
+        [
+            [1.0, 0.0, 0.0],  # X-axis
+            [0.0, 1.0, 0.0],  # Y-axis
+            [0.0, 0.0, 1.0],  # Z-axis
+            [1.0, 1.0, 1.0],  # Non-unit vector (should be normalized)
+        ],
+    )
     def test_from_angle_axis(self, angle: float, axis: list[float]) -> None:
         """Test quaternion creation from angle-axis representation."""
         axis_array = np.array(axis)
@@ -126,15 +130,18 @@ class TestQuaternionBasicOperations:
         with pytest.raises(ValueError, match="size of axis != 3"):
             Quaternion.from_angle_axis(1.0, np.array([1.0, 2.0]))
 
-    @pytest.mark.parametrize(("roll", "pitch", "yaw"), [
-        (0.0, 0.0, 0.0),           # Identity
-        (np.pi/4, 0.0, 0.0),       # Roll only
-        (0.0, np.pi/4, 0.0),       # Pitch only
-        (0.0, 0.0, np.pi/4),       # Yaw only
-        (np.pi/6, np.pi/4, np.pi/3), # Combined rotations
-        (np.pi, 0.0, 0.0),         # 180° roll
-        (0.0, np.pi/2, 0.0),       # 90° pitch (gimbal lock)
-    ])
+    @pytest.mark.parametrize(
+        ("roll", "pitch", "yaw"),
+        [
+            (0.0, 0.0, 0.0),  # Identity
+            (np.pi / 4, 0.0, 0.0),  # Roll only
+            (0.0, np.pi / 4, 0.0),  # Pitch only
+            (0.0, 0.0, np.pi / 4),  # Yaw only
+            (np.pi / 6, np.pi / 4, np.pi / 3),  # Combined rotations
+            (np.pi, 0.0, 0.0),  # 180° roll
+            (0.0, np.pi / 2, 0.0),  # 90° pitch (gimbal lock)
+        ],
+    )
     def test_from_euler_angles(self, roll: float, pitch: float, yaw: float) -> None:
         """Test quaternion creation from Euler angles."""
         q = Quaternion.from_euler_angles(roll, pitch, yaw)
@@ -146,7 +153,10 @@ class TestQuaternionBasicOperations:
         recovered_roll, recovered_pitch, recovered_yaw = q.to_euler_angles()
 
         # Handle angle wrapping and gimbal lock cases
-        if abs(pitch - np.pi/2) < self.NUMERICAL_ATOL or abs(pitch + np.pi/2) < self.NUMERICAL_ATOL:
+        if (
+            abs(pitch - np.pi / 2) < self.NUMERICAL_ATOL
+            or abs(pitch + np.pi / 2) < self.NUMERICAL_ATOL
+        ):
             # Gimbal lock case - only verify that rotation is equivalent
             q_expected = Quaternion.from_euler_angles(roll, pitch, yaw)
             q_recovered = Quaternion.from_euler_angles(
@@ -172,11 +182,7 @@ class TestQuaternionBasicOperations:
 
         # 90° rotation around Z-axis
         cos_90, sin_90 = 0.0, 1.0
-        rotation_z_90 = np.array([
-            [cos_90, -sin_90, 0.0],
-            [sin_90,  cos_90, 0.0],
-            [0.0,     0.0,    1.0]
-        ])
+        rotation_z_90 = np.array([[cos_90, -sin_90, 0.0], [sin_90, cos_90, 0.0], [0.0, 0.0, 1.0]])
         q = Quaternion.from_rotation_matrix(rotation_z_90)
 
         # Verify it's a unit quaternion
@@ -190,11 +196,7 @@ class TestQuaternionBasicOperations:
         """Test quaternion creation from 4x4 transformation matrix."""
         # 4x4 transformation matrix with rotation part
         transform_4x4 = np.eye(4)
-        transform_4x4[:3, :3] = np.array([
-            [0.0, -1.0, 0.0],
-            [1.0,  0.0, 0.0],
-            [0.0,  0.0, 1.0]
-        ])
+        transform_4x4[:3, :3] = np.array([[0.0, -1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
 
         q = Quaternion.from_rotation_matrix(transform_4x4)
 
@@ -392,7 +394,7 @@ class TestQuaternionMathematics:
 
         # Should be in same direction as original
         scale_factor = q.norm()
-        expected_unit = Quaternion(q.s()/scale_factor, *(q.v()/scale_factor))
+        expected_unit = Quaternion(q.s() / scale_factor, *(q.v() / scale_factor))
         assert abs(q_unit.s() - expected_unit.s()) < self.NUMERICAL_ATOL
         assert np.allclose(q_unit.v(), expected_unit.v(), atol=self.NUMERICAL_ATOL)
 
@@ -441,7 +443,7 @@ class TestQuaternionMathematics:
         assert np.allclose(q_exp.v(), [0.0, 0.0, 0.0], atol=self.NUMERICAL_ATOL)
 
         # exp([0, π/2, 0, 0]) should be [cos(π/2), sin(π/2), 0, 0] = [0, 1, 0, 0]
-        q_pi_2 = Quaternion(0.0, np.pi/2, 0.0, 0.0)
+        q_pi_2 = Quaternion(0.0, np.pi / 2, 0.0, 0.0)
         q_exp = q_pi_2.exp()
         assert abs(q_exp.s() - 0.0) < self.NUMERICAL_ATOL
         assert abs(q_exp.v()[0] - 1.0) < self.NUMERICAL_ATOL
@@ -511,21 +513,27 @@ class TestQuaternionConversions:
     NUMERICAL_RTOL = 1e-6
     NUMERICAL_ATOL = 1e-6
 
-    @pytest.mark.parametrize(("roll", "pitch", "yaw"), [
-        (0.0, 0.0, 0.0),
-        (np.pi/6, np.pi/4, np.pi/3),
-        (np.pi/2, 0.0, 0.0),
-        (0.0, np.pi/2, 0.0),
-        (0.0, 0.0, np.pi/2),
-        (-np.pi/4, -np.pi/6, -np.pi/3),
-    ])
+    @pytest.mark.parametrize(
+        ("roll", "pitch", "yaw"),
+        [
+            (0.0, 0.0, 0.0),
+            (np.pi / 6, np.pi / 4, np.pi / 3),
+            (np.pi / 2, 0.0, 0.0),
+            (0.0, np.pi / 2, 0.0),
+            (0.0, 0.0, np.pi / 2),
+            (-np.pi / 4, -np.pi / 6, -np.pi / 3),
+        ],
+    )
     def test_euler_angles_round_trip(self, roll: float, pitch: float, yaw: float) -> None:
         """Test Euler angles conversion round trip."""
         q = Quaternion.from_euler_angles(roll, pitch, yaw)
         recovered_roll, recovered_pitch, recovered_yaw = q.to_euler_angles()
 
         # Handle angle wrapping and gimbal lock cases
-        if abs(pitch - np.pi/2) < self.NUMERICAL_ATOL or abs(pitch + np.pi/2) < self.NUMERICAL_ATOL:
+        if (
+            abs(pitch - np.pi / 2) < self.NUMERICAL_ATOL
+            or abs(pitch + np.pi / 2) < self.NUMERICAL_ATOL
+        ):
             # Gimbal lock case - only verify that rotation is equivalent
             q_expected = Quaternion.from_euler_angles(roll, pitch, yaw)
             q_recovered = Quaternion.from_euler_angles(
@@ -547,8 +555,8 @@ class TestQuaternionConversions:
         test_quaternions = [
             Quaternion.identity(),
             Quaternion.from_euler_angles(0.1, 0.2, 0.3),
-            Quaternion.from_euler_angles(np.pi/4, np.pi/6, np.pi/3),
-            Quaternion.from_angle_axis(np.pi/2, np.array([1.0, 1.0, 1.0])),
+            Quaternion.from_euler_angles(np.pi / 4, np.pi / 6, np.pi / 3),
+            Quaternion.from_angle_axis(np.pi / 2, np.array([1.0, 1.0, 1.0])),
         ]
 
         for q_original in test_quaternions:
@@ -596,13 +604,16 @@ class TestQuaternionConversions:
         T2 = q.T()
         assert np.allclose(T, T2, atol=self.REGULAR_ATOL)
 
-    @pytest.mark.parametrize("angle", [0.0, np.pi/4, np.pi/2, np.pi])
-    @pytest.mark.parametrize("axis", [
-        [1.0, 0.0, 0.0],
-        [0.0, 1.0, 0.0],
-        [0.0, 0.0, 1.0],
-        [1.0, 1.0, 1.0],
-    ])
+    @pytest.mark.parametrize("angle", [0.0, np.pi / 4, np.pi / 2, np.pi])
+    @pytest.mark.parametrize(
+        "axis",
+        [
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0],
+            [1.0, 1.0, 1.0],
+        ],
+    )
     def test_axis_angle_round_trip(self, angle: float, axis: list[float]) -> None:
         """Test axis-angle conversion round trip."""
         axis_array = np.array(axis)
@@ -695,11 +706,7 @@ class TestQuaternionDynamics:
         assert np.allclose(np.diag(S), [0.0, 0.0, 0.0], atol=self.REGULAR_ATOL)
 
         # Check specific values
-        expected = np.array([
-            [0.0, -3.0,  2.0],
-            [3.0,  0.0, -1.0],
-            [-2.0, 1.0,  0.0]
-        ])
+        expected = np.array([[0.0, -3.0, 2.0], [3.0, 0.0, -1.0], [-2.0, 1.0, 0.0]])
         assert np.allclose(S, expected, atol=self.REGULAR_ATOL)
 
     def test_omega_extraction(self) -> None:
@@ -790,7 +797,7 @@ class TestQuaternionInterpolation:
     def test_slerp_basic(self) -> None:
         """Test basic SLERP interpolation."""
         q0 = Quaternion.identity()
-        q1 = Quaternion.from_euler_angles(0.0, 0.0, np.pi/2)
+        q1 = Quaternion.from_euler_angles(0.0, 0.0, np.pi / 2)
 
         # t=0 should give q0
         q_interp = q0.slerp(q1, 0.0)
@@ -859,9 +866,9 @@ class TestQuaternionInterpolation:
         """Test basic SQUAD interpolation."""
         # Create test quaternions
         p = Quaternion.identity()
-        q = Quaternion.from_euler_angles(0.0, 0.0, np.pi/4)
-        a = Quaternion.from_euler_angles(0.0, 0.0, np.pi/8)
-        b = Quaternion.from_euler_angles(0.0, 0.0, 3*np.pi/8)
+        q = Quaternion.from_euler_angles(0.0, 0.0, np.pi / 4)
+        a = Quaternion.from_euler_angles(0.0, 0.0, np.pi / 8)
+        b = Quaternion.from_euler_angles(0.0, 0.0, 3 * np.pi / 8)
 
         # t=0 should give p
         q_interp = Quaternion.Squad(p, a, b, q, 0.0)
@@ -1106,7 +1113,7 @@ class TestQuaternionEdgeCases:
     def test_numerical_stability_large_angles(self) -> None:
         """Test numerical stability with large rotation angles."""
         # Large angle rotations
-        large_angles = [np.pi, 2*np.pi, 4*np.pi, 10*np.pi]
+        large_angles = [np.pi, 2 * np.pi, 4 * np.pi, 10 * np.pi]
 
         for angle in large_angles:
             q = Quaternion.from_angle_axis(angle, np.array([0.0, 0.0, 1.0]))
@@ -1145,11 +1152,7 @@ class TestQuaternionEdgeCases:
         """Test rotation matrix conversion edge cases."""
         # Test with nearly singular rotation matrices
         eps = 1e-10
-        near_singular = np.array([
-            [1.0,   eps,   eps],
-            [-eps,  1.0,   eps],
-            [-eps, -eps,   1.0]
-        ])
+        near_singular = np.array([[1.0, eps, eps], [-eps, 1.0, eps], [-eps, -eps, 1.0]])
 
         # Should handle gracefully without throwing
         try:
@@ -1218,8 +1221,7 @@ class TestQuaternionPerformance:
         # Create spline data
         time_points = [float(i) for i in range(num_points)]
         quaternions = [
-            Quaternion.from_euler_angles(0.1 * i, 0.2 * i, 0.3 * i)
-            for i in range(num_points)
+            Quaternion.from_euler_angles(0.1 * i, 0.2 * i, 0.3 * i) for i in range(num_points)
         ]
 
         spline = QuaternionSpline(time_points, quaternions, Quaternion.SLERP)
@@ -1233,10 +1235,7 @@ class TestQuaternionPerformance:
 
     def test_conversion_performance(self, benchmark: pytest.FixtureFunction) -> None:
         """Benchmark conversion operations performance."""
-        quaternions = [
-            Quaternion.from_euler_angles(0.1 * i, 0.2 * i, 0.3 * i)
-            for i in range(1000)
-        ]
+        quaternions = [Quaternion.from_euler_angles(0.1 * i, 0.2 * i, 0.3 * i) for i in range(1000)]
 
         def run_conversions() -> None:
             for q in quaternions:
@@ -1250,4 +1249,3 @@ class TestQuaternionPerformance:
 if __name__ == "__main__":
     # Run tests with detailed output
     pytest.main(["-xvs", __file__])
-

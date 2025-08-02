@@ -14,11 +14,9 @@ from collections.abc import Callable
 import matplotlib.pyplot as plt
 import numpy as np
 
-from interpolatepy.trapezoidal import (
-    InterpolationParams,
-    TrajectoryParams,
-    TrapezoidalTrajectory,
-)
+from interpolatepy.trapezoidal import InterpolationParams
+from interpolatepy.trapezoidal import TrajectoryParams
+from interpolatepy.trapezoidal import TrapezoidalTrajectory
 
 
 def plot_trajectory(
@@ -117,9 +115,7 @@ def example_2_nonzero_velocities() -> None:
     print(f"Initial velocity: {traj_func(0)[1]:.2f}")
     print(f"Final velocity: {traj_func(duration)[1]:.2f}")
 
-    plot_trajectory(
-        traj_func, duration, "Trajectory with Non-Zero Initial and Final Velocities"
-    )
+    plot_trajectory(traj_func, duration, "Trajectory with Non-Zero Initial and Final Velocities")
 
 
 def example_3_negative_displacement() -> None:
@@ -128,7 +124,12 @@ def example_3_negative_displacement() -> None:
     print("---------------------------------------------")
 
     params = TrajectoryParams(
-        q0=0.0, q1=-10.0, v0=1.5, v1=2.0, amax=5.0, vmax=4.0  # Negative displacement
+        q0=0.0,
+        q1=-10.0,
+        v0=1.5,
+        v1=2.0,
+        amax=5.0,
+        vmax=4.0,  # Negative displacement
     )
 
     traj_func, duration = TrapezoidalTrajectory.generate_trajectory(params)
@@ -235,9 +236,7 @@ def example_7_multi_point_custom_velocities() -> None:
     print(f"Intermediate velocities: {inter_velocities}")
     print(f"Total duration: {duration:.2f} seconds")
 
-    plot_trajectory(
-        traj_func, duration, "Trajectory with Custom Intermediate Velocities"
-    )
+    plot_trajectory(traj_func, duration, "Trajectory with Custom Intermediate Velocities")
 
 
 def example_8_time_constrained_multi_point() -> None:
@@ -272,9 +271,7 @@ def example_9_oscillating_trajectory() -> None:
 
     oscillating_points = [0.0, 5.0, -3.0, 8.0, -2.0, 4.0, 0.0]
 
-    params = InterpolationParams(
-        points=oscillating_points, v0=0.0, vn=0.0, amax=8.0, vmax=6.0
-    )
+    params = InterpolationParams(points=oscillating_points, v0=0.0, vn=0.0, amax=8.0, vmax=6.0)
 
     traj_func, duration = TrapezoidalTrajectory.interpolate_waypoints(params)
 
@@ -304,14 +301,10 @@ def example_10_complex_velocity_profile() -> None:
     traj_func, duration = TrapezoidalTrajectory.interpolate_waypoints(params)
 
     print(f"Complex waypoints: {complex_points}")
-    print(
-        f"Complex velocities: [0.0, {', '.join(str(v) for v in complex_velocities)}, 0.0]"
-    )
+    print(f"Complex velocities: [0.0, {', '.join(str(v) for v in complex_velocities)}, 0.0]")
     print(f"Total duration: {duration:.2f} seconds")
 
-    plot_trajectory(
-        traj_func, duration, "Complex Trajectory with Custom Velocity Profiles"
-    )
+    plot_trajectory(traj_func, duration, "Complex Trajectory with Custom Velocity Profiles")
 
 
 if __name__ == "__main__":

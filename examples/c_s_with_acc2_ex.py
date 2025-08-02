@@ -1,4 +1,6 @@
-from interpolatepy.c_s_with_acc2 import CubicSplineWithAcceleration2, SplineParameters
+from interpolatepy.c_s_with_acc2 import CubicSplineWithAcceleration2
+from interpolatepy.c_s_with_acc2 import SplineParameters
+
 
 # Example usage
 if __name__ == "__main__":

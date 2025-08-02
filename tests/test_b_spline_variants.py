@@ -4,7 +4,7 @@ Comprehensive tests for B-spline variant implementations.
 This module contains extensive tests for the B-spline variant classes covering:
 1. SmoothingCubicBSpline - Smoothing B-splines with parameters
 2. CubicBSplineInterpolation - Cubic B-spline interpolation
-3. ApproximationBSpline - B-spline approximation 
+3. ApproximationBSpline - B-spline approximation
 4. BSplineInterpolator - General B-spline interpolation
 
 Test coverage includes:
@@ -30,6 +30,7 @@ from interpolatepy.b_spline_interpolate import BSplineInterpolator
 from interpolatepy.b_spline_smooth import BSplineParams
 from interpolatepy.b_spline_smooth import SmoothingCubicBSpline
 
+
 # Type alias for pytest benchmark fixture
 if not hasattr(pytest, "FixtureFunction"):
     pytest.FixtureFunction = Any
@@ -51,10 +52,7 @@ class TestBSplineParams:
         """Test BSplineParams creation with specified values."""
         # Use actual BSplineParams API
         params = BSplineParams(
-            mu=0.7,
-            method="centripetal",
-            enforce_endpoints=True,
-            auto_derivatives=True
+            mu=0.7, method="centripetal", enforce_endpoints=True, auto_derivatives=True
         )
         assert params.mu == 0.7
         assert params.method == "centripetal"
@@ -86,7 +84,7 @@ class TestSmoothingCubicBSpline:
 
     def test_smoothing_parameters(self) -> None:
         """Test smoothing with different parameters."""
-        x_data = np.linspace(0, 2*np.pi, 20)
+        x_data = np.linspace(0, 2 * np.pi, 20)
         y_data = np.sin(x_data) + 0.1 * np.random.randn(20)  # Noisy sine
         points = [[x, y] for x, y in zip(x_data, y_data)]
 
@@ -176,6 +174,182 @@ class TestCubicBSplineInterpolation:
             point = spline.evaluate(u_mid)
             assert np.all(np.isfinite(point))
 
+    def test_parameter_methods(self) -> None:
+        """Test different parameterization methods."""
+        points = [[0, 0], [1, 1], [2, 0], [3, 1]]
+
+        # Test equally_spaced method
+        spline_equal = CubicBSplineInterpolation(points, method="equally_spaced")
+        assert isinstance(spline_equal, CubicBSplineInterpolation)
+
+        # Test chord_length method
+        spline_chord = CubicBSplineInterpolation(points, method="chord_length")
+        assert isinstance(spline_chord, CubicBSplineInterpolation)
+
+        # Test centripetal method
+        spline_centripetal = CubicBSplineInterpolation(points, method="centripetal")
+        assert isinstance(spline_centripetal, CubicBSplineInterpolation)
+
+        # All should evaluate successfully
+        u_test = 0.5
+        for spline in [spline_equal, spline_chord, spline_centripetal]:
+            point = spline.evaluate(u_test)
+            assert np.all(np.isfinite(point))
+
+    def test_derivative_constraints(self) -> None:
+        """Test derivative constraints at endpoints."""
+        points = np.array([[0, 0], [1, 1], [2, 4], [3, 9]])
+
+        # Test with endpoint derivatives specified
+        v0 = np.array([1.0, 1.0])
+        vn = np.array([1.0, 6.0])
+        spline = CubicBSplineInterpolation(points, v0=v0, vn=vn)
+
+        # Check that derivatives are stored
+        assert hasattr(spline, "v0")
+        assert hasattr(spline, "vn")
+        np.testing.assert_array_equal(spline.v0, v0)
+        np.testing.assert_array_equal(spline.vn, vn)
+
+    def test_auto_derivatives(self) -> None:
+        """Test automatic derivative calculation."""
+        points = [[0, 0], [1, 1], [2, 4], [3, 9]]
+
+        # Test with auto_derivatives enabled
+        spline = CubicBSplineInterpolation(points, auto_derivatives=True)
+        assert hasattr(spline, "v0")
+        assert hasattr(spline, "vn")
+        assert np.all(np.isfinite(spline.v0))
+        assert np.all(np.isfinite(spline.vn))
+
+        # Test with auto_derivatives disabled
+        spline_no_auto = CubicBSplineInterpolation(points, auto_derivatives=False)
+        assert hasattr(spline_no_auto, "v0")
+        assert hasattr(spline_no_auto, "vn")
+
+    def test_1d_interpolation(self) -> None:
+        """Test 1D data interpolation."""
+        # Test with 1D points
+        points = [0, 1, 4, 9, 16]  # x^2 values
+
+        spline = CubicBSplineInterpolation(points)
+        assert isinstance(spline, CubicBSplineInterpolation)
+
+        # Should handle 1D data correctly
+        assert hasattr(spline, "interpolation_points")
+        assert spline.interpolation_points.shape[0] == len(points)
+
+        # Should evaluate successfully
+        u_test = 0.5
+        result = spline.evaluate(u_test)
+        assert np.isfinite(result).all()
+
+    def test_multidimensional_points(self) -> None:
+        """Test interpolation with higher dimensional points."""
+        # Test with 3D points
+        points = [[0, 0, 0], [1, 1, 1], [2, 4, 8], [3, 9, 27]]
+
+        spline = CubicBSplineInterpolation(points)
+        assert isinstance(spline, CubicBSplineInterpolation)
+
+        # Should handle 3D data
+        assert spline.interpolation_points.shape[1] == 3
+
+        # Should evaluate to 3D points
+        u_test = 0.5
+        result = spline.evaluate(u_test)
+        assert len(result) == 3
+        assert np.all(np.isfinite(result))
+
+    def test_endpoint_handling(self) -> None:
+        """Test evaluation at endpoints."""
+        points = [[0, 0], [1, 1], [2, 4], [3, 9]]
+
+        spline = CubicBSplineInterpolation(points)
+
+        # Evaluate at start and end
+        start_point = spline.evaluate(spline.u_min)
+        end_point = spline.evaluate(spline.u_max)
+
+        assert np.all(np.isfinite(start_point))
+        assert np.all(np.isfinite(end_point))
+
+        # Should be close to input points (for interpolating spline)
+        np.testing.assert_allclose(start_point, points[0], rtol=1e-10)
+        np.testing.assert_allclose(end_point, points[-1], rtol=1e-10)
+
+    def test_input_validation_cubic(self) -> None:
+        """Test input validation for cubic B-spline interpolation."""
+        # Test with minimal points - some implementations might handle this
+        try:
+            spline = CubicBSplineInterpolation([[0, 0], [1, 1]])
+            # If it succeeds, check it's a valid spline
+            assert isinstance(spline, CubicBSplineInterpolation)
+        except (ValueError, TypeError):
+            # Expected for insufficient points in some implementations
+            pass
+
+        # Test with empty points
+        with pytest.raises((ValueError, TypeError, IndexError)):
+            CubicBSplineInterpolation([])
+
+    def test_numpy_array_input(self) -> None:
+        """Test with numpy array input."""
+        points_array = np.array([[0, 0], [1, 1], [2, 4], [3, 9]], dtype=np.float32)
+
+        spline = CubicBSplineInterpolation(points_array)
+        assert isinstance(spline, CubicBSplineInterpolation)
+
+        # Should convert to proper type
+        assert spline.interpolation_points.dtype == np.float64
+
+        # Should evaluate successfully
+        result = spline.evaluate(0.5)
+        assert np.all(np.isfinite(result))
+
+    def test_collinear_points(self) -> None:
+        """Test with collinear points."""
+        # All points on a line
+        points = [[0, 0], [1, 1], [2, 2], [3, 3]]
+
+        spline = CubicBSplineInterpolation(points)
+        assert isinstance(spline, CubicBSplineInterpolation)
+
+        # Should handle collinear points
+        result = spline.evaluate(0.5)
+        assert np.all(np.isfinite(result))
+
+    def test_parameter_edge_cases(self) -> None:
+        """Test edge cases in parameter calculation."""
+        # Test with very close points
+        points = [[0, 0], [1e-10, 1e-10], [1, 1], [2, 4]]
+
+        spline = CubicBSplineInterpolation(points)
+        assert isinstance(spline, CubicBSplineInterpolation)
+
+        # Should handle very small parameter differences
+        assert hasattr(spline, "u_bars")
+        assert len(spline.u_bars) == len(points)
+
+    def test_derivative_vector_shapes(self) -> None:
+        """Test proper handling of derivative vector shapes."""
+        points = [[0, 0], [1, 1], [2, 4], [3, 9]]
+
+        # Test scalar derivative (should be converted)
+        try:
+            spline = CubicBSplineInterpolation(points, v0=1.0, vn=2.0)
+            # Constructor should handle scalar inputs
+            assert isinstance(spline, CubicBSplineInterpolation)
+        except (ValueError, TypeError):
+            # Some implementations might not accept scalar derivatives
+            pass
+
+        # Test proper vector derivatives
+        v0 = [1.0, 2.0]
+        vn = [2.0, 6.0]
+        spline = CubicBSplineInterpolation(points, v0=v0, vn=vn)
+        assert isinstance(spline, CubicBSplineInterpolation)
+
 
 class TestApproximationBSpline:
     """Test suite for ApproximationBSpline class."""
@@ -196,7 +370,7 @@ class TestApproximationBSpline:
     def test_approximation_vs_interpolation(self) -> None:
         """Test that approximation behaves differently from interpolation."""
         # Generate more data points than control points
-        x_data = np.linspace(0, 2*np.pi, 15)
+        x_data = np.linspace(0, 2 * np.pi, 15)
         data_points = [[x, np.sin(x)] for x in x_data]
 
         # Use correct ApproximationBSpline constructor: points, num_control_points
@@ -267,7 +441,7 @@ class TestBSplineInterpolator:
         """Test interpolation accuracy for known functions."""
         # Linear function should be exactly represented
         x_data = [0, 1, 2, 3]
-        y_data = [2*x + 1 for x in x_data]  # Linear: y = 2x + 1
+        y_data = [2 * x + 1 for x in x_data]  # Linear: y = 2x + 1
         data_points = [[x, y] for x, y in zip(x_data, y_data)]
 
         # Use correct BSplineInterpolator constructor
@@ -301,15 +475,15 @@ class TestBSplineInterpolator:
     def test_input_validation(self) -> None:
         """Test input validation and error cases."""
         data_points = [[0, 0], [1, 1], [2, 0], [3, 1]]
-        
+
         # Test invalid degree
         with pytest.raises(ValueError, match="Degree must be 3, 4, or 5"):
             BSplineInterpolator(2, data_points)
-        
+
         # Test insufficient points for degree 5
         with pytest.raises(ValueError, match="Not enough points"):
             BSplineInterpolator(5, data_points)  # Need at least 6 points for degree 5
-            
+
         # Test only degree 3 to avoid complex constraints
         # Use more points to ensure system is well-conditioned
         sufficient_points = [[i, i] for i in range(8)]  # 8 points
@@ -321,11 +495,11 @@ class TestBSplineInterpolator:
         # Test with lists (not numpy arrays)
         data_points = [[0, 0], [1, 1], [2, 0], [3, 1]]
         times_list = [0.0, 1.0, 2.0, 3.0]
-        
+
         spline = BSplineInterpolator(3, data_points, times=times_list)
         point = spline.evaluate(0.5)
         assert np.all(np.isfinite(point))
-        
+
         # Test with 1D points (should be reshaped)
         points_1d = [0, 1, 2, 3, 4]
         spline_1d = BSplineInterpolator(3, points_1d)
@@ -336,16 +510,18 @@ class TestBSplineInterpolator:
         """Test even degree (4) knot vector generation by checking the knot computation path."""
         # Create a simple manual test to trigger the even degree path
         from interpolatepy.b_spline_interpolate import BSplineInterpolator
-        
+
         # Create a temporary instance to access the method
         data_points = [[0, 0], [1, 1], [2, 0], [3, 1]]
         temp_spline = BSplineInterpolator(3, data_points)
-        
+
         # Test the knot generation for even degree directly
         times = np.array([0.0, 1.0, 2.0, 3.0, 4.0])  # 5 time points
         try:
             # This should exercise the even degree path (line 168-178)
-            knots = temp_spline._compute_knot_vector(4, times)  # Degree 4 is even
+            # Create some dummy points to match the times
+            dummy_points = np.array([[i, i] for i in range(len(times))])
+            knots = temp_spline._create_knot_vector(4, dummy_points, times)  # Degree 4 is even
             # Should have more knots than time points
             assert len(knots) > len(times)
             assert np.all(np.isfinite(knots))
@@ -359,27 +535,27 @@ class TestBSplineInterpolator:
     def test_boundary_conditions(self) -> None:
         """Test various boundary conditions."""
         # Use simple linear data to avoid numerical issues
-        data_points = [[i*1.0, i*2.0] for i in range(10)]  # Linear data, 10 points
-        
+        data_points = [[i * 1.0, i * 2.0] for i in range(10)]  # Linear data, 10 points
+
         # Test with initial and final velocities (degree 3)
         initial_vel = [1.0, 2.0]
         final_vel = [1.0, 2.0]  # Keep consistent with linear slope
-        spline = BSplineInterpolator(3, data_points, 
-                                   initial_velocity=initial_vel,
-                                   final_velocity=final_vel)
-        
+        spline = BSplineInterpolator(
+            3, data_points, initial_velocity=initial_vel, final_velocity=final_vel
+        )
+
         # Should evaluate successfully
         point = spline.evaluate(0.5)
         assert np.all(np.isfinite(point))
-        
+
         # Test with accelerations - use simpler case
-        simple_points = [[i*1.0, i*1.0] for i in range(6)]  # 6 points
+        simple_points = [[i * 1.0, i * 1.0] for i in range(6)]  # 6 points
         initial_acc = [0.0, 0.0]
         final_acc = [0.0, 0.0]
         try:
-            spline_acc = BSplineInterpolator(3, simple_points,
-                                           initial_acceleration=initial_acc,
-                                           final_acceleration=final_acc)
+            spline_acc = BSplineInterpolator(
+                3, simple_points, initial_acceleration=initial_acc, final_acceleration=final_acc
+            )
             point_acc = spline_acc.evaluate(0.5)
             assert np.all(np.isfinite(point_acc))
         except ValueError:
@@ -390,10 +566,10 @@ class TestBSplineInterpolator:
         """Test cyclic boundary conditions."""
         # Create a simple square-like data set that's easier to interpolate
         data_points = [[0, 0], [1, 0], [1, 1], [0, 1]]  # Simple square
-        
+
         try:
             spline = BSplineInterpolator(3, data_points, cyclic=True)
-            
+
             # Should evaluate successfully
             u_values = np.linspace(0, 1, 5)  # Fewer test points
             for u in u_values:
@@ -408,19 +584,18 @@ class TestBSplineInterpolator:
     def test_plotting_methods(self) -> None:
         """Test plotting functionality."""
         import matplotlib.pyplot as plt
-        
+
         data_points = [[i, i**2] for i in range(5)]
         spline = BSplineInterpolator(3, data_points)
-        
+
         # Test plot method exists and runs without error
         fig, ax = plt.subplots()
         try:
-            spline.plot(ax=ax, num_points=20)
+            spline.plot_with_points(ax=ax, num_points=20)
             plt.close(fig)
         except Exception:
             plt.close(fig)
             # If plot method doesn't exist or fails, that's okay for coverage
-            pass
 
 
 class TestApproximationBSplineAdvanced:
@@ -444,7 +619,7 @@ class TestApproximationBSplineAdvanced:
 
     def test_weighted_approximation(self) -> None:
         """Test approximation with custom weights."""
-        points = [[i, np.sin(i)] for i in np.linspace(0, 2*np.pi, 15)]
+        points = [[i, np.sin(i)] for i in np.linspace(0, 2 * np.pi, 15)]
 
         # Create weights that emphasize certain points
         weights = np.ones(len(points) - 2)  # Exclude endpoints
@@ -478,11 +653,15 @@ class TestApproximationBSplineAdvanced:
             ApproximationBSpline(points, 5, degree=0)
 
         # Test control points validation
-        with pytest.raises(ValueError, match="Number of control points must be greater than the degree"):
+        with pytest.raises(
+            ValueError, match="Number of control points must be greater than the degree"
+        ):
             ApproximationBSpline(points, 2, degree=3)
 
         # Test points count validation
-        with pytest.raises(ValueError, match="Number of points must be greater than number of control points"):
+        with pytest.raises(
+            ValueError, match="Number of points must be greater than number of control points"
+        ):
             ApproximationBSpline([[0, 0], [1, 1]], 5, degree=3)
 
     def test_different_degrees(self) -> None:
@@ -529,7 +708,7 @@ class TestApproximationBSplineAdvanced:
     def test_approximation_quality(self) -> None:
         """Test quality of approximation for known functions."""
         # Use a smooth function that can be well approximated
-        x_data = np.linspace(0, 2*np.pi, 25)
+        x_data = np.linspace(0, 2 * np.pi, 25)
         y_data = np.sin(x_data)
         points = [[x, y] for x, y in zip(x_data, y_data)]
 
@@ -592,7 +771,7 @@ class TestBSplineInterpolatorAdvanced:
     def test_complex_curve_interpolation(self) -> None:
         """Test interpolation of complex curves."""
         # Create a more complex curve (spiral-like)
-        t = np.linspace(0, 4*np.pi, 20)
+        t = np.linspace(0, 4 * np.pi, 20)
         points = [[t[i] * np.cos(t[i]), t[i] * np.sin(t[i])] for i in range(len(t))]
 
         spline = BSplineInterpolator(3, points)
@@ -603,7 +782,7 @@ class TestBSplineInterpolatorAdvanced:
 
         # Check continuity by ensuring no large jumps
         for i in range(1, len(curve_points)):
-            distance = np.linalg.norm(np.array(curve_points[i]) - np.array(curve_points[i-1]))
+            distance = np.linalg.norm(np.array(curve_points[i]) - np.array(curve_points[i - 1]))
             assert distance < 10.0  # Reasonable continuity bound
 
     def test_cubic_interpolation_accuracy(self) -> None:
@@ -669,7 +848,7 @@ class TestBSplineInterpolatorAdvanced:
         """Test behavior with closed curve data."""
         # Create a closed curve (circle-like)
         n_points = 8
-        angles = np.linspace(0, 2*np.pi, n_points, endpoint=False)
+        angles = np.linspace(0, 2 * np.pi, n_points, endpoint=False)
         points = [[np.cos(angle), np.sin(angle)] for angle in angles]
 
         spline = BSplineInterpolator(3, points)
@@ -690,7 +869,7 @@ class TestSmoothingCubicBSplineAdvanced:
         """Test effects of different smoothing parameters."""
         # Create noisy data
         np.random.seed(42)
-        x_data = np.linspace(0, 2*np.pi, 25)
+        x_data = np.linspace(0, 2 * np.pi, 25)
         y_clean = np.sin(x_data)
         y_noisy = y_clean + 0.2 * np.random.randn(len(x_data))
         points = [[x, y] for x, y in zip(x_data, y_noisy)]
@@ -717,7 +896,7 @@ class TestSmoothingCubicBSplineAdvanced:
 
     def test_parameterization_methods_smoothing(self) -> None:
         """Test different parameterization methods for smoothing."""
-        points = [[i, i**2 + 0.1*np.random.randn()] for i in range(15)]
+        points = [[i, i**2 + 0.1 * np.random.randn()] for i in range(15)]
 
         methods = ["equally_spaced", "chord_length", "centripetal"]
 
@@ -756,7 +935,7 @@ class TestSmoothingCubicBSplineAdvanced:
 
     def test_automatic_derivatives(self) -> None:
         """Test automatic derivative calculation."""
-        points = [[np.cos(i), np.sin(i)] for i in np.linspace(0, 2*np.pi, 12)]
+        points = [[np.cos(i), np.sin(i)] for i in np.linspace(0, 2 * np.pi, 12)]
 
         # Test with automatic derivatives
         params_auto = BSplineParams(mu=0.6, auto_derivatives=True)
@@ -778,7 +957,7 @@ class TestSmoothingCubicBSplineAdvanced:
         """Test smoothing with large datasets."""
         n_points = 100
         x_data = np.linspace(0, 10, n_points)
-        y_data = np.exp(-0.1*x_data) * np.sin(x_data) + 0.05 * np.random.randn(n_points)
+        y_data = np.exp(-0.1 * x_data) * np.sin(x_data) + 0.05 * np.random.randn(n_points)
         points = [[x, y] for x, y in zip(x_data, y_data)]
 
         params = BSplineParams(mu=0.3, method="chord_length")
@@ -863,11 +1042,14 @@ class TestBSplineVariantsComparison:
         test_cases = [
             (SmoothingCubicBSpline, lambda: SmoothingCubicBSpline(data_points)),
             (CubicBSplineInterpolation, lambda: CubicBSplineInterpolation(data_points)),
-            (ApproximationBSpline, lambda: ApproximationBSpline(extended_data_points, 5, degree=3)),  # 5 > 3
-            (BSplineInterpolator, lambda: BSplineInterpolator(3, data_points))
+            (
+                ApproximationBSpline,
+                lambda: ApproximationBSpline(extended_data_points, 5, degree=3),
+            ),  # 5 > 3
+            (BSplineInterpolator, lambda: BSplineInterpolator(3, data_points)),
         ]
 
-        for variant_class, constructor in test_cases:
+        for _variant_class, constructor in test_cases:
             variant = constructor()
 
             # Test basic properties
@@ -883,12 +1065,15 @@ class TestBSplineVariantsComparison:
 class TestBSplineVariantsPerformance:
     """Test suite for performance benchmarks of B-spline variants."""
 
-    @pytest.mark.parametrize("variant_class", [
-        SmoothingCubicBSpline,
-        CubicBSplineInterpolation,
-        ApproximationBSpline,
-        BSplineInterpolator
-    ])
+    @pytest.mark.parametrize(
+        "variant_class",
+        [
+            SmoothingCubicBSpline,
+            CubicBSplineInterpolation,
+            ApproximationBSpline,
+            BSplineInterpolator,
+        ],
+    )
     def test_construction_performance(
         self, variant_class: type, benchmark: pytest.FixtureFunction
     ) -> None:
@@ -915,11 +1100,9 @@ class TestBSplineVariantsPerformance:
         variant = benchmark(construct_variant)
         assert isinstance(variant, variant_class)
 
-    def test_evaluation_performance(
-        self, benchmark: pytest.FixtureFunction
-    ) -> None:
+    def test_evaluation_performance(self, benchmark: pytest.FixtureFunction) -> None:
         """Benchmark evaluation performance across variants."""
-        data_points = [[i, np.sin(i)] for i in np.linspace(0, 2*np.pi, 15)]
+        data_points = [[i, np.sin(i)] for i in np.linspace(0, 2 * np.pi, 15)]
         degree = 3
         n_control = len(data_points)
         knots = np.linspace(0, 1, n_control + degree + 1)

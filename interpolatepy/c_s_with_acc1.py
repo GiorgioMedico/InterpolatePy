@@ -639,4 +639,3 @@ class CubicSplineWithAcceleration1:
         ax3.legend()
 
         plt.tight_layout()
-        plt.show()

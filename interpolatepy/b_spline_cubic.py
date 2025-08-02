@@ -239,16 +239,18 @@ class CubicBSplineInterpolation(BSpline):
             # Calculate total chord length
             total_length = 0.0
             for k in range(1, n + 1):
-                total_length += np.linalg.norm(
-                    self.interpolation_points[k] - self.interpolation_points[k - 1]
+                total_length += float(
+                    np.linalg.norm(self.interpolation_points[k] - self.interpolation_points[k - 1])
                 )
 
             # Calculate parameters
             for k in range(1, n):
                 u_bars[k] = (
                     u_bars[k - 1]
-                    + np.linalg.norm(
-                        self.interpolation_points[k] - self.interpolation_points[k - 1]
+                    + float(
+                        np.linalg.norm(
+                            self.interpolation_points[k] - self.interpolation_points[k - 1]
+                        )
                     )
                     / total_length
                 )
@@ -260,7 +262,7 @@ class CubicBSplineInterpolation(BSpline):
             # Calculate total "centripetal" length
             total_length = 0.0
             for k in range(1, n + 1):
-                total_length += (
+                total_length += float(
                     np.linalg.norm(self.interpolation_points[k] - self.interpolation_points[k - 1])
                     ** mu
                 )

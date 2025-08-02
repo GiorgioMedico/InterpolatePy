@@ -28,9 +28,7 @@ def example_8_8() -> None:
 
     # Create the cubic B-spline interpolation
     # Use chord length parameterization as recommended for 3D curves
-    interpolation = CubicBSplineInterpolation(
-        points, method="chord_length", auto_derivatives=True
-    )
+    interpolation = CubicBSplineInterpolation(points, method="chord_length", auto_derivatives=True)
 
     # Create a figure for 3D visualization
     fig = plt.figure(figsize=(12, 10))

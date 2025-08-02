@@ -24,6 +24,7 @@ def simple_example() -> None:
 
     # Plot the trajectory
     spline.plot(1000)
+    plt.show()
     print("\n")
 
 
@@ -60,6 +61,7 @@ def robot_joint_example() -> CubicSplineWithAcceleration1:
 
     # Plot the trajectory
     spline.plot()
+    plt.show()
 
     return spline
 
@@ -103,14 +105,13 @@ def camera_pan_example() -> CubicSplineWithAcceleration1:
 
     # Plot the trajectory
     spline.plot()
+    plt.show()
 
     return spline
 
 
 # Example 3: Drone Height Trajectory with Time Scaling
-def drone_height_example() -> (
-    tuple[CubicSplineWithAcceleration1, CubicSplineWithAcceleration1]
-):
+def drone_height_example() -> tuple[CubicSplineWithAcceleration1, CubicSplineWithAcceleration1]:
     """
     Example for planning a drone's height trajectory
     with acceleration limits and time scaling.
@@ -174,9 +175,7 @@ def drone_height_example() -> (
     ax1.set_title("Drone Height Trajectory - Original vs. Time-scaled")
 
     # Velocity plot
-    ax2.plot(
-        t_eval_original, spline.evaluate_velocity(t_eval_original), "b-", linewidth=2
-    )
+    ax2.plot(t_eval_original, spline.evaluate_velocity(t_eval_original), "b-", linewidth=2)
     ax2.plot(
         t_eval_scaled,
         spline_scaled.evaluate_velocity(t_eval_scaled),
@@ -243,17 +242,11 @@ def multi_dimensional_example() -> tuple[
     z_points = [0.0, 1.0, 2.0, 4.0, 3.0, 1.0]
 
     # Create a spline for each dimension
-    spline_x = CubicSplineWithAcceleration1(
-        t_points, x_points, v0=0.0, vn=0.0, a0=0.0, an=0.0
-    )
+    spline_x = CubicSplineWithAcceleration1(t_points, x_points, v0=0.0, vn=0.0, a0=0.0, an=0.0)
 
-    spline_y = CubicSplineWithAcceleration1(
-        t_points, y_points, v0=0.0, vn=0.0, a0=0.0, an=0.0
-    )
+    spline_y = CubicSplineWithAcceleration1(t_points, y_points, v0=0.0, vn=0.0, a0=0.0, an=0.0)
 
-    spline_z = CubicSplineWithAcceleration1(
-        t_points, z_points, v0=0.0, vn=0.0, a0=0.0, an=0.0
-    )
+    spline_z = CubicSplineWithAcceleration1(t_points, z_points, v0=0.0, vn=0.0, a0=0.0, an=0.0)
 
     # Generate points for smooth trajectory visualization
     t_eval = np.linspace(t_points[0], t_points[-1], 200)
@@ -278,9 +271,7 @@ def multi_dimensional_example() -> tuple[
     fig.colorbar(points, ax=ax, label="Speed")
 
     # Plot the waypoints
-    ax.scatter(
-        x_points, y_points, z_points, color="red", s=50, marker="o", label="Waypoints"
-    )
+    ax.scatter(x_points, y_points, z_points, color="red", s=50, marker="o", label="Waypoints")
 
     # Connect waypoints with straight lines for comparison
     ax.plot(x_points, y_points, z_points, "r--", alpha=0.5, linewidth=1)
@@ -297,9 +288,7 @@ def multi_dimensional_example() -> tuple[
     plt.show()
 
     # Print some statistics and fix the long line by splitting the calculation
-    path_segments = np.sqrt(
-        np.diff(x_traj) ** 2 + np.diff(y_traj) ** 2 + np.diff(z_traj) ** 2
-    )
+    path_segments = np.sqrt(np.diff(x_traj) ** 2 + np.diff(y_traj) ** 2 + np.diff(z_traj) ** 2)
     total_path_length = np.sum(path_segments)
     print(f"Total path length: {total_path_length:.2f} units")
 
@@ -372,9 +361,7 @@ def compare_boundary_conditions() -> tuple[
     _fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(12, 10), sharex=True)
 
     # Position plot
-    ax1.plot(
-        t_eval, spline1.evaluate(t_eval), "b-", linewidth=2, label="v₀=vₙ=0, a₀=aₙ=0"
-    )
+    ax1.plot(t_eval, spline1.evaluate(t_eval), "b-", linewidth=2, label="v₀=vₙ=0, a₀=aₙ=0")
     ax1.plot(
         t_eval,
         spline2.evaluate(t_eval),
@@ -440,9 +427,7 @@ def compare_boundary_conditions() -> tuple[
 
     # Calculate smoothness metrics for each spline
     # Using the integral of squared jerk (third derivative) as a smoothness metric
-    def calculate_jerk(
-        spline: CubicSplineWithAcceleration1, t: np.ndarray
-    ) -> np.ndarray:
+    def calculate_jerk(spline: CubicSplineWithAcceleration1, t: np.ndarray) -> np.ndarray:
         dt = t[1] - t[0]
         acc = spline.evaluate_acceleration(t)
         # Return directly without creating a temporary variable
