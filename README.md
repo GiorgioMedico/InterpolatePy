@@ -173,7 +173,7 @@ python -m pytest tests
 Generate HTML coverage report to see test coverage:
 
 ```bash
-python -m pytest tests -W ignore::DeprecationWarning --cov=interpolatepy -cov-report=html
+python -m pytest tests --cov=interpolatepy --cov-report=html --cov-report=term
 ```
 
 Then open `htmlcov/index.html` in your browser for an interactive coverage report.
