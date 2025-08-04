@@ -31,7 +31,7 @@ from interpolatepy.quat_visualization import QuaternionTrajectoryVisualizer
 
 # Type alias for pytest benchmark fixture
 try:
-    from pytest import FixtureFunction  # type: ignore[attr-defined]
+    from pytest import FixtureFunction
 except (ImportError, AttributeError):
     # Fallback for pytest versions without FixtureFunction
     from typing import Callable
