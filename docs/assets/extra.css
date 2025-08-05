@@ -1,0 +1,110 @@
+/* Custom CSS for InterpolatePy documentation */
+
+/* Improve code block styling */
+.highlight .hll {
+    background-color: var(--md-code-hl-color);
+}
+
+/* Better equation styling */
+.arithmatex {
+    display: block;
+    margin: 1em 0;
+    text-align: center;
+}
+
+.arithmatex.generic {
+    display: inline;
+    margin: 0;
+}
+
+/* Improve table styling */
+.md-typeset table:not([class]) {
+    border: 1px solid var(--md-typeset-table-color);
+    border-radius: 0.2rem;
+}
+
+.md-typeset table:not([class]) th {
+    background-color: var(--md-default-bg-color--light);
+    font-weight: 600;
+}
+
+/* Custom admonition for algorithms */
+.md-typeset .admonition.algorithm,
+.md-typeset details.algorithm {
+    border-color: #9c27b0;
+}
+
+.md-typeset .algorithm > .admonition-title,
+.md-typeset .algorithm > summary {
+    background-color: rgba(156, 39, 176, 0.1);
+    border-color: #9c27b0;
+}
+
+.md-typeset .algorithm > .admonition-title::before,
+.md-typeset .algorithm > summary::before {
+    background-color: #9c27b0;
+    -webkit-mask-image: var(--md-admonition-icon--note);
+    mask-image: var(--md-admonition-icon--note);
+}
+
+/* Performance indicators */
+.performance-badge {
+    display: inline-block;
+    padding: 0.2em 0.6em;
+    font-size: 0.75em;
+    font-weight: 600;
+    border-radius: 0.25rem;
+    margin-left: 0.5em;
+}
+
+.performance-fast {
+    background-color: #4caf50;
+    color: white;
+}
+
+.performance-medium {
+    background-color: #ff9800;
+    color: white;
+}
+
+.performance-slow {
+    background-color: #f44336;
+    color: white;
+}
+
+/* Algorithm complexity indicators */
+.complexity {
+    font-family: var(--md-code-font);
+    font-size: 0.85em;
+    color: var(--md-code-fg-color);
+    background-color: var(--md-code-bg-color);
+    padding: 0.1em 0.3em;
+    border-radius: 0.2em;
+}
+
+/* Feature grid */
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.feature-card {
+    border: 1px solid var(--md-typeset-table-color);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background-color: var(--md-default-bg-color--light);
+}
+
+.feature-card h3 {
+    margin-top: 0;
+    color: var(--md-primary-fg-color);
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 76.1875em) {
+    .feature-grid {
+        grid-template-columns: 1fr;
+    }
+}

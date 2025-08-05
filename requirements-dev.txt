@@ -20,7 +20,9 @@ codecov>=2.1.13
 
 # Documentation (optional, only if needed)
 mkdocs>=1.5.3
+mkdocs-material>=9.4.8
+pymdown-extensions>=10.3.0
+mkdocs-autorefs>=0.5.0
 mkdocstrings>=0.23.0
 mkdocstrings-python>=1.7.3
-mkdocs-material>=9.4.8
 Pygments>=2.16.1
