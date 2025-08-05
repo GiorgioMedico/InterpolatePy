@@ -43,6 +43,7 @@ from .lin_poly_parabolic import ParabolicBlendTrajectory
 # Quaternion interpolation
 from .quat_core import Quaternion
 from .quat_spline import QuaternionSpline
+from .squad_c2 import SquadC2
 
 # Linear interpolation
 from .linear import linear_traj
@@ -77,12 +78,13 @@ __all__ = [
     "SmoothingCubicBSpline",
     "SplineConfig",
     "SplineParameters",
+    "SquadC2",
     "StateParams",
     "TimeInterval",
     "TrajectoryBounds",
     "TrajectoryParams",
     "TrapezoidalTrajectory",
-    # Version
+    # Version and functions
     "__version__",
     "compute_trajectory_frames",
     "linear_traj",

@@ -67,10 +67,7 @@ class SmoothingCubicBSpline(BSpline):
             params = BSplineParams()
 
         # Convert points to numpy array and ensure correct format
-        if not isinstance(points, np.ndarray):
-            points = np.array(points, dtype=np.float64)
-        else:
-            points = points.astype(np.float64)
+        points = np.array(points, dtype=np.float64) if not isinstance(points, np.ndarray) else points.astype(np.float64)
 
         # Get the number of points and the dimension
         n_points = len(points)

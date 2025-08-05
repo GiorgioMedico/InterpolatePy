@@ -527,10 +527,7 @@ class Quaternion:
         angle = 2.0 * np.acos(abs(self.s_))
         sin_half_angle = np.sqrt(1.0 - self.s_**2)
 
-        if sin_half_angle < self.EPSILON:
-            axis = np.array([1.0, 0.0, 0.0])
-        else:
-            axis = self.v_ / sin_half_angle
+        axis = np.array([1.0, 0.0, 0.0]) if sin_half_angle < self.EPSILON else self.v_ / sin_half_angle
 
         return axis, angle
 

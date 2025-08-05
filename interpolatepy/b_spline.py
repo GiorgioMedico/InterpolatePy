@@ -69,11 +69,7 @@ class BSpline:
             If the inputs do not satisfy B-spline requirements.
         """
         # Convert inputs to numpy arrays if they're not already
-        if not isinstance(knots, np.ndarray):
-            knots = np.array(knots, dtype=np.float64)
-        else:
-            # Ensure knots are float64 for precision
-            knots = knots.astype(np.float64)
+        knots = np.array(knots, dtype=np.float64) if not isinstance(knots, np.ndarray) else knots.astype(np.float64)
 
         if not isinstance(control_points, np.ndarray):
             control_points = np.array(control_points, dtype=np.float64)

@@ -112,7 +112,7 @@ if __name__ == "__main__":
     for time_point in evaluation_times:
         position, velocity, acceleration = traj_func(time_point)
         print(
-            f"At t={time_point:.2f}s: position={position:.4f}, velocity={velocity:.4f}, acceleration={acceleration:.4f}"  # noqa: E501
+            f"At t={time_point:.2f}s: position={position:.4f}, velocity={velocity:.4f}, acceleration={acceleration:.4f}"
         )
 
     # Demonstrate out-of-bounds handling

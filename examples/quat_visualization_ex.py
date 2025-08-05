@@ -175,20 +175,24 @@ def demo_simple_3d_plot() -> None:
     print("\n--- Simple 3D Trajectory Plot ---")
 
     # Create a simple trajectory
-    _time_points, quaternions = create_waypoint_trajectory()
+    time_points, quaternions = create_waypoint_trajectory()
     visualizer = QuaternionTrajectoryVisualizer()
 
-    # Plot simple 3D trajectory
+    # Plot simple 3D trajectory with waypoints
     visualizer.plot_3d_trajectory(
         quaternions,
-        title="Simple 3D Quaternion Trajectory",
+        waypoints=quaternions,
+        waypoint_times=time_points,
+        title="Simple 3D Quaternion Trajectory with Waypoints",
         color="purple",
         line_width=2.5,
-        point_size=30
+        point_size=30,
+        waypoint_color="orange",
+        waypoint_size=100
     )
 
     print(f"Created simple 3D plot with {len(quaternions)} quaternions")
-    print("Shows stereographic projection of quaternion trajectory in 3D space")
+    print("Shows stereographic projection of quaternion trajectory in 3D space with waypoints")
 
 
 def demo_velocity_plot() -> None:

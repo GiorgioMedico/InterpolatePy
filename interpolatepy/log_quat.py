@@ -25,7 +25,7 @@ try:
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
 except ImportError:
-    plt = None  # type: ignore[assignment]
+    plt = None
     Axes3D = None
 
 
