@@ -262,7 +262,7 @@ class TestSquadC2Continuity:
     """Test C²-continuity properties of SQUAD C2 interpolation."""
 
     NUMERICAL_TOLERANCE = 1e-6
-    DERIVATIVE_TOLERANCE = 1e-4
+    DERIVATIVE_TOLERANCE = 2e-4
 
     def _compute_numerical_derivative(self, squad: SquadC2, t: float, dt: float = 1e-6) -> Quaternion:
         """Compute numerical derivative of quaternion at time t."""

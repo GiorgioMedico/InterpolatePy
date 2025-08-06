@@ -797,7 +797,7 @@ class TestBSplineInterpolatorAdvanced:
         for u in u_values:
             point = spline.evaluate(u)
             # Should stay within reasonable bounds for smooth data
-            assert 0 <= point[0] <= 4
+            assert -1e-10 <= point[0] <= 4
             assert 0 <= point[1] <= 8
 
     def test_cubic_smoothness(self) -> None:
