@@ -70,10 +70,10 @@ bounds = TrajectoryBounds(
 trajectory = DoubleSTrajectory(state, bounds)
 
 # Get total duration
-print(f"Duration: {trajectory.total_time:.2f}s")
+print(f"Duration: {trajectory.get_duration():.2f}s")
 
 # Evaluate at specific times
-t_eval = np.linspace(0, trajectory.total_time, 100)
+t_eval = np.linspace(0, trajectory.get_duration(), 100)
 positions = [trajectory.evaluate(t) for t in t_eval]
 velocities = [trajectory.evaluate_velocity(t) for t in t_eval]
 
@@ -117,20 +117,22 @@ print(f"Angular velocity: {angular_velocity}")
 When your data has noise, use smoothing splines:
 
 ```python
-from interpolatepy import smoothing_spline_with_tolerance
+from interpolatepy import smoothing_spline_with_tolerance, SplineConfig
 
 # Noisy data points
 t_noisy = np.linspace(0, 10, 20)
 q_noisy = np.sin(t_noisy) + 0.1 * np.random.randn(20)
 
 # Automatically find optimal smoothing
-spline = smoothing_spline_with_tolerance(
-    t_noisy.tolist(), 
-    q_noisy.tolist(), 
-    tolerance=0.05  # Maximum allowed deviation
+config = SplineConfig(max_iterations=50)
+spline, mu, error, iterations = smoothing_spline_with_tolerance(
+    np.array(t_noisy), 
+    np.array(q_noisy), 
+    tolerance=0.05,  # Maximum allowed deviation
+    config=config
 )
 
-print(f"Optimal smoothing parameter: {spline.mu:.6f}")
+print(f"Optimal smoothing parameter: {mu:.6f}")
 
 # Plot original data vs smoothed curve
 spline.plot()
@@ -306,7 +308,7 @@ traj = create_trajectory_with_via_points(waypoints, durations)
 ```python
 def synchronize_trajectories(trajectories):
     """Find common duration for multiple trajectories."""
-    max_duration = max(traj.total_time for traj in trajectories)
+    max_duration = max(traj.get_duration() for traj in trajectories)
     
     # Evaluate all at synchronized time points
     t_sync = np.linspace(0, max_duration, 100)
@@ -314,7 +316,7 @@ def synchronize_trajectories(trajectories):
     
     for i, traj in enumerate(trajectories):
         sync_data[f'traj_{i}'] = [
-            traj.evaluate(min(t, traj.total_time)) for t in t_sync
+            traj.evaluate(min(t, traj.get_duration())) for t in t_sync
         ]
     
     return t_sync, sync_data
@@ -329,7 +331,7 @@ def blend_trajectories(traj1, traj2, blend_time, total_time):
         if t <= blend_time:
             return traj1.evaluate(t)
         elif t >= total_time - blend_time:
-            return traj2.evaluate(t - (total_time - traj2.total_time))
+            return traj2.evaluate(t - (total_time - traj2.get_duration()))
         else:
             # Linear blend in middle region
             alpha = (t - blend_time) / (total_time - 2*blend_time)

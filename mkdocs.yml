@@ -150,6 +150,7 @@ nav:
     - API Reference: api-reference.md
     - Algorithms: algorithms.md
     - Examples: examples.md
+    - Troubleshooting: troubleshooting.md
   - Contributing:
     - Development: contributing.md
     - Changelog: changelog.md

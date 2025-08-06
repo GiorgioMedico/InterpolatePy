@@ -11,6 +11,7 @@ from .version import __version__
 from .cubic_spline import CubicSpline
 from .c_s_smoothing import CubicSmoothingSpline
 from .c_s_smoot_search import SplineConfig
+from .c_s_smoot_search import smoothing_spline_with_tolerance
 from .c_s_with_acc1 import CubicSplineWithAcceleration1
 from .c_s_with_acc2 import CubicSplineWithAcceleration2
 from .c_s_with_acc2 import SplineParameters
@@ -50,6 +51,9 @@ from .linear import linear_traj
 
 # Frenet frame utilities
 from .frenet_frame import compute_trajectory_frames
+from .frenet_frame import circular_trajectory_with_derivatives
+from .frenet_frame import helicoidal_trajectory_with_derivatives
+from .frenet_frame import plot_frames
 
 # Utility functions
 from .tridiagonal_inv import solve_tridiagonal
@@ -86,7 +90,11 @@ __all__ = [
     "TrapezoidalTrajectory",
     # Version and functions
     "__version__",
+    "circular_trajectory_with_derivatives",
     "compute_trajectory_frames",
+    "helicoidal_trajectory_with_derivatives",
     "linear_traj",
+    "plot_frames",
+    "smoothing_spline_with_tolerance",
     "solve_tridiagonal",
 ]

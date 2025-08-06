@@ -77,13 +77,29 @@ for t ∈ [tₖ, tₖ₊₁]. The spline satisfies:
 - **Interpolation**: qₖ(tᵢ) = qᵢ for all waypoints
 - **Boundary conditions**: Configurable velocity/acceleration at endpoints
 
-The algorithm solves a tridiagonal linear system for accelerations ωᵢ = q̈(tᵢ):
+**Mathematical Derivation**:
 
-```
-Aω = c
-```
+1. **Hermite Form**: Express each segment using accelerations ωᵢ = q̈(tᵢ):
+   ```
+   qₖ(t) = Aₖ + Bₖ(t-tₖ) + (Cₖ/6)(t-tₖ)³ + (Dₖ/6)(t-tₖ)²
+   ```
+   where Cₖ = ωₖ, Dₖ = ωₖ₊₁ - ωₖ
 
-where A is tridiagonal with entries based on time intervals Tᵢ = tᵢ₊₁ - tᵢ.
+2. **Continuity Constraints**: At interior points tᵢ, enforce:
+   - Position: qᵢ₋₁(tᵢ) = qᵢ₊₁(tᵢ) = qᵢ
+   - Velocity: q̇ᵢ₋₁(tᵢ) = q̇ᵢ₊₁(tᵢ)
+
+3. **Tridiagonal System**: These constraints yield the linear system Aω = c where:
+   ```
+   Aᵢᵢ = (Tᵢ₋₁ + Tᵢ)/3,  Aᵢ,ᵢ₋₁ = Tᵢ₋₁/6,  Aᵢ,ᵢ₊₁ = Tᵢ/6
+   cᵢ = (qᵢ₊₁ - qᵢ)/Tᵢ - (qᵢ - qᵢ₋₁)/Tᵢ₋₁
+   ```
+   with Tᵢ = tᵢ₊₁ - tᵢ being the time intervals.
+
+4. **Boundary Conditions**:
+   - **Natural**: ω₀ = ωₙ = 0 (zero curvature at endpoints)
+   - **Clamped**: Specified derivatives v₀, vₙ modify first/last equations
+   - **Not-a-knot**: Force C³ continuity at second/penultimate points
 
 #### API Reference
 
@@ -224,27 +240,31 @@ This provides an objective way to balance smoothness and fidelity without manual
 
 ```python
 def smoothing_spline_with_tolerance(
-    t_points: list[float], q_points: list[float],
-    tolerance: float, max_iterations: int = 50,
-    mu_min: float = 1e-10, mu_max: float = 1e6
-) -> CubicSmoothingSpline
+    t_points: np.ndarray,
+    q_points: np.ndarray,
+    tolerance: float,
+    config: SplineConfig,
+) -> tuple[CubicSmoothingSpline, float, float, int]
 ```
 
 **Parameters**:
+- `t_points`: Time points as numpy array
+- `q_points`: Position points as numpy array  
 - `tolerance`: Maximum allowed deviation from waypoints
-- `max_iterations`: Maximum binary search iterations
-- `mu_min`, `mu_max`: Search bounds for smoothing parameter
+- `config`: SplineConfig with search parameters
 
 #### Example
 
 ```python
-from interpolatepy import smoothing_spline_with_tolerance
+from interpolatepy import smoothing_spline_with_tolerance, SplineConfig
+import numpy as np
 
 # Automatically find optimal smoothing
-spline = smoothing_spline_with_tolerance(
-    t_points, q_noisy, tolerance=0.01
+config = SplineConfig(max_iterations=50)
+spline, mu, error, iterations = smoothing_spline_with_tolerance(
+    np.array(t_points), np.array(q_noisy), tolerance=0.01, config=config
 )
-print(f"Optimal μ = {spline.mu}")
+print(f"Optimal μ = {mu:.6f}, error = {error:.6f}")
 ```
 
 ### CubicSplineWithAcceleration1
@@ -403,7 +423,7 @@ Motion profiles are classical trajectory planning methods optimized for robotics
 
 #### Theory
 
-Implements double-S (jerk-bounded) trajectories that limit the rate of acceleration change. The velocity profile follows an S-curve shape with 7 distinct phases:
+Implements double-S (jerk-bounded) trajectories that limit the rate of acceleration change. The velocity profile follows an S-curve shape with up to 7 distinct phases:
 
 1. **Jerk-up phase**: q⃛ = +jₘₐₓ (acceleration increases)
 2. **Constant acceleration**: q⃛ = 0, q̈ = aₘₐₓ  
@@ -412,6 +432,27 @@ Implements double-S (jerk-bounded) trajectories that limit the rate of accelerat
 5. **Jerk-down phase**: q⃛ = -jₘₐₓ (deceleration begins)
 6. **Constant acceleration**: q⃛ = 0, q̈ = -aₘₐₓ
 7. **Jerk-up phase**: q⃛ = +jₘₐₓ (deceleration decreases to 0)
+
+**Mathematical Model**:
+
+The trajectory is computed by solving the time-optimal control problem:
+```
+minimize T
+subject to: |q̇(t)| ≤ vₘₐₓ, |q̈(t)| ≤ aₘₐₓ, |q⃛(t)| ≤ jₘₐₓ
+           q(0) = q₀, q(T) = q₁, q̇(0) = v₀, q̇(T) = v₁
+```
+
+**Phase Duration Calculation**:
+1. **Acceleration phases**: T₁ = min(aₘₐₓ/jₘₐₓ, √((v₁-v₀)/(2jₘₐₓ)))
+2. **Constant acceleration**: T₂ determined by velocity limit constraints
+3. **Velocity phase**: T₄ calculated from displacement requirements
+
+**Kinematic Equations**: For each phase i with jerk jᵢ, acceleration a₀ᵢ, velocity v₀ᵢ:
+```
+q̈ᵢ(t) = a₀ᵢ + jᵢt
+q̇ᵢ(t) = v₀ᵢ + a₀ᵢt + ½jᵢt²
+qᵢ(t) = q₀ᵢ + v₀ᵢt + ½a₀ᵢt² + ⅙jᵢt³
+```
 
 **Constraints**:
 - **Jerk limit**: |q⃛(t)| ≤ jₘₐₓ
@@ -424,18 +465,16 @@ Implements double-S (jerk-bounded) trajectories that limit the rate of accelerat
 ```python
 @dataclass
 class StateParams:
-    q0: float = 0.0      # Initial position
-    q1: float = 1.0      # Final position  
-    v0: float = 0.0      # Initial velocity
-    v1: float = 0.0      # Final velocity
-    a0: float = 0.0      # Initial acceleration
-    a1: float = 0.0      # Final acceleration
+    q_0: float = 0.0      # Initial position
+    q_1: float = 1.0      # Final position  
+    v_0: float = 0.0      # Initial velocity
+    v_1: float = 0.0      # Final velocity
 
 @dataclass  
 class TrajectoryBounds:
-    v_max: float = 1.0   # Maximum velocity
-    a_max: float = 1.0   # Maximum acceleration
-    j_max: float = 1.0   # Maximum jerk
+    v_bound: float = 1.0   # Velocity bound
+    a_bound: float = 1.0   # Acceleration bound
+    j_bound: float = 1.0   # Jerk bound
 
 class DoubleSTrajectory:
     def __init__(self, state_params: StateParams, bounds: TrajectoryBounds)
@@ -458,8 +497,8 @@ def plot(self) -> None
 from interpolatepy import DoubleSTrajectory, StateParams, TrajectoryBounds
 
 # Define trajectory parameters
-state = StateParams(q0=0, q1=10, v0=0, v1=0)
-bounds = TrajectoryBounds(v_max=2.0, a_max=1.0, j_max=0.5)
+state = StateParams(q_0=0, q_1=10, v_0=0, v_1=0)
+bounds = TrajectoryBounds(v_bound=2.0, a_bound=1.0, j_bound=0.5)
 
 # Create trajectory
 traj = DoubleSTrajectory(state, bounds)
@@ -746,6 +785,8 @@ class Quaternion:
 **File**: `log_quat.py`  
 **Class**: `LogQuaternionInterpolation`
 
+> **Note**: This class is available in the `log_quat.py` module but not exported in the main `__init__.py`. Import directly: `from interpolatepy.log_quat import LogQuaternionInterpolation`
+
 #### Theory
 
 Implements the Logarithmic Quaternion Interpolation (LQI) method from Parker et al. (2023). The algorithm:
@@ -785,6 +826,8 @@ class LogQuaternionInterpolation:
 
 **File**: `log_quat.py`  
 **Class**: `ModifiedLogQuaternionInterpolation`
+
+> **Note**: This class is available in the `log_quat.py` module but not exported in the main `__init__.py`. Import directly: `from interpolatepy.log_quat import ModifiedLogQuaternionInterpolation`
 
 #### Theory
 

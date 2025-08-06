@@ -9,24 +9,56 @@ InterpolatePy is available on PyPI and can be installed with pip. We support Pyt
 - **SciPy**: ≥1.15.2
 - **Matplotlib**: ≥3.10.1
 
-## Quick Installation
+## Installation
 
-### Using pip (Recommended)
+### Standard Installation
 
+**Step 1: Verify Python Version**
+```bash
+python --version
+# Should show Python 3.10 or higher
+```
+
+**Step 2: Install InterpolatePy**
 ```bash
 pip install InterpolatePy
 ```
 
-This installs the core library with all required dependencies.
-
-### Using conda
-
-```bash
-conda install -c conda-forge interpolatepy
+**Step 3: Verify Installation**
+```python
+import interpolatepy
+print(f"InterpolatePy version: {interpolatepy.__version__}")
 ```
 
-!!! note "Conda Availability"
-    Conda packages may take a few days to update after PyPI releases.
+This installs the core library with all required dependencies (NumPy, SciPy, Matplotlib).
+
+### Virtual Environment Installation (Recommended)
+
+Using a virtual environment prevents dependency conflicts and is considered best practice:
+
+**Step 1: Create Virtual Environment**
+```bash
+# Create a new virtual environment
+python -m venv interpolate_env
+
+# Activate the environment
+# On Windows:
+interpolate_env\Scripts\activate
+# On macOS/Linux:
+source interpolate_env/bin/activate
+```
+
+**Step 2: Install InterpolatePy**
+```bash
+pip install --upgrade pip  # Ensure latest pip
+pip install InterpolatePy
+```
+
+**Step 3: Verify Installation**
+```python
+python -c "import interpolatepy; print('Installation successful!')"
+```
+
 
 ## Development Installation
 
@@ -109,19 +141,69 @@ Test evaluation: 0.75
 
 ### Common Issues
 
-#### ImportError: No module named 'interpolatepy'
+#### Slow installation or timeout errors
 
-**Solution**: Make sure you've installed the package correctly:
+**Solution**: Use faster mirrors or increase timeout:
 ```bash
-pip install --upgrade InterpolatePy
+# Use PyPI mirrors
+pip install -i https://pypi.org/simple/ InterpolatePy
+
+# Increase timeout
+pip install --timeout 300 InterpolatePy
+
+# Use --no-cache-dir to avoid cache issues
+pip install --no-cache-dir InterpolatePy
 ```
 
-#### ModuleNotFoundError: No module named 'numpy'
+#### SSL certificate errors
 
-**Solution**: Install dependencies manually:
+**Solution**: Upgrade certificates or use trusted hosts:
+```bash
+# Upgrade certificates (macOS)
+/Applications/Python\ 3.x/Install\ Certificates.command
+
+# Use trusted host (temporary solution)
+pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org InterpolatePy
+```
+
+#### ImportError: No module named 'interpolatepy'
+
+**Solution 1**: Verify installation:
+```bash
+pip list | grep -i interpolate
+# Should show: InterpolatePy x.x.x
+```
+
+**Solution 2**: Reinstall the package:
+```bash
+pip uninstall InterpolatePy
+pip install InterpolatePy
+```
+
+**Solution 3**: Check Python environment:
+```bash
+which python
+pip show InterpolatePy
+```
+
+#### ModuleNotFoundError: No module named 'numpy' or other dependencies
+
+**Solution 1**: Upgrade pip and try again:
+```bash
+pip install --upgrade pip setuptools wheel
+pip install InterpolatePy
+```
+
+**Solution 2**: Install dependencies manually:
 ```bash
 pip install numpy>=2.0.0 scipy>=1.15.2 matplotlib>=3.10.1
 pip install InterpolatePy
+```
+
+**Solution 3**: Use explicit dependency installation:
+```bash
+pip install InterpolatePy --force-reinstall --no-deps
+pip install numpy scipy matplotlib
 ```
 
 #### Permission denied during installation
@@ -131,41 +213,75 @@ pip install InterpolatePy
 pip install --user InterpolatePy
 ```
 
-Or use a virtual environment:
+Or create a clean virtual environment:
 ```bash
-python -m venv interp_env
-source interp_env/bin/activate  # On Windows: interp_env\Scripts\activate
+# Create new environment
+python -m venv fresh_env
+
+# Activate environment
+# On Windows:
+fresh_env\Scripts\activate
+# On macOS/Linux: 
+source fresh_env/bin/activate
+
+# Install InterpolatePy
+pip install --upgrade pip
 pip install InterpolatePy
 ```
 
 #### Version conflicts with existing packages
 
-**Solution**: Create a fresh virtual environment:
-```bash
-python -m venv fresh_env
-source fresh_env/bin/activate
-pip install InterpolatePy
-```
+See the clean virtual environment solution above.
 
 ### Platform-Specific Notes
 
 #### Windows
-- Use `python` instead of `python3`
+- Use `python` instead of `python3` if Python 2 is not installed
 - Activate virtual environments with `venv\Scripts\activate`
-- Consider using Anaconda for easier dependency management
+- Install Microsoft C++ Build Tools if compilation issues occur:
+  - Download from: https://visualstudio.microsoft.com/visual-cpp-build-tools/
+  - Or install via: `winget install Microsoft.VisualStudio.2022.BuildTools`
+- Use PowerShell or Command Prompt for installation commands
 
 #### macOS
-- May require Xcode command line tools: `xcode-select --install`
+- May require Xcode command line tools for dependency compilation:
+  ```bash
+  xcode-select --install
+  ```
 - Use `python3` and `pip3` if system Python 2 is present
+- Install Homebrew for better Python management:
+  ```bash
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  brew install python@3.11  # or latest version
+  ```
+- Consider using pyenv for multiple Python versions:
+  ```bash
+  brew install pyenv
+  pyenv install 3.11.0
+  pyenv global 3.11.0
+  ```
 
 #### Linux
-- Install development headers if compiling from source:
+- Install development headers and build tools if needed:
   ```bash
   # Ubuntu/Debian
-  sudo apt-get install python3-dev
+  sudo apt update
+  sudo apt install python3-dev python3-pip python3-venv build-essential
   
   # CentOS/RHEL/Fedora
-  sudo yum install python3-devel
+  sudo yum install python3-devel python3-pip gcc gcc-c++ make
+  
+  # Arch Linux
+  sudo pacman -S python python-pip base-devel
+  
+  # Alpine Linux
+  apk add python3 python3-dev py3-pip gcc musl-dev
+  ```
+- Use package manager Python when possible:
+  ```bash
+  # Ubuntu/Debian
+  sudo apt install python3-numpy python3-scipy python3-matplotlib
+  pip3 install --user InterpolatePy
   ```
 
 ## Docker Installation

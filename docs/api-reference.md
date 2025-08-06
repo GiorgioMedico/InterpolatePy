@@ -14,7 +14,7 @@ InterpolatePy is organized into the following modules:
 
 ## Spline Interpolation
 
-### CubicSpline
+### CubicSpline {#cubic-spline}
 
 ::: interpolatepy.CubicSpline
     options:
@@ -49,7 +49,7 @@ t_array = np.linspace(0, 4, 100)
 trajectory = spline.evaluate(t_array)
 ```
 
-### CubicSmoothingSpline
+### CubicSmoothingSpline {#cubic-smoothing-spline}
 
 ::: interpolatepy.CubicSmoothingSpline
     options:
@@ -74,7 +74,8 @@ spline = CubicSmoothingSpline(t_points, q_noisy, mu=0.1)
 spline.plot()
 ```
 
-### CubicSplineWithAcceleration1
+<a id="cubic-spline-with-acceleration"></a>
+### CubicSplineWithAcceleration1 {#cubic-spline-with-acceleration1}
 
 ::: interpolatepy.CubicSplineWithAcceleration1
     options:
@@ -87,7 +88,7 @@ spline.plot()
         - original_indices
       show_source: false
 
-### CubicSplineWithAcceleration2
+### CubicSplineWithAcceleration2 {#cubic-spline-with-acceleration2}
 
 ::: interpolatepy.CubicSplineWithAcceleration2
     options:
@@ -101,13 +102,13 @@ spline.plot()
 
 ### B-Spline Family
 
-#### BSpline
+#### BSpline {#b-spline}
 
 ::: interpolatepy.BSpline
     options:
       show_source: false
 
-#### BSplineInterpolator
+#### BSplineInterpolator {#b-spline-interpolator}
 
 ::: interpolatepy.BSplineInterpolator
     options:
@@ -137,13 +138,13 @@ position = bspline.evaluate(t)
 velocity = bspline.evaluate_velocity(t)
 ```
 
-#### ApproximationBSpline
+#### ApproximationBSpline {#approximation-b-spline}
 
 ::: interpolatepy.ApproximationBSpline
     options:
       show_source: false
 
-#### SmoothingCubicBSpline
+#### SmoothingCubicBSpline {#smoothing-cubic-b-spline}
 
 ::: interpolatepy.SmoothingCubicBSpline
     options:
@@ -151,7 +152,7 @@ velocity = bspline.evaluate_velocity(t)
 
 ## Motion Profiles
 
-### DoubleSTrajectory
+### DoubleSTrajectory {#double-s-trajectory}
 
 ::: interpolatepy.DoubleSTrajectory
     options:
@@ -191,16 +192,16 @@ bounds = TrajectoryBounds(
 trajectory = DoubleSTrajectory(state, bounds)
 
 # Evaluate trajectory
-t = trajectory.total_time / 2
+t = trajectory.get_duration() / 2
 position = trajectory.evaluate(t)
 velocity = trajectory.evaluate_velocity(t)
 acceleration = trajectory.evaluate_acceleration(t)
 jerk = trajectory.evaluate_jerk(t)
 
-print(f"Duration: {trajectory.total_time:.2f}s")
+print(f"Duration: {trajectory.get_duration():.2f}s")
 ```
 
-### TrapezoidalTrajectory
+### TrapezoidalTrajectory {#trapezoidal-trajectory}
 
 ::: interpolatepy.TrapezoidalTrajectory
     options:
@@ -235,7 +236,7 @@ pos, vel, acc = traj_func(t)
 print(f"At t={t}: pos={pos:.2f}, vel={vel:.2f}, acc={acc:.2f}")
 ```
 
-### PolynomialTrajectory
+### PolynomialTrajectory {#polynomial-trajectory}
 
 ::: interpolatepy.PolynomialTrajectory
     options:
@@ -282,7 +283,7 @@ t = 1.0
 pos, vel, acc, jerk = traj_func(t)
 ```
 
-### ParabolicBlendTrajectory
+### ParabolicBlendTrajectory {#parabolic-blend-trajectory}
 
 ::: interpolatepy.ParabolicBlendTrajectory
     options:
@@ -334,7 +335,7 @@ print(f"Euler angles: roll={np.degrees(roll):.1f}°, "
       f"pitch={np.degrees(pitch):.1f}°, yaw={np.degrees(yaw):.1f}°")
 ```
 
-### SquadC2
+### SquadC2 {#squad-c2}
 
 ::: interpolatepy.SquadC2
     options:
@@ -364,15 +365,19 @@ angular_velocity = squad.evaluate_velocity(t)
 angular_acceleration = squad.evaluate_acceleration(t)
 ```
 
-### QuaternionSpline
+### QuaternionSpline {#quaternion-spline}
 
 ::: interpolatepy.QuaternionSpline
     options:
       show_source: false
 
+<a id="log-quaternion-interpolation"></a>
+<a id="modified-log-quaternion-interpolation"></a>
+
 ## Path Planning
 
-### LinearPath
+<a id="simple-linear-path"></a>
+### LinearPath {#linear-path}
 
 ::: interpolatepy.LinearPath
     options:
@@ -400,7 +405,8 @@ s_values = np.linspace(0, path.total_length, 50)
 trajectory = path.evaluate_at(s_values)
 ```
 
-### CircularPath
+<a id="simple-circular-path"></a>
+### CircularPath {#circular-path}
 
 ::: interpolatepy.CircularPath
     options:
@@ -429,7 +435,8 @@ s_values = np.linspace(0, 2*np.pi*path.radius, 100)
 trajectory = path.evaluate_at(s_values)
 ```
 
-### Frenet Frame Computation
+<a id="frenet-frame-computation"></a>
+### Frenet Frame Computation {#frenet-frame}
 
 ::: interpolatepy.compute_trajectory_frames
 

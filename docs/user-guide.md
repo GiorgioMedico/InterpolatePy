@@ -133,7 +133,7 @@ def plan_elevator_motion(floors, floor_height=3.0):
             'trajectory': trajectory,
             'start_floor': start_floor,
             'end_floor': end_floor,
-            'duration': trajectory.total_time
+            'duration': trajectory.get_duration()
         })
     
     return trajectories

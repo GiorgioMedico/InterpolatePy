@@ -156,12 +156,12 @@ class CubicSpline:
 
         # Create the tridiagonal matrix A as shown in the document:
         # Matrix A has the following structure:
-        # [2(T0+T1)    T0         0         ...        0       ]
-        # [T2        2(T1+T2)     T1        0         ...      ]
-        # [0          T3        2(T2+T3)    T2        ...      ]
+        # [2(T₀+T₁)    T₁         0         ...        0       ]
+        # [T₀        2(T₁+T₂)     T₂        0         ...      ]
+        # [0          T₁        2(T₂+T₃)    T₃        ...      ]
         # [...        ...        ...        ...       ...      ]
-        # [0          ...        0         Tn-2    2(Tn-3+Tn-2) Tn-3]
-        # [0          ...        0          0       Tn-1      2(Tn-2+Tn-1)]
+        # [0          ...        0         Tₙ₋₂    2(Tₙ₋₃+Tₙ₋₂) Tₙ₋₃]
+        # [0          ...        0          0       Tₙ₋₁      2(Tₙ₋₂+Tₙ₋₁)]
 
         if n == 1:
             # Special case: only one segment
@@ -169,7 +169,7 @@ class CubicSpline:
             return np.array([self.v0, self.vn])
 
         # Create the right-hand side vector c from equation (17) in the document
-        # c_i = 3/(T_i*T_{i+1}) * [T_i^2*(q_{i+2}-q_{i+1}) + T_{i+1}^2*(q_{i+1}-q_i)]
+        # cᵢ = 3/(Tᵢ*Tᵢ₊₁) * [Tᵢ²*(qᵢ₊₂-qᵢ₊₁) + Tᵢ₊₁²*(qᵢ₊₁-qᵢ)]
         rhs = np.zeros(n - 1)
 
         for i in range(n - 1):
@@ -185,10 +185,10 @@ class CubicSpline:
         # Adjust the right-hand side to account for known boundary velocities v0 and vn
         # These adjustments come from moving the terms with known velocities to the RHS
         if n > 1:
-            # First equation: subtract T_1*v_0 from RHS
+            # First equation: subtract T₁*v₀ from RHS
             rhs[0] -= t_intervals[1] * self.v0
 
-            # Last equation: subtract T_{n-2}*v_n from RHS
+            # Last equation: subtract Tₙ₋₂*vₙ from RHS
             rhs[-1] -= t_intervals[-2] * self.vn
 
         # Solve the system for the intermediate velocities v1, ..., v(n-1)
@@ -202,17 +202,17 @@ class CubicSpline:
             # Instead of building the full matrix, extract the diagonal elements for the
             # tridiagonal solver
 
-            # Main diagonal: 2(T_i + T_{i+1})
+            # Main diagonal: 2(Tᵢ + Tᵢ₊₁)
             main_diag = np.zeros(n - 1)
             for i in range(n - 1):
                 main_diag[i] = 2 * (t_intervals[i] + t_intervals[i + 1])
 
-            # Lower diagonal: T_{i+1} (first element not used in solve_tridiagonal)
+            # Lower diagonal: Tᵢ₊₁ (first element not used in solve_tridiagonal)
             lower_diag = np.zeros(n - 1)
             for i in range(1, n - 1):
                 lower_diag[i] = t_intervals[i + 1]
 
-            # Upper diagonal: T_i (last element not used in solve_tridiagonal)
+            # Upper diagonal: Tᵢ (last element not used in solve_tridiagonal)
             upper_diag = np.zeros(n - 1)
             for i in range(n - 2):
                 upper_diag[i] = t_intervals[i]

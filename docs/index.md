@@ -63,7 +63,7 @@ state = StateParams(q_0=0.0, q_1=10.0, v_0=0.0, v_1=0.0)
 bounds = TrajectoryBounds(v_bound=5.0, a_bound=10.0, j_bound=30.0)
 trajectory = DoubleSTrajectory(state, bounds)
 
-print(f"Duration: {trajectory.total_time:.2f}s")
+print(f"Duration: {trajectory.get_duration():.2f}s")
 trajectory.plot()
 
 plt.show()

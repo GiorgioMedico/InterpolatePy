@@ -39,7 +39,7 @@ bounds = TrajectoryBounds(
 # Generate S-curve trajectory
 trajectory = DoubleSTrajectory(state, bounds)
 
-print(f"Total duration: {trajectory.total_time:.2f} seconds")
+print(f"Total duration: {trajectory.get_duration():.2f} seconds")
 
 # Plot the complete profile
 trajectory.plot()
@@ -55,7 +55,7 @@ S-curve trajectories can have up to 7 phases:
 fig, axes = plt.subplots(4, 1, figsize=(14, 12))
 
 # Evaluate trajectory
-t_eval = np.linspace(0, trajectory.total_time, 1000)
+t_eval = np.linspace(0, trajectory.get_duration(), 1000)
 positions = [trajectory.evaluate(t) for t in t_eval]
 velocities = [trajectory.evaluate_velocity(t) for t in t_eval] 
 accelerations = [trajectory.evaluate_acceleration(t) for t in t_eval]
@@ -125,7 +125,7 @@ for i, constraints in enumerate(constraint_sets):
     bounds = TrajectoryBounds(**{k: v for k, v in constraints.items() if k != 'label'})
     traj = DoubleSTrajectory(base_state, bounds)
     
-    t_eval = np.linspace(0, traj.total_time, 200)
+    t_eval = np.linspace(0, traj.get_duration(), 200)
     positions = [traj.evaluate(t) for t in t_eval]
     velocities = [traj.evaluate_velocity(t) for t in t_eval]
     
@@ -134,7 +134,7 @@ for i, constraints in enumerate(constraint_sets):
     
     # Position
     axes[0, 0].plot(t_eval, positions, color=color, linewidth=2, 
-                    label=f'{label} ({traj.total_time:.1f}s)')
+                    label=f'{label} ({traj.get_duration():.1f}s)')
     
     # Velocity
     axes[0, 1].plot(t_eval, velocities, color=color, linewidth=2, label=label)
@@ -158,7 +158,7 @@ durations = []
 for constraints in constraint_sets:
     bounds = TrajectoryBounds(**{k: v for k, v in constraints.items() if k != 'label'})
     traj = DoubleSTrajectory(base_state, bounds)
-    durations.append(traj.total_time)
+    durations.append(traj.get_duration())
 
 axes[1, 0].bar(labels, durations, color=['blue', 'green', 'red'], alpha=0.7)
 axes[1, 0].set_ylabel('Duration (s)')
@@ -206,7 +206,7 @@ for i, scenario in enumerate(scenarios):
     state = StateParams(q_0=0.0, q_1=10.0, v_0=scenario['v_0'], v_1=scenario['v_1'])
     traj = DoubleSTrajectory(state, bounds)
     
-    t_eval = np.linspace(0, traj.total_time, 200)
+    t_eval = np.linspace(0, traj.get_duration(), 200)
     positions = [traj.evaluate(t) for t in t_eval]
     velocities = [traj.evaluate_velocity(t) for t in t_eval]
     
@@ -235,7 +235,7 @@ print("Duration Analysis:")
 for scenario in scenarios:
     state = StateParams(q_0=0.0, q_1=10.0, v_0=scenario['v_0'], v_1=scenario['v_1'])
     traj = DoubleSTrajectory(state, bounds)
-    print(f"{scenario['label']:>15}: {traj.total_time:.2f}s")
+    print(f"{scenario['label']:>15}: {traj.get_duration():.2f}s")
 ```
 
 ## Trapezoidal Trajectories
@@ -533,12 +533,12 @@ def plan_elevator_journey(floors, floor_height=3.0):
             'start_floor': start_floor,
             'end_floor': end_floor,
             'start_time': current_time,
-            'duration': trajectory.total_time,
+            'duration': trajectory.get_duration(),
             'trajectory': trajectory,
             'direction': 'Up' if end_floor > start_floor else 'Down'
         })
         
-        current_time += trajectory.total_time
+        current_time += trajectory.get_duration()
     
     return segments, current_time
 
@@ -663,7 +663,7 @@ def compare_machining_profiles(distance=100, cutting_speed=50):
         if 'S-curve' in profile_name:
             # S-curve trajectory
             traj = profile_info['generator']()
-            duration = traj.total_time
+            duration = traj.get_duration()
             t_eval = np.linspace(0, duration, 300)
             
             positions = [traj.evaluate(t) for t in t_eval]

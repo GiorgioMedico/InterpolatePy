@@ -274,7 +274,8 @@ class BSpline:
         Returns
         -------
         ndarray
-            2D array where ders[k][j] is the k-th derivative of the j-th basis function.
+            2D array where ders[k][`j`] is the k-th derivative of the `j`-th basis function,
+            where k is the derivative order and `j` is the basis function index.
         """
         # Ensure order doesn't exceed degree
         order = min(order, self.degree)
@@ -461,12 +462,6 @@ class BSpline:
             Whether to show the knot points on the curve. Default is False.
         ax : matplotlib.axes.Axes, optional
             Matplotlib axis to use for plotting. If None, a new figure is created.
-        curve_style : dict, optional
-            Style parameters for the curve.
-        control_style : dict, optional
-            Style parameters for the control polygon.
-        knot_style : dict, optional
-            Style parameters for the knot points.
 
         Returns
         -------
@@ -576,10 +571,6 @@ class BSpline:
             Whether to show the control polygon. Default is True.
         ax : matplotlib.axes.Axes, optional
             Matplotlib 3D axis to use for plotting. If None, a new figure is created.
-        curve_style : dict, optional
-            Style parameters for the curve.
-        control_style : dict, optional
-            Style parameters for the control polygon.
 
         Returns
         -------

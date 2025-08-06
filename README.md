@@ -60,7 +60,7 @@ state = StateParams(q_0=0.0, q_1=10.0, v_0=0.0, v_1=0.0)
 bounds = TrajectoryBounds(v_bound=5.0, a_bound=10.0, j_bound=30.0)
 trajectory = DoubleSTrajectory(state, bounds)
 
-print(f"Duration: {trajectory.total_time:.2f}s")
+print(f"Duration: {trajectory.get_duration():.2f}s")
 trajectory.plot()
 
 plt.show()
@@ -170,10 +170,10 @@ state = StateParams(q_0=0.0, q_1=50.0, v_0=0.0, v_1=0.0)
 bounds = TrajectoryBounds(v_bound=10.0, a_bound=5.0, j_bound=2.0)
 
 trajectory = DoubleSTrajectory(state, bounds)
-print(f"Duration: {trajectory.total_time:.2f}s")
+print(f"Duration: {trajectory.get_duration():.2f}s")
 
 # Evaluate trajectory
-t_eval = np.linspace(0, trajectory.total_time, 1000)
+t_eval = np.linspace(0, trajectory.get_duration(), 1000)
 positions = [trajectory.evaluate(t) for t in t_eval]
 velocities = [trajectory.evaluate_velocity(t) for t in t_eval]
 
@@ -281,6 +281,7 @@ This library implements algorithms from:
 **Quaternion Interpolation:**
 - Parker et al. (2023). "Logarithm-Based Methods for Interpolating Quaternion Time Series"
 - Wittmann et al. (2023). "Spherical Cubic Blends: C²-Continuous Quaternion Interpolation"
+- Dam, E. B., Koch, M., & Lillholm, M. (1998). "Quaternions, Interpolation and Animation"
 
 </details>
 

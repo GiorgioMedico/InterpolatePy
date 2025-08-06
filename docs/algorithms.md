@@ -345,10 +345,10 @@ The algorithm solves for total time considering all constraints and boundary con
     # Generate trajectory
     trajectory = DoubleSTrajectory(state, bounds)
     
-    print(f"Duration: {trajectory.total_time:.2f}s")
+    print(f"Duration: {trajectory.get_duration():.2f}s")
     
     # Evaluate at midpoint
-    t_mid = trajectory.total_time / 2
+    t_mid = trajectory.get_duration() / 2
     pos = trajectory.evaluate(t_mid)
     vel = trajectory.evaluate_velocity(t_mid) 
     acc = trajectory.evaluate_acceleration(t_mid)
@@ -808,14 +808,7 @@ This library implements algorithms from the following research:
 ### Quaternion Interpolation  
 - Parker, J. K., et al. (2023). "Logarithm-Based Methods for Interpolating Quaternion Time Series." *IEEE Transactions on Robotics*.
 - Wittmann, D., et al. (2023). "Spherical Cubic Blends: C²-Continuous Quaternion Interpolation." *IEEE International Conference on Robotics and Automation (ICRA)*.
-
-### Spline Theory
-- de Boor, C. (2001). *A Practical Guide to Splines*. Springer.
-- Schumaker, L. L. (2007). *Spline Functions: Basic Theory*. Cambridge University Press.
-
-### Numerical Methods
-- Press, W. H., et al. (2007). *Numerical Recipes: The Art of Scientific Computing*. Cambridge University Press.
-- Golub, G. H., & Van Loan, C. F. (2013). *Matrix Computations*. Johns Hopkins University Press.
+- Dam, E. B., Koch, M., & Lillholm, M. (1998). "Quaternions, Interpolation and Animation." Technical Report DIKU-TR-98/5, Department of Computer Science, University of Copenhagen.
 
 ---
 
