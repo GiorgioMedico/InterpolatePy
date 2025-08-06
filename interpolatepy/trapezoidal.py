@@ -7,7 +7,6 @@ from dataclasses import dataclass
 
 import numpy as np
 
-
 # Constants
 MIN_POINTS = 2  # Minimum number of points needed for interpolation
 EPSILON = 1e-10  # Small value to prevent division by zero

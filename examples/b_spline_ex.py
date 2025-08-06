@@ -172,7 +172,12 @@ def plot_basis_functions(bspline: BSpline, u_value: float) -> None:
             if 0 <= idx < len(values):
                 y_values[j] = values[idx]
 
-        ax.plot(u_range, y_values, color=colors[i % len(colors)], label=f"B_{i}^{bspline.degree}")
+        ax.plot(
+            u_range,
+            y_values,
+            color=colors[i % len(colors)],
+            label=f"B_{i}^{bspline.degree}",
+        )
 
     # Find the non-zero basis functions at u_value
     span = bspline.find_knot_span(u_value)

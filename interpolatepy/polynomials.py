@@ -4,7 +4,6 @@ from typing import ClassVar
 
 import numpy as np
 
-
 # Define constants for polynomial orders
 ORDER_3 = 3
 ORDER_5 = 5

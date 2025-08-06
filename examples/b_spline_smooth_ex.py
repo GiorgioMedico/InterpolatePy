@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 
 from interpolatepy.b_spline_smooth import BSplineParams
 from interpolatepy.b_spline_smooth import SmoothingCubicBSpline
-from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 
 
 def example_8_12() -> None:

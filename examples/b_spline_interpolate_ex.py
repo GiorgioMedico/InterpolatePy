@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 
 from interpolatepy.b_spline_interpolate import BSplineInterpolator
-from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 
 
 # Example 1: Cubic B-spline interpolation with velocity constraints (Fig. 4.18)

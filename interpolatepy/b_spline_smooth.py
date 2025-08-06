@@ -4,7 +4,6 @@ import numpy as np
 
 from interpolatepy.b_spline import BSpline
 
-
 # Define constant to replace magic number
 EPSILON = 1e-10
 
@@ -68,10 +67,7 @@ class SmoothingCubicBSpline(BSpline):
             params = BSplineParams()
 
         # Convert points to numpy array and ensure correct format
-        if not isinstance(points, np.ndarray):
-            points = np.array(points, dtype=np.float64)
-        else:
-            points = points.astype(np.float64)
+        points = np.array(points, dtype=np.float64) if not isinstance(points, np.ndarray) else points.astype(np.float64)
 
         # Get the number of points and the dimension
         n_points = len(points)
@@ -211,15 +207,15 @@ class SmoothingCubicBSpline(BSpline):
             # Calculate total chord length
             total_length = 0.0
             for k in range(1, n + 1):
-                total_length += np.linalg.norm(
-                    self.approximation_points[k] - self.approximation_points[k - 1]
+                total_length += float(
+                    np.linalg.norm(self.approximation_points[k] - self.approximation_points[k - 1])
                 )
 
             # Calculate parameters
             accumulated_length = 0.0
             for k in range(1, n):
-                accumulated_length += np.linalg.norm(
-                    self.approximation_points[k] - self.approximation_points[k - 1]
+                accumulated_length += float(
+                    np.linalg.norm(self.approximation_points[k] - self.approximation_points[k - 1])
                 )
                 u_bars[k] = accumulated_length / total_length
 
@@ -230,7 +226,7 @@ class SmoothingCubicBSpline(BSpline):
             # Calculate total "centripetal" length
             total_length = 0.0
             for k in range(1, n + 1):
-                total_length += (
+                total_length += float(
                     np.linalg.norm(self.approximation_points[k] - self.approximation_points[k - 1])
                     ** mu
                 )
@@ -238,7 +234,7 @@ class SmoothingCubicBSpline(BSpline):
             # Calculate parameters
             accumulated_length = 0.0
             for k in range(1, n):
-                accumulated_length += (
+                accumulated_length += float(
                     np.linalg.norm(self.approximation_points[k] - self.approximation_points[k - 1])
                     ** mu
                 )

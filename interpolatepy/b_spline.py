@@ -1,7 +1,17 @@
-import matplotlib.pyplot as plt
-import numpy as np
+from __future__ import annotations
 
-from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 - Imported for type hinting
+import numpy as np
+from typing import TYPE_CHECKING
+
+try:
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D
+except ImportError:
+    plt = None
+    Axes3D = None
+
+if TYPE_CHECKING:
+    from mpl_toolkits.mplot3d import Axes3D
 
 
 class BSpline:
@@ -59,11 +69,7 @@ class BSpline:
             If the inputs do not satisfy B-spline requirements.
         """
         # Convert inputs to numpy arrays if they're not already
-        if not isinstance(knots, np.ndarray):
-            knots = np.array(knots, dtype=np.float64)
-        else:
-            # Ensure knots are float64 for precision
-            knots = knots.astype(np.float64)
+        knots = np.array(knots, dtype=np.float64) if not isinstance(knots, np.ndarray) else knots.astype(np.float64)
 
         if not isinstance(control_points, np.ndarray):
             control_points = np.array(control_points, dtype=np.float64)
@@ -268,7 +274,8 @@ class BSpline:
         Returns
         -------
         ndarray
-            2D array where ders[k][j] is the k-th derivative of the j-th basis function.
+            2D array where ders[k][`j`] is the k-th derivative of the `j`-th basis function,
+            where k is the derivative order and `j` is the basis function index.
         """
         # Ensure order doesn't exceed degree
         order = min(order, self.degree)
@@ -455,12 +462,6 @@ class BSpline:
             Whether to show the knot points on the curve. Default is False.
         ax : matplotlib.axes.Axes, optional
             Matplotlib axis to use for plotting. If None, a new figure is created.
-        curve_style : dict, optional
-            Style parameters for the curve.
-        control_style : dict, optional
-            Style parameters for the control polygon.
-        knot_style : dict, optional
-            Style parameters for the knot points.
 
         Returns
         -------
@@ -478,7 +479,11 @@ class BSpline:
             )
 
         # Default styles
-        default_curve_style = {"color": "blue", "linewidth": 2, "label": "B-spline curve"}
+        default_curve_style = {
+            "color": "blue",
+            "linewidth": 2,
+            "label": "B-spline curve",
+        }
         default_control_style = {
             "color": "red",
             "linestyle": "--",
@@ -502,11 +507,26 @@ class BSpline:
         _, curve_points = self.generate_curve_points(num_points)
 
         # Plot the curve
-        ax.plot(curve_points[:, 0], curve_points[:, 1], **default_curve_style)
+        ax.plot(
+            curve_points[:, 0],
+            curve_points[:, 1],
+            color=default_curve_style["color"],
+            linewidth=default_curve_style["linewidth"],
+            label=default_curve_style["label"],
+        )
 
         # Plot the control points and polygon if requested
         if show_control_polygon:
-            ax.plot(self.control_points[:, 0], self.control_points[:, 1], **default_control_style)
+            ax.plot(
+                self.control_points[:, 0],
+                self.control_points[:, 1],
+                color=default_control_style["color"],
+                linestyle=default_control_style["linestyle"],
+                marker=default_control_style["marker"],
+                linewidth=default_control_style["linewidth"],
+                markersize=default_control_style["markersize"],
+                label=default_control_style["label"],
+            )
 
         # Plot the knot points if requested
         if show_knots:
@@ -515,7 +535,15 @@ class BSpline:
             unique_knots = np.unique(valid_knots)
 
             knot_points = np.array([self.evaluate(k) for k in unique_knots])
-            ax.plot(knot_points[:, 0], knot_points[:, 1], **default_knot_style)
+            ax.plot(
+                knot_points[:, 0],
+                knot_points[:, 1],
+                color=default_knot_style["color"],
+                marker=default_knot_style["marker"],
+                markersize=default_knot_style["markersize"],
+                linestyle="none",
+                label=default_knot_style["label"],
+            )
 
         # Set labels and title
         ax.set_xlabel("X")
@@ -530,8 +558,8 @@ class BSpline:
         self,
         num_points: int = 100,
         show_control_polygon: bool = True,
-        ax: plt.Axes | None = None,
-    ) -> plt.Axes:
+        ax: Axes3D | None = None,
+    ) -> Axes3D:
         """
         Plot a 3D B-spline curve.
 
@@ -543,10 +571,6 @@ class BSpline:
             Whether to show the control polygon. Default is True.
         ax : matplotlib.axes.Axes, optional
             Matplotlib 3D axis to use for plotting. If None, a new figure is created.
-        curve_style : dict, optional
-            Style parameters for the curve.
-        control_style : dict, optional
-            Style parameters for the control polygon.
 
         Returns
         -------
@@ -564,7 +588,11 @@ class BSpline:
             )
 
         # Default styles
-        default_curve_style = {"color": "blue", "linewidth": 2, "label": "B-spline curve"}
+        default_curve_style = {
+            "color": "blue",
+            "linewidth": 2,
+            "label": "B-spline curve",
+        }
         default_control_style = {
             "color": "red",
             "linestyle": "--",
@@ -583,7 +611,14 @@ class BSpline:
         _, curve_points = self.generate_curve_points(num_points)
 
         # Plot the curve
-        ax.plot(curve_points[:, 0], curve_points[:, 1], curve_points[:, 2], **default_curve_style)
+        ax.plot(
+            curve_points[:, 0],
+            curve_points[:, 1],
+            curve_points[:, 2],
+            color=default_curve_style["color"],
+            linewidth=default_curve_style["linewidth"],
+            label=default_curve_style["label"],
+        )
 
         # Plot the control points and polygon if requested
         if show_control_polygon:
@@ -591,7 +626,12 @@ class BSpline:
                 self.control_points[:, 0],
                 self.control_points[:, 1],
                 self.control_points[:, 2],
-                **default_control_style,
+                color=default_control_style["color"],
+                linestyle=default_control_style["linestyle"],
+                marker=default_control_style["marker"],
+                linewidth=default_control_style["linewidth"],
+                markersize=default_control_style["markersize"],
+                label=default_control_style["label"],
             )
 
         # Set labels and title
@@ -605,7 +645,10 @@ class BSpline:
 
     @staticmethod
     def create_uniform_knots(
-        degree: int, num_control_points: int, domain_min: float = 0.0, domain_max: float = 1.0
+        degree: int,
+        num_control_points: int,
+        domain_min: float = 0.0,
+        domain_max: float = 1.0,
     ) -> np.ndarray:
         """
         Create a uniform knot vector for a B-spline with appropriate
@@ -664,7 +707,10 @@ class BSpline:
 
     @staticmethod
     def create_periodic_knots(
-        degree: int, num_control_points: int, domain_min: float = 0.0, domain_max: float = 1.0
+        degree: int,
+        num_control_points: int,
+        domain_min: float = 0.0,
+        domain_max: float = 1.0,
     ) -> np.ndarray:
         """
         Create a periodic (uniform) knot vector for a B-spline.

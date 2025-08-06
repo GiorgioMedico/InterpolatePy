@@ -1,9 +1,18 @@
-import matplotlib.pyplot as plt
+from __future__ import annotations
+
 import numpy as np
 from scipy.linalg import solve
+from typing import TYPE_CHECKING
+
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt = None
+
+if TYPE_CHECKING:
+    import matplotlib.pyplot as plt
 
 from interpolatepy.b_spline import BSpline
-
 
 CUBIC_DEGREE = 3
 QUARTIC_DEGREE = 4
@@ -31,7 +40,7 @@ class BSplineInterpolator(BSpline):
     Points can be of any dimension, including 2D and 3D.
     """
 
-    def __init__(  # noqa: PLR0913, PLR0917
+    def __init__(  # noqa: PLR0913
         self,
         degree: int,
         points: list | np.ndarray,
@@ -420,7 +429,10 @@ class BSplineInterpolator(BSpline):
             raise ValueError(error_msg) from e
 
     def plot_with_points(
-        self, num_points: int = 100, show_control_polygon: bool = True, ax: plt.Axes | None = None
+        self,
+        num_points: int = 100,
+        show_control_polygon: bool = True,
+        ax: plt.Axes | None = None,
     ) -> plt.Axes:
         """Plot the 2D B-spline curve along with the interpolation points.
 
@@ -467,7 +479,10 @@ class BSplineInterpolator(BSpline):
         return ax
 
     def plot_with_points_3d(
-        self, num_points: int = 100, show_control_polygon: bool = True, ax: plt.Axes | None = None
+        self,
+        num_points: int = 100,
+        show_control_polygon: bool = True,
+        ax: plt.Axes | None = None,
     ) -> plt.Axes:
         """Plot the 3D B-spline curve along with the interpolation points.
 
@@ -509,7 +524,7 @@ class BSplineInterpolator(BSpline):
         # Add time labels if not too many points
         if len(self.interp_points) <= MAX_POINTS_FOR_LABELS:
             for i, (x, y, z) in enumerate(self.interp_points):
-                ax.text(x, y, z, f"t={self.times[i]:.1f}", horizontalalignment="center")
+                ax.text(x, y, z, f"t={self.times[i]:.1f}")
 
         ax.legend()
         return ax

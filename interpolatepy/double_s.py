@@ -1,9 +1,7 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import NamedTuple
 
 import numpy as np
-
 
 # Constants to avoid magic numbers
 EPSILON = 1e-6  # Small value to avoid division by zero
@@ -34,16 +32,18 @@ class TrajectoryBounds:
         if not all(isinstance(x, int | float) for x in [self.v_bound, self.a_bound, self.j_bound]):
             raise TypeError("All bounds must be numeric values")
 
-        if self.v_bound <= 0 or self.a_bound <= 0 or self.j_bound <= 0:
-            raise ValueError("Bounds must be positive values")
-
-        # Convert to absolute values
+        # Convert to absolute values first
         self.v_bound = abs(self.v_bound)
         self.a_bound = abs(self.a_bound)
         self.j_bound = abs(self.j_bound)
 
+        # Then check if they're positive (zero values still invalid)
+        if self.v_bound <= 0 or self.a_bound <= 0 or self.j_bound <= 0:
+            raise ValueError("Bounds must be positive values")
 
-class StateParams(NamedTuple):
+
+@dataclass(frozen=True)
+class StateParams:
     """Parameters representing position and velocity state.
 
     Parameters
@@ -86,7 +86,12 @@ class DoubleSTrajectory:
         # Input validation for state params
         if not all(
             isinstance(x, int | float)
-            for x in [state_params.q_0, state_params.q_1, state_params.v_0, state_params.v_1]
+            for x in [
+                state_params.q_0,
+                state_params.q_1,
+                state_params.v_0,
+                state_params.v_1,
+            ]
         ):
             raise TypeError("All state parameters must be numeric values")
 
@@ -404,18 +409,18 @@ class DoubleSTrajectory:
             self.state.v_0, self.state.v_1
         ):
             t_norm = min(t / self.T, 1.0)
-            qp = self.state.v_0 + t_norm * (self.state.v_1 - self.state.v_0)
+            qp_val = self.state.v_0 + t_norm * (self.state.v_1 - self.state.v_0)
 
             phase = 2 * np.pi * t_norm
             amplitude = (self.state.v_1 - self.state.v_0) * self.T / (2 * np.pi)
-            q = self.state.q_0 + amplitude * np.sin(phase)
+            q_val = self.state.q_0 + amplitude * np.sin(phase)
 
-            qpp = (self.state.v_1 - self.state.v_0) / self.T + amplitude * (
+            qpp_val = (self.state.v_1 - self.state.v_0) / self.T + amplitude * (
                 2 * np.pi / self.T
             ) * np.cos(phase)
-            qppp = -amplitude * (2 * np.pi / self.T) ** 2 * np.sin(phase)
+            qppp_val = -amplitude * (2 * np.pi / self.T) ** 2 * np.sin(phase)
 
-            return q, qp, qpp, qppp
+            return q_val, qp_val, qpp_val, qppp_val
 
         # Ensure t is within bounds [0, T]
         t = np.clip(t, 0, self.T)
@@ -431,58 +436,60 @@ class DoubleSTrajectory:
         # ACCELERATION PHASE
         if t <= self.Tj_1 and self.Tj_1 > 0:
             # t in [0, Tj_1]
-            q = q_0 + self.v_0_transformed * t + self.j_max * t**3 / 6
-            qp = self.v_0_transformed + self.j_max * (t**2) / 2
-            qpp = self.j_max * t
-            qppp = self.j_max
+            q_val = q_0 + self.v_0_transformed * t + self.j_max * t**3 / 6
+            qp_val = self.v_0_transformed + self.j_max * (t**2) / 2
+            qpp_val = self.j_max * t
+            qppp_val = self.j_max
 
         elif t <= (self.Ta - self.Tj_1) and self.Ta > self.Tj_1:
             # t in [Tj_1, Ta - Tj_1]
-            q = (
+            q_val = (
                 q_0
                 + self.v_0_transformed * t
                 + self.a_lim_a / 6 * (3 * t**2 - 3 * self.Tj_1 * t + self.Tj_1**2)
             )
-            qp = self.v_0_transformed + self.a_lim_a * (t - self.Tj_1 / 2)
-            qpp = self.a_lim_a
-            qppp = 0
+            qp_val = self.v_0_transformed + self.a_lim_a * (t - self.Tj_1 / 2)
+            qpp_val = self.a_lim_a
+            qppp_val = 0
 
         elif t <= self.Ta and self.Ta > 0:
             # t in [Ta-Tj_1, Ta]
-            q = (
+            q_val = (
                 q_0
                 + (self.v_lim + self.v_0_transformed) * self.Ta / 2
                 - self.v_lim * (self.Ta - t)
                 - self.j_min * (self.Ta - t) ** 3 / 6
             )
-            qp = self.v_lim + self.j_min * (self.Ta - t) ** 2 / 2
-            qpp = -self.j_min * (self.Ta - t)
-            qppp = self.j_min
+            qp_val = self.v_lim + self.j_min * (self.Ta - t) ** 2 / 2
+            qpp_val = -self.j_min * (self.Ta - t)
+            qppp_val = self.j_min
 
         # CONSTANT VELOCITY PHASE
         elif t <= (self.Ta + self.Tv) and self.Tv > 0:
             # t in [Ta, Ta+Tv]
-            q = q_0 + (self.v_lim + self.v_0_transformed) * self.Ta / 2 + self.v_lim * (t - self.Ta)
-            qp = self.v_lim
-            qpp = 0
-            qppp = 0
+            q_val = (
+                q_0 + (self.v_lim + self.v_0_transformed) * self.Ta / 2 + self.v_lim * (t - self.Ta)
+            )
+            qp_val = self.v_lim
+            qpp_val = 0
+            qppp_val = 0
 
         # DECELERATION PHASE
         elif t <= (self.Ta + self.Tv + self.Tj_2) and self.Tj_2 > 0:
             # t in [Ta+Tv, Ta+Tv+Tj_2]
-            q = (
+            q_val = (
                 q_1
                 - (self.v_lim + self.v_1_transformed) * self.Td / 2
                 + self.v_lim * (t - self.T + self.Td)
                 - self.j_max * (t - self.T + self.Td) ** 3 / 6
             )
-            qp = self.v_lim - self.j_max * (t - self.T + self.Td) ** 2 / 2
-            qpp = -self.j_max * (t - self.T + self.Td)
-            qppp = -self.j_max
+            qp_val = self.v_lim - self.j_max * (t - self.T + self.Td) ** 2 / 2
+            qpp_val = -self.j_max * (t - self.T + self.Td)
+            qppp_val = -self.j_max
 
         elif t <= (self.Ta + self.Tv + (self.Td - self.Tj_2)) and self.Td > self.Tj_2:
             # t in [Ta+Tv+Tj_2, Ta+Tv+(Td-Tj_2)]
-            q = (
+            q_val = (
                 q_1
                 - (self.v_lim + self.v_1_transformed) * self.Td / 2
                 + self.v_lim * (t - self.T + self.Td)
@@ -494,31 +501,31 @@ class DoubleSTrajectory:
                     + self.Tj_2**2
                 )
             )
-            qp = self.v_lim + self.a_lim_d * (t - self.T + self.Td - self.Tj_2 / 2)
-            qpp = self.a_lim_d
-            qppp = 0
+            qp_val = self.v_lim + self.a_lim_d * (t - self.T + self.Td - self.Tj_2 / 2)
+            qpp_val = self.a_lim_d
+            qppp_val = 0
 
         elif t <= self.T and self.Td > 0:
             # t in [Ta+Tv+(Td-Tj_2), T]
-            q = q_1 - self.v_1_transformed * (self.T - t) - self.j_max * (self.T - t) ** 3 / 6
-            qp = self.v_1_transformed + self.j_max * (self.T - t) ** 2 / 2
-            qpp = -self.j_max * (self.T - t)
-            qppp = self.j_max
+            q_val = q_1 - self.v_1_transformed * (self.T - t) - self.j_max * (self.T - t) ** 3 / 6
+            qp_val = self.v_1_transformed + self.j_max * (self.T - t) ** 2 / 2
+            qpp_val = -self.j_max * (self.T - t)
+            qppp_val = self.j_max
 
         else:
             # After end of trajectory or for empty phases
-            q = q_1
-            qp = self.v_1_transformed
-            qpp = 0
-            qppp = 0
+            q_val = q_1
+            qp_val = self.v_1_transformed
+            qpp_val = 0
+            qppp_val = 0
 
         # Transform back using sigma
-        q = self.sigma * q
-        qp = self.sigma * qp
-        qpp = self.sigma * qpp
-        qppp = self.sigma * qppp
+        q_final = self.sigma * q_val
+        qp_final = self.sigma * qp_val
+        qpp_final = self.sigma * qpp_val
+        qppp_final = self.sigma * qppp_val
 
-        return q, qp, qpp, qppp
+        return q_final, qp_final, qpp_final, qppp_final
 
     def get_duration(self) -> float:
         """

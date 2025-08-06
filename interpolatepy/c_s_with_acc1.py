@@ -1,8 +1,11 @@
-import matplotlib.pyplot as plt
 import numpy as np
 
 from interpolatepy.tridiagonal_inv import solve_tridiagonal
 
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt = None
 
 # Constants to replace magic numbers
 MIN_POINTS = 2
@@ -95,7 +98,7 @@ class CubicSplineWithAcceleration1:
     >>> spline.plot()
     """
 
-    def __init__(  # noqa: PLR0913, PLR0917
+    def __init__(  # noqa: PLR0913
         self,
         t_points: list[float],
         q_points: list[float],
@@ -640,4 +643,3 @@ class CubicSplineWithAcceleration1:
         ax3.legend()
 
         plt.tight_layout()
-        plt.show()

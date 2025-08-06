@@ -87,7 +87,11 @@ def example_approximation(debug: bool = False) -> None:
 
         # Plot original sample points
         plt.plot(
-            sample_points[:, 0], sample_points[:, 1], "k.", markersize=4, label="Sample points"
+            sample_points[:, 0],
+            sample_points[:, 1],
+            "k.",
+            markersize=4,
+            label="Sample points",
         )
 
         # Generate and plot the B-spline curve
@@ -201,7 +205,11 @@ def example_different_shapes(debug: bool = False) -> None:
 
             # Plot original sample points
             plt.plot(
-                sample_points[:, 0], sample_points[:, 1], "k.", markersize=4, label="Sample points"
+                sample_points[:, 0],
+                sample_points[:, 1],
+                "k.",
+                markersize=4,
+                label="Sample points",
             )
 
             # Generate and plot the B-spline curve
@@ -278,7 +286,11 @@ def example_method_comparison(debug: bool = False) -> None:
 
         # Plot original sample points
         plt.plot(
-            sample_points[:, 0], sample_points[:, 1], "k.", markersize=4, label="Sample points"
+            sample_points[:, 0],
+            sample_points[:, 1],
+            "k.",
+            markersize=4,
+            label="Sample points",
         )
 
         # Generate and plot the B-spline curve
@@ -351,7 +363,11 @@ def example_degree_comparison(debug: bool = False) -> None:
 
         # Plot original sample points
         plt.plot(
-            sample_points[:, 0], sample_points[:, 1], "k.", markersize=4, label="Sample points"
+            sample_points[:, 0],
+            sample_points[:, 1],
+            "k.",
+            markersize=4,
+            label="Sample points",
         )
 
         # Generate and plot the B-spline curve

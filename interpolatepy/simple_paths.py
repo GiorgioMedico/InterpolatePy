@@ -12,7 +12,7 @@ class LinearPath:
         """
         self.pi: np.ndarray = np.array(pi)
         self.pf: np.ndarray = np.array(pf)
-        self.length: float = np.linalg.norm(self.pf - self.pi)
+        self.length: float = float(np.linalg.norm(self.pf - self.pi))
 
         # Unit tangent vector (constant for linear path)
         if self.length > 0:
@@ -173,8 +173,13 @@ class CircularPath:
         """
         if np.isscalar(s):
             # Position in local coordinate system (equation 4.38)
+            angle = float(np.asarray(s)) / self.radius
             p_prime = np.array(
-                [self.radius * np.cos(s / self.radius), self.radius * np.sin(s / self.radius), 0]
+                [
+                    self.radius * np.cos(angle),
+                    self.radius * np.sin(angle),
+                    0.0,
+                ]
             )
 
             # Position in global coordinate system (equation 4.39)
@@ -222,7 +227,11 @@ class CircularPath:
         """
         # Acceleration in local coordinate system (equation 4.41)
         d2p_prime_ds2 = np.array(
-            [-np.cos(s / self.radius) / self.radius, -np.sin(s / self.radius) / self.radius, 0]
+            [
+                -np.cos(s / self.radius) / self.radius,
+                -np.sin(s / self.radius) / self.radius,
+                0,
+            ]
         )
 
         # Acceleration in global coordinate system

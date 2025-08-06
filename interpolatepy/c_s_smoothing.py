@@ -1,5 +1,9 @@
-import matplotlib.pyplot as plt
 import numpy as np
+
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt = None
 
 
 class CubicSmoothingSpline:
@@ -76,7 +80,7 @@ class CubicSmoothingSpline:
     HIGH_CONDITION_THRESHOLD = 1e12
     REGULARIZATION_FACTOR = 1e-8
 
-    def __init__(  # noqa: PLR0913, PLR0917
+    def __init__(  # noqa: PLR0913
         self,
         t_points: list[float],
         q_points: list[float],
@@ -329,7 +333,10 @@ class CubicSmoothingSpline:
         if np.linalg.cond(system_matrix) > self.HIGH_CONDITION_THRESHOLD:
             system_matrix += np.eye(n) * self.REGULARIZATION_FACTOR
             if self.debug:
-                print("Added regularization. New condition number:", np.linalg.cond(system_matrix))
+                print(
+                    "Added regularization. New condition number:",
+                    np.linalg.cond(system_matrix),
+                )
 
         # Solve the system
         try:
@@ -608,4 +615,3 @@ class CubicSmoothingSpline:
         ax3.grid(True)
 
         plt.tight_layout()
-        plt.show()

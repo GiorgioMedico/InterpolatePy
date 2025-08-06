@@ -152,11 +152,13 @@ class ApproximationBSpline(BSpline):
             # Calculate total chord length
             total_length = 0.0
             for k in range(1, n + 1):
-                total_length += np.linalg.norm(points[k] - points[k - 1])
+                total_length += float(np.linalg.norm(points[k] - points[k - 1]))
 
             # Calculate parameters
             for k in range(1, n):
-                u_bar[k] = u_bar[k - 1] + np.linalg.norm(points[k] - points[k - 1]) / total_length
+                u_bar[k] = (
+                    u_bar[k - 1] + float(np.linalg.norm(points[k] - points[k - 1])) / total_length
+                )
 
         elif method == "centripetal":
             # Centripetal distribution
@@ -165,7 +167,7 @@ class ApproximationBSpline(BSpline):
             # Calculate total "centripetal" length
             total_length = 0.0
             for k in range(1, n + 1):
-                total_length += np.linalg.norm(points[k] - points[k - 1]) ** mu
+                total_length += float(np.linalg.norm(points[k] - points[k - 1])) ** mu
 
             # Calculate parameters
             for k in range(1, n):
@@ -259,7 +261,7 @@ class ApproximationBSpline(BSpline):
 
         return knots
 
-    def _approximate_control_points(  # noqa: PLR0917, PLR0913
+    def _approximate_control_points(  # noqa: PLR0913
         self,
         points: np.ndarray,
         degree: int,
@@ -540,5 +542,7 @@ class ApproximationBSpline(BSpline):
         # If we've reached max_control_points but error is still above threshold,
         # return the best approximation we have
         return ApproximationBSpline(
-            self.original_points, min(num_control_points, max_control_points), degree=self.degree
+            self.original_points,
+            min(num_control_points, max_control_points),
+            degree=self.degree,
         )

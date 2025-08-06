@@ -99,10 +99,7 @@ class CubicBSplineInterpolation(BSpline):
         then initializes the parent BSpline class with the computed values.
         """
         # Convert points to numpy array and ensure correct format
-        if not isinstance(points, np.ndarray):
-            points = np.array(points, dtype=np.float64)
-        else:
-            points = points.astype(np.float64)
+        points = np.array(points, dtype=np.float64) if not isinstance(points, np.ndarray) else points.astype(np.float64)
 
         # Get the number of points and the dimension
         n_points = len(points)
@@ -136,12 +133,10 @@ class CubicBSplineInterpolation(BSpline):
                 self.v0 = np.zeros(dimension, dtype=np.float64)
         else:
             # Convert to numpy array if it's not already
-            if not isinstance(v0, np.ndarray):
-                v0 = np.array(v0, dtype=np.float64)
-            else:
-                v0 = v0.astype(np.float64)
+            v0 = np.array(v0, dtype=np.float64) if not isinstance(v0, np.ndarray) else v0.astype(np.float64)
 
             # Ensure correct shape
+            assert isinstance(v0, np.ndarray)  # Help mypy understand v0 is an ndarray
             if v0.ndim == 0:  # scalar
                 self.v0 = np.zeros(dimension, dtype=np.float64)
             elif v0.ndim == 1 and len(v0) == dimension:
@@ -162,12 +157,10 @@ class CubicBSplineInterpolation(BSpline):
                 self.vn = np.zeros(dimension, dtype=np.float64)
         else:
             # Convert to numpy array if it's not already
-            if not isinstance(vn, np.ndarray):
-                vn = np.array(vn, dtype=np.float64)
-            else:
-                vn = vn.astype(np.float64)
+            vn = np.array(vn, dtype=np.float64) if not isinstance(vn, np.ndarray) else vn.astype(np.float64)
 
             # Ensure correct shape
+            assert isinstance(vn, np.ndarray)  # Help mypy understand vn is an ndarray
             if vn.ndim == 0:  # scalar
                 self.vn = np.zeros(dimension, dtype=np.float64)
             elif vn.ndim == 1 and len(vn) == dimension:
@@ -237,16 +230,18 @@ class CubicBSplineInterpolation(BSpline):
             # Calculate total chord length
             total_length = 0.0
             for k in range(1, n + 1):
-                total_length += np.linalg.norm(
-                    self.interpolation_points[k] - self.interpolation_points[k - 1]
+                total_length += float(
+                    np.linalg.norm(self.interpolation_points[k] - self.interpolation_points[k - 1])
                 )
 
             # Calculate parameters
             for k in range(1, n):
                 u_bars[k] = (
                     u_bars[k - 1]
-                    + np.linalg.norm(
-                        self.interpolation_points[k] - self.interpolation_points[k - 1]
+                    + float(
+                        np.linalg.norm(
+                            self.interpolation_points[k] - self.interpolation_points[k - 1]
+                        )
                     )
                     / total_length
                 )
@@ -258,7 +253,7 @@ class CubicBSplineInterpolation(BSpline):
             # Calculate total "centripetal" length
             total_length = 0.0
             for k in range(1, n + 1):
-                total_length += (
+                total_length += float(
                     np.linalg.norm(self.interpolation_points[k] - self.interpolation_points[k - 1])
                     ** mu
                 )

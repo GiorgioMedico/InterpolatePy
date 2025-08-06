@@ -175,7 +175,14 @@ class CubicSplineWithAcceleration2(CubicSpline):
                     4 * t_interval**3,
                     5 * t_interval**4,
                 ],  # p'(T) = v1
-                [0, 0, 2, 6 * t_interval, 12 * t_interval**2, 20 * t_interval**3],  # p''(T) = a1
+                [
+                    0,
+                    0,
+                    2,
+                    6 * t_interval,
+                    12 * t_interval**2,
+                    20 * t_interval**3,
+                ],  # p''(T) = a1
             ]
         )
 
@@ -260,7 +267,14 @@ class CubicSplineWithAcceleration2(CubicSpline):
                     4 * t_interval**3,
                     5 * t_interval**4,
                 ],  # p'(T) = vn
-                [0, 0, 2, 6 * t_interval, 12 * t_interval**2, 20 * t_interval**3],  # p''(T) = an
+                [
+                    0,
+                    0,
+                    2,
+                    6 * t_interval,
+                    12 * t_interval**2,
+                    20 * t_interval**3,
+                ],  # p''(T) = an
             ]
         )
 

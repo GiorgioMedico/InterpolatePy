@@ -124,7 +124,12 @@ def example_3_negative_displacement() -> None:
     print("---------------------------------------------")
 
     params = TrajectoryParams(
-        q0=0.0, q1=-10.0, v0=1.5, v1=2.0, amax=5.0, vmax=4.0  # Negative displacement
+        q0=0.0,
+        q1=-10.0,
+        v0=1.5,
+        v1=2.0,
+        amax=5.0,
+        vmax=4.0,  # Negative displacement
     )
 
     traj_func, duration = TrapezoidalTrajectory.generate_trajectory(params)
@@ -142,7 +147,12 @@ def example_4_duration_constrained() -> None:
     print("----------------------------------------")
 
     params = TrajectoryParams(
-        q0=0.0, q1=10.0, v0=0.0, v1=0.0, amax=5.0, duration=4.0  # Fixed duration of 4 seconds
+        q0=0.0,
+        q1=10.0,
+        v0=0.0,
+        v1=0.0,
+        amax=5.0,
+        duration=4.0,  # Fixed duration of 4 seconds
     )
 
     traj_func, duration = TrapezoidalTrajectory.generate_trajectory(params)
@@ -186,7 +196,12 @@ def example_6_asymmetric_profile() -> None:
     print("------------------------------------------------")
 
     params = TrajectoryParams(
-        q0=0.0, q1=15.0, v0=3.0, v1=0.0, amax=4.0, vmax=6.0  # Start already moving  # End at rest
+        q0=0.0,
+        q1=15.0,
+        v0=3.0,
+        v1=0.0,
+        amax=4.0,
+        vmax=6.0,  # Start already moving  # End at rest
     )
 
     traj_func, duration = TrapezoidalTrajectory.generate_trajectory(params)
@@ -207,7 +222,12 @@ def example_7_multi_point_custom_velocities() -> None:
     inter_velocities = [3.0, 0.0, -2.0]  # Velocities at intermediate waypoints
 
     params = InterpolationParams(
-        points=points, v0=0.0, vn=0.0, inter_velocities=inter_velocities, amax=4.0, vmax=5.0
+        points=points,
+        v0=0.0,
+        vn=0.0,
+        inter_velocities=inter_velocities,
+        amax=4.0,
+        vmax=5.0,
     )
 
     traj_func, duration = TrapezoidalTrajectory.interpolate_waypoints(params)

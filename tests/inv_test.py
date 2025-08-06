@@ -14,30 +14,34 @@ The tests cover:
 
 import time
 from typing import Any
+from typing import ClassVar
 
 import numpy as np
+import pytest
 from numpy.typing import NDArray
 
-import pytest
 from interpolatepy.tridiagonal_inv import solve_tridiagonal
 
 
 # Type alias for pytest benchmark fixture
 if not hasattr(pytest, "FixtureFunction"):
-    setattr(pytest, "FixtureFunction", Any)
+    pytest.FixtureFunction = Any
 
 
 class TestTridiagonalSolver:
     """Test suite for the tridiagonal matrix solver."""
 
     # Test case sizes for parametrization
-    SIZES = [10, 100, 1000]
+    SIZES: ClassVar[list[int]] = [10, 100, 1000]
 
     # Tolerance values for different test types
     REGULAR_RTOL = 1e-10
     REGULAR_ATOL = 1e-10
     STABILITY_RTOL = 1e-6
     STABILITY_ATOL = 1e-6
+
+    # Threshold for large matrix scaling tests
+    LARGE_MATRIX_THRESHOLD = 500
 
     @staticmethod
     def generate_tridiagonal_system(
@@ -171,7 +175,10 @@ class TestTridiagonalSolver:
             custom_solution, true_sol, rtol=self.REGULAR_RTOL, atol=self.REGULAR_ATOL
         )
         assert np.allclose(
-            custom_solution, numpy_solution, rtol=self.REGULAR_RTOL, atol=self.REGULAR_ATOL
+            custom_solution,
+            numpy_solution,
+            rtol=self.REGULAR_RTOL,
+            atol=self.REGULAR_ATOL,
         )
 
     @pytest.mark.parametrize("size", [4, 8, 16])
@@ -207,7 +214,10 @@ class TestTridiagonalSolver:
 
             # Check against true solution with more relaxed tolerances
             assert np.allclose(
-                custom_solution, true_sol, rtol=self.STABILITY_RTOL, atol=self.STABILITY_ATOL
+                custom_solution,
+                true_sol,
+                rtol=self.STABILITY_RTOL,
+                atol=self.STABILITY_ATOL,
             )
 
     def test_zero_pivot_raises_error(self) -> None:
@@ -344,7 +354,8 @@ class TestTridiagonalSolver:
             # Print comparison
             speedup = numpy_time / custom_time
             print(
-                f"Size {size}x{size}: Custom={custom_time:.6f}s, NumPy={numpy_time:.6f}s, Speedup={speedup:.2f}x"
+                f"Size {size}x{size}: Custom={custom_time:.6f}s, NumPy={numpy_time:.6f}s, "
+                f"Speedup={speedup:.2f}x"
             )
 
         # Check larger size scaling patterns
@@ -357,12 +368,13 @@ class TestTridiagonalSolver:
 
             # Log the scaling behavior
             print(
-                f"Size increase {sizes[i-1]} → {sizes[i]} ({size_ratio:.1f}x): Time increase {time_ratio:.2f}x"
+                f"Size increase {sizes[i - 1]} → {sizes[i]} ({size_ratio:.1f}x): "
+                f"Time increase {time_ratio:.2f}x"
             )
 
             # For very large matrices, we should see closer to linear scaling
             # Allow more variation for smaller matrices
-            if sizes[i] >= 500:
+            if sizes[i] >= self.LARGE_MATRIX_THRESHOLD:
                 # For larger matrices, scaling should be closer to linear
                 assert time_ratio < size_ratio * 3.5, (
                     f"Performance scaling for large matrices worse than expected: "

@@ -46,7 +46,11 @@ def textbook_example() -> list[CubicSmoothingSpline]:
 
         # Velocity
         ax2.plot(
-            t_eval, spline.evaluate_velocity(t_eval), line_styles[i], color=colors[i], linewidth=2
+            t_eval,
+            spline.evaluate_velocity(t_eval),
+            line_styles[i],
+            color=colors[i],
+            linewidth=2,
         )
 
         # Acceleration

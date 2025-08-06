@@ -24,6 +24,7 @@ def simple_example() -> None:
 
     # Plot the trajectory
     spline.plot(1000)
+    plt.show()
     print("\n")
 
 
@@ -60,6 +61,7 @@ def robot_joint_example() -> CubicSplineWithAcceleration1:
 
     # Plot the trajectory
     spline.plot()
+    plt.show()
 
     return spline
 
@@ -103,6 +105,7 @@ def camera_pan_example() -> CubicSplineWithAcceleration1:
 
     # Plot the trajectory
     spline.plot()
+    plt.show()
 
     return spline
 
@@ -173,13 +176,28 @@ def drone_height_example() -> tuple[CubicSplineWithAcceleration1, CubicSplineWit
 
     # Velocity plot
     ax2.plot(t_eval_original, spline.evaluate_velocity(t_eval_original), "b-", linewidth=2)
-    ax2.plot(t_eval_scaled, spline_scaled.evaluate_velocity(t_eval_scaled), "r--", linewidth=2)
+    ax2.plot(
+        t_eval_scaled,
+        spline_scaled.evaluate_velocity(t_eval_scaled),
+        "r--",
+        linewidth=2,
+    )
     ax2.set_ylabel("Velocity (m/s)")
     ax2.grid(True)
 
     # Acceleration plot
-    ax3.plot(t_eval_original, spline.evaluate_acceleration(t_eval_original), "b-", linewidth=2)
-    ax3.plot(t_eval_scaled, spline_scaled.evaluate_acceleration(t_eval_scaled), "r--", linewidth=2)
+    ax3.plot(
+        t_eval_original,
+        spline.evaluate_acceleration(t_eval_original),
+        "b-",
+        linewidth=2,
+    )
+    ax3.plot(
+        t_eval_scaled,
+        spline_scaled.evaluate_acceleration(t_eval_scaled),
+        "r--",
+        linewidth=2,
+    )
     ax3.set_ylabel("Acceleration (m/s²)")
     ax3.set_xlabel("Time (s)")
     ax3.grid(True)
@@ -201,9 +219,11 @@ def drone_height_example() -> tuple[CubicSplineWithAcceleration1, CubicSplineWit
 
 
 # Example 4: Multi-dimensional Trajectory (3D Path)
-def multi_dimensional_example() -> (
-    tuple[CubicSplineWithAcceleration1, CubicSplineWithAcceleration1, CubicSplineWithAcceleration1]
-):
+def multi_dimensional_example() -> tuple[
+    CubicSplineWithAcceleration1,
+    CubicSplineWithAcceleration1,
+    CubicSplineWithAcceleration1,
+]:
     """
     Example for creating a 3D trajectory using three independent splines
     for x, y, and z coordinates.
@@ -342,9 +362,27 @@ def compare_boundary_conditions() -> tuple[
 
     # Position plot
     ax1.plot(t_eval, spline1.evaluate(t_eval), "b-", linewidth=2, label="v₀=vₙ=0, a₀=aₙ=0")
-    ax1.plot(t_eval, spline2.evaluate(t_eval), "g-", linewidth=2, label="v₀=2, vₙ=-2, a₀=aₙ=0")
-    ax1.plot(t_eval, spline3.evaluate(t_eval), "r-", linewidth=2, label="v₀=vₙ=0, a₀=1, aₙ=-1")
-    ax1.plot(t_eval, spline4.evaluate(t_eval), "m-", linewidth=2, label="v₀=2, vₙ=-2, a₀=1, aₙ=-1")
+    ax1.plot(
+        t_eval,
+        spline2.evaluate(t_eval),
+        "g-",
+        linewidth=2,
+        label="v₀=2, vₙ=-2, a₀=aₙ=0",
+    )
+    ax1.plot(
+        t_eval,
+        spline3.evaluate(t_eval),
+        "r-",
+        linewidth=2,
+        label="v₀=vₙ=0, a₀=1, aₙ=-1",
+    )
+    ax1.plot(
+        t_eval,
+        spline4.evaluate(t_eval),
+        "m-",
+        linewidth=2,
+        label="v₀=2, vₙ=-2, a₀=1, aₙ=-1",
+    )
     ax1.plot(t_points, q_points, "ko", markersize=8, label="Waypoints")
     ax1.set_ylabel("Position")
     ax1.grid(True)

@@ -7,7 +7,6 @@ from collections.abc import Callable
 import numpy as np
 from matplotlib.axes import Axes
 
-
 EPS = 1e-10
 
 
@@ -54,11 +53,16 @@ def compute_trajectory_frames(
 
         # Compute tangent vector (normalized first derivative)
         dp_du_norm = np.linalg.norm(dp_du)
-        et = dp_du / dp_du_norm
+        if dp_du_norm < EPS:
+            # Handle degenerate case where velocity is zero
+            et = np.array([1.0, 0.0, 0.0])  # Default tangent
+            det_du = np.zeros(3)  # Zero curvature vector
+        else:
+            et = dp_du / dp_du_norm
 
-        # Compute the derivative of tangent vector with respect to u
-        # When parameter is not arc length, this formula applies (from footnote 11)
-        det_du = d2p_du2 / dp_du_norm - (dp_du * np.dot(dp_du, d2p_du2)) / (dp_du_norm**3)
+            # Compute the derivative of tangent vector with respect to u
+            # When parameter is not arc length, this formula applies (from footnote 11)
+            det_du = d2p_du2 / dp_du_norm - (dp_du * np.dot(dp_du, d2p_du2)) / (dp_du_norm**3)
 
         # Compute normal vector (normalized derivative of tangent)
         det_du_norm = np.linalg.norm(det_du)
@@ -92,7 +96,11 @@ def compute_trajectory_frames(
             # Legacy mode: simple rotation about binormal axis
             alpha = tool_orientation
             r_tool = np.array(
-                [[np.cos(alpha), -np.sin(alpha), 0], [np.sin(alpha), np.cos(alpha), 0], [0, 0, 1]]
+                [
+                    [np.cos(alpha), -np.sin(alpha), 0],
+                    [np.sin(alpha), np.cos(alpha), 0],
+                    [0, 0, 1],
+                ]
             )
         else:
             # RPY angles (roll, pitch, yaw) in XYZ order
@@ -100,17 +108,29 @@ def compute_trajectory_frames(
 
             # X rotation (roll)
             r_x = np.array(
-                [[1, 0, 0], [0, np.cos(roll), -np.sin(roll)], [0, np.sin(roll), np.cos(roll)]]
+                [
+                    [1, 0, 0],
+                    [0, np.cos(roll), -np.sin(roll)],
+                    [0, np.sin(roll), np.cos(roll)],
+                ]
             )
 
             # Y rotation (pitch)
             r_y = np.array(
-                [[np.cos(pitch), 0, np.sin(pitch)], [0, 1, 0], [-np.sin(pitch), 0, np.cos(pitch)]]
+                [
+                    [np.cos(pitch), 0, np.sin(pitch)],
+                    [0, 1, 0],
+                    [-np.sin(pitch), 0, np.cos(pitch)],
+                ]
             )
 
             # Z rotation (yaw)
             r_z = np.array(
-                [[np.cos(yaw), -np.sin(yaw), 0], [np.sin(yaw), np.cos(yaw), 0], [0, 0, 1]]
+                [
+                    [np.cos(yaw), -np.sin(yaw), 0],
+                    [np.sin(yaw), np.cos(yaw), 0],
+                    [0, 0, 1],
+                ]
             )
 
             # Combined rotation matrix in XYZ order
@@ -195,7 +215,7 @@ def circular_trajectory_with_derivatives(
     return p, dp_du, d2p_du2
 
 
-def plot_frames(  # noqa: PLR0913, PLR0917
+def plot_frames(  # noqa: PLR0913
     ax: Axes,
     points: np.ndarray,
     frames: np.ndarray,
