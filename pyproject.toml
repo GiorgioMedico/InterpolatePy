@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68.2.2", "setuptools-scm>=7.1.0", "wheel>=0.41.2"]
+requires = ["setuptools>=80.9.0", "setuptools-scm>=8.0.0", "wheel>=0.45.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -32,6 +32,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Operating System :: POSIX :: Linux",
     "Operating System :: POSIX",
     "Operating System :: Unix",
@@ -43,7 +44,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-dependencies = ["numpy>=2.0.0", "matplotlib>=3.10.1", "scipy>=1.15.2"]
+dependencies = ["numpy>=2.3.0", "matplotlib>=3.10.5", "scipy>=1.16.0"]
 dynamic = ["version"]
 
 [project.urls]
@@ -52,17 +53,17 @@ dynamic = ["version"]
 
 [project.optional-dependencies]
 test = [
-    "pytest>=7.3.1",
+    "pytest>=8.4.0",
     "pytest-cov>=4.1.0",
     "codecov>=2.1.13",
     "pytest-benchmark>=4.0.0",
-    "pre-commit>=4.1.0",
+    "pre-commit>=4.2.0",
 ]
 dev = [
-    "ruff>=0.1.5",
-    "mypy>=1.6.1",
-    "pre-commit>=4.1.0",
-    "pyright>=1.1.335",
+    "ruff>=0.12.8",
+    "mypy>=1.17.0",
+    "pre-commit>=4.2.0",
+    "pyright>=1.1.400",
     "build>=1.0.3",
     "twine>=4.0.2",
 ]
@@ -76,11 +77,11 @@ packages = ["interpolatepy"]
 version = { attr = "interpolatepy.version.__version__" }
 
 [tool.pytest.ini_options]
-minversion = "7.3"
+minversion = "8.4"
 testpaths = "tests"
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py311"
 line-length = 120
 extend-exclude = ["docs", "test", "tests"]
 
@@ -249,7 +250,7 @@ docstring-code-format = false
 docstring-code-line-length = "dynamic"
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 ignore_missing_imports = true
 follow_imports = "silent"
 no_implicit_optional = true
@@ -282,7 +283,7 @@ show_error_codes = true
 exclude = ["docs"]
 
 [tool.pyright]
-pythonVersion = "3.10"
+pythonVersion = "3.11"
 typeCheckingMode = "basic"
 reportDuplicateImport = true
 reportInvalidStubStatement = true
