@@ -61,7 +61,22 @@ bounds = TrajectoryBounds(v_bound=5.0, a_bound=10.0, j_bound=30.0)
 trajectory = DoubleSTrajectory(state, bounds)
 
 print(f"Duration: {trajectory.get_duration():.2f}s")
-trajectory.plot()
+
+# Manual plotting (DoubleSTrajectory doesn't have built-in plot method)
+t_eval = np.linspace(0, trajectory.get_duration(), 100)
+results = [trajectory.evaluate(t) for t in t_eval]
+positions = [r[0] for r in results]
+velocities = [r[1] for r in results]
+
+plt.figure(figsize=(10, 6))
+plt.subplot(2, 1, 1)
+plt.plot(t_eval, positions)
+plt.ylabel('Position')
+plt.title('S-Curve Trajectory')
+plt.subplot(2, 1, 2)
+plt.plot(t_eval, velocities)
+plt.ylabel('Velocity')
+plt.xlabel('Time')
 
 plt.show()
 ```
@@ -128,13 +143,14 @@ orientations = [
 times = [0.0, 2.0, 5.0]
 
 # Smooth quaternion trajectory with C² continuity
-quat_spline = QuaternionSpline(times, orientations, method="squad")
+quat_spline = QuaternionSpline(times, orientations, interpolation_method="squad")
 
 # Evaluate at any time
-orientation = quat_spline.evaluate(3.5)
-angular_velocity = quat_spline.evaluate_angular_velocity(3.5)
+orientation, segment = quat_spline.interpolate_at_time(3.5)
+# For angular velocity, use interpolate_with_velocity
+orientation_with_vel, angular_velocity, segment = quat_spline.interpolate_with_velocity(3.5)
 
-quat_spline.plot()
+# QuaternionSpline doesn't have built-in plotting - manual visualization needed
 plt.show()
 ```
 </details>
@@ -145,14 +161,15 @@ plt.show()
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
-from interpolatepy import SmoothingCubicBSpline
+from interpolatepy import CubicSmoothingSpline
 
 # Fit smooth curve to noisy data
 t = np.linspace(0, 10, 50)
 q = np.sin(t) + 0.1 * np.random.randn(50)
 
-bspline = SmoothingCubicBSpline(t, q, smoothing=0.01)
-bspline.plot()
+# Use CubicSmoothingSpline with correct parameter name 'mu'
+spline = CubicSmoothingSpline(t, q, mu=0.01)
+spline.plot()
 plt.show()
 ```
 </details>
@@ -174,10 +191,22 @@ print(f"Duration: {trajectory.get_duration():.2f}s")
 
 # Evaluate trajectory
 t_eval = np.linspace(0, trajectory.get_duration(), 1000)
-positions = [trajectory.evaluate(t) for t in t_eval]
-velocities = [trajectory.evaluate_velocity(t) for t in t_eval]
+results = [trajectory.evaluate(t) for t in t_eval]
+positions = [r[0] for r in results]
+velocities = [r[1] for r in results]
 
-trajectory.plot()
+# Manual plotting
+plt.figure(figsize=(12, 8))
+plt.subplot(2, 1, 1)
+plt.plot(t_eval, positions)
+plt.ylabel('Position')
+plt.title('Industrial S-Curve Motion Profile')
+plt.grid(True)
+plt.subplot(2, 1, 2)
+plt.plot(t_eval, velocities)
+plt.ylabel('Velocity')
+plt.xlabel('Time')
+plt.grid(True)
 plt.show()
 ```
 </details>

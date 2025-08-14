@@ -135,7 +135,7 @@ bspline = BSplineInterpolator(
 # Evaluate curve
 t = 2.5
 position = bspline.evaluate(t)
-velocity = bspline.evaluate_velocity(t)
+velocity = bspline.evaluate_derivative(t, order=1)
 ```
 
 #### ApproximationBSpline {#approximation-b-spline}
@@ -193,10 +193,11 @@ trajectory = DoubleSTrajectory(state, bounds)
 
 # Evaluate trajectory
 t = trajectory.get_duration() / 2
-position = trajectory.evaluate(t)
-velocity = trajectory.evaluate_velocity(t)
-acceleration = trajectory.evaluate_acceleration(t)
-jerk = trajectory.evaluate_jerk(t)
+result = trajectory.evaluate(t)
+position = result[0]
+velocity = result[1]
+acceleration = result[2]
+jerk = result[3]
 
 print(f"Duration: {trajectory.get_duration():.2f}s")
 ```
@@ -215,7 +216,8 @@ print(f"Duration: {trajectory.get_duration():.2f}s")
 
 **Example:**
 ```python
-from interpolatepy import TrapezoidalTrajectory, TrajectoryParams
+from interpolatepy import TrapezoidalTrajectory
+from interpolatepy.trapezoidal import TrajectoryParams
 
 # Define trajectory parameters
 params = TrajectoryParams(
@@ -273,7 +275,7 @@ final = BoundaryCondition(
     jerk=0.0
 )
 
-interval = TimeInterval(t0=0.0, t1=2.0)
+interval = TimeInterval(start=0.0, end=2.0)
 
 # Generate 7th-order polynomial
 traj_func = PolynomialTrajectory.order_7_trajectory(initial, final, interval)
@@ -319,7 +321,7 @@ import numpy as np
 
 # Create quaternions
 q1 = Quaternion.identity()
-q2 = Quaternion.from_angle_axis(np.pi/2, [0, 0, 1])  # 90° about Z
+q2 = Quaternion.from_angle_axis(np.pi/2, np.array([0, 0, 1]))  # 90° about Z
 
 # SLERP interpolation
 t = 0.5
@@ -350,9 +352,9 @@ import numpy as np
 times = [0, 1, 2, 3]
 orientations = [
     Quaternion.identity(),
-    Quaternion.from_angle_axis(np.pi/2, [1, 0, 0]),
-    Quaternion.from_angle_axis(np.pi, [0, 1, 0]),
-    Quaternion.from_angle_axis(np.pi/4, [0, 0, 1])
+    Quaternion.from_angle_axis(np.pi/2, np.array([1, 0, 0])),
+    Quaternion.from_angle_axis(np.pi, np.array([0, 1, 0])),
+    Quaternion.from_angle_axis(np.pi/4, np.array([0, 0, 1]))
 ]
 
 # Create C² continuous quaternion spline
@@ -401,7 +403,7 @@ velocity = path.velocity(s)      # Unit tangent vector
 acceleration = path.acceleration(s)  # Zero for straight line
 
 # Evaluate multiple points
-s_values = np.linspace(0, path.total_length, 50)
+s_values = np.linspace(0, path.length, 50)
 trajectory = path.evaluate_at(s_values)
 ```
 

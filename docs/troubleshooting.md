@@ -7,7 +7,7 @@ This guide helps you solve common issues when using InterpolatePy. Each problem 
 ### Import Errors
 
 #### Problem: Module Not Found
-```python
+```
 ModuleNotFoundError: No module named 'interpolatepy'
 ```
 
@@ -23,7 +23,7 @@ pip install -e .
 ```
 
 #### Problem: Specific Class Import Failed
-```python
+```
 ImportError: cannot import name 'SomeClass' from 'interpolatepy'
 ```
 
@@ -41,7 +41,7 @@ from interpolatepy.cubic_spline import CubicSpline  # Works but not recommended
 ### Data Input Errors
 
 #### Problem: Non-Monotonic Time Points
-```python
+```
 ValueError: Time points must be strictly increasing
 ```
 
@@ -65,7 +65,7 @@ spline = CubicSpline(t_sorted, q_sorted)
 ```
 
 #### Problem: Mismatched Array Lengths
-```python
+```
 ValueError: t_points and q_points must have the same length
 ```
 
@@ -73,6 +73,13 @@ ValueError: t_points and q_points must have the same length
 
 **Solution**: Ensure arrays are the same length:
 ```python
+import numpy as np
+from interpolatepy import CubicSpline
+
+# Sample data with length mismatch
+t_points = [0.0, 1.0, 2.0, 3.0]
+q_points = [0.0, 1.0, 4.0]  # One less point
+
 # Check lengths before creating spline
 if len(t_points) != len(q_points):
     print(f"Length mismatch: t_points={len(t_points)}, q_points={len(q_points)}")
@@ -85,7 +92,7 @@ spline = CubicSpline(t_points, q_points)
 ```
 
 #### Problem: Duplicate Time Points
-```python
+```
 ValueError: Duplicate time points found
 ```
 
@@ -93,6 +100,9 @@ ValueError: Duplicate time points found
 
 **Solution**: Remove duplicates or add small offsets:
 ```python
+import numpy as np
+from interpolatepy import CubicSpline
+
 def remove_duplicates(t_points, q_points, min_spacing=1e-6):
     """Remove duplicate time points."""
     t_clean, q_clean = [], []
@@ -116,7 +126,7 @@ spline = CubicSpline(t_clean, q_clean)
 ### Motion Profile Errors
 
 #### Problem: Invalid Trajectory Bounds
-```python
+```
 ValueError: Bounds must be positive values
 ```
 
@@ -134,7 +144,7 @@ bounds = TrajectoryBounds(v_bound=1.0, a_bound=2.0, j_bound=1.0)
 ```
 
 #### Problem: Impossible Motion Profile
-```python
+```
 ValueError: Cannot achieve target state with given bounds
 ```
 
@@ -184,7 +194,7 @@ print(f"Found spline with μ={mu:.6f}")
 ```
 
 #### Problem: Smoothing Parameter Out of Range
-```python
+```
 ValueError: Smoothing parameter μ must be in (0, 1]
 ```
 
@@ -209,7 +219,7 @@ spline = CubicSmoothingSpline(t_points, q_points, mu=mu)
 ### Quaternion Errors
 
 #### Problem: Invalid Quaternion Values
-```python
+```
 ValueError: Quaternion magnitude is zero or invalid
 ```
 
@@ -244,7 +254,7 @@ q = safe_quaternion(0.0, 0.0, 0.0, 0.0)  # Will return identity
 ### Evaluation Errors
 
 #### Problem: Time Outside Trajectory Range
-```python
+```
 ValueError: Evaluation time outside trajectory domain
 ```
 

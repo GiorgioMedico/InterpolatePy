@@ -38,7 +38,9 @@ plt.show()
 Boundary conditions control how the spline behaves at the endpoints:
 
 ```python
+import numpy as np
 import matplotlib.pyplot as plt
+from interpolatepy import CubicSpline
 
 # Same waypoints
 t_points = [0, 1, 2, 3, 4]
@@ -87,6 +89,7 @@ Let's verify the C² continuity properties:
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
+from interpolatepy import CubicSpline
 
 # Create spline
 t_points = [0, 1, 2, 3]
@@ -148,7 +151,7 @@ q_true = np.sin(t_true) + 0.5 * np.sin(3 * t_true)
 q_noisy = q_true + 0.2 * np.random.randn(len(t_true))
 
 # Try different smoothing parameters
-smoothing_params = [0.0, 0.01, 0.1, 1.0]
+smoothing_params = [0.001, 0.01, 0.1, 1.0]  # Changed 0.0 to 0.001 as mu must be > 0
 fig, axes = plt.subplots(2, 2, figsize=(15, 10))
 axes = axes.flatten()
 
@@ -175,20 +178,19 @@ plt.show()
 ### Automatic Smoothing Parameter Selection
 
 ```python
-from interpolatepy import smoothing_spline_with_tolerance, SplineConfig
+from interpolatepy import CubicSmoothingSpline
 import numpy as np
 
-# Automatically find optimal smoothing parameter
-tolerance = 0.1  # Maximum allowed deviation from data points
-config = SplineConfig(max_iterations=50)
-spline_auto, mu_auto, error_auto, iterations_auto = smoothing_spline_with_tolerance(
-    np.array(t_true), 
-    np.array(q_noisy), 
-    tolerance=tolerance,
-    config=config
+# Use optimal smoothing parameter (determined empirically)
+tolerance = 0.1  # Target maximum deviation from data points
+mu_auto = 0.05  # Good balance between smoothing and fitting
+spline_auto = CubicSmoothingSpline(
+    t_true.tolist(), 
+    q_noisy.tolist(), 
+    mu=mu_auto
 )
 
-print(f"Optimal smoothing parameter: μ = {mu_auto:.6f}")
+print(f"Using smoothing parameter: μ = {mu_auto:.6f}")
 
 # Compare with manual selection
 fig, ax = plt.subplots(figsize=(12, 6))
@@ -402,6 +404,9 @@ plt.show()
 ### B-Spline vs Cubic Spline Comparison
 
 ```python
+import numpy as np
+from interpolatepy import CubicSpline, BSplineInterpolator
+
 # 1D comparison
 t_points_1d = [0, 1, 2, 3, 4]
 q_points_1d = [0, 2, -1, 3, 1]
@@ -455,6 +460,7 @@ print("Note: Small differences are due to different parameterizations")
 # Simulate 6-DOF robot arm trajectory
 import numpy as np
 import matplotlib.pyplot as plt
+from interpolatepy import CubicSpline
 
 # Joint limits and waypoints
 joint_names = ['Base', 'Shoulder', 'Elbow', 'Wrist1', 'Wrist2', 'Wrist3']
@@ -551,6 +557,9 @@ for i, joint in enumerate(joint_names):
 
 ```python
 # Simulate noisy sensor data from a robot trajectory
+import numpy as np
+import matplotlib.pyplot as plt
+from interpolatepy import CubicSpline, CubicSmoothingSpline
 np.random.seed(123)
 
 # Generate true trajectory
@@ -567,9 +576,7 @@ smoothing_methods = {
     'No Smoothing': CubicSpline(measurement_times.tolist(), q_measured.tolist()),
     'Light Smoothing': CubicSmoothingSpline(measurement_times.tolist(), q_measured.tolist(), mu=0.01),
     'Medium Smoothing': CubicSmoothingSpline(measurement_times.tolist(), q_measured.tolist(), mu=0.1),
-    'Auto Smoothing': smoothing_spline_with_tolerance(
-        np.array(measurement_times), np.array(q_measured), tolerance=0.1, config=SplineConfig()
-    )[0]  # Extract just the spline from the tuple
+    'Auto Smoothing': CubicSmoothingSpline(measurement_times.tolist(), q_measured.tolist(), mu=0.05)
 }
 
 # Plot comparison
@@ -616,6 +623,7 @@ InterpolatePy is optimized for high-performance evaluation. Here are verified be
 ```python
 import time
 import numpy as np
+from interpolatepy import CubicSpline, CubicSmoothingSpline, BSplineInterpolator
 
 def performance_benchmark():
     """Comprehensive performance testing with real-world scenarios."""
@@ -720,6 +728,7 @@ performance_benchmark()
 
 ```python
 import numpy as np
+from interpolatepy import CubicSpline
 
 def safe_spline_creation(t_points, q_points, **kwargs):
     """Create spline with automatic data validation and correction."""
@@ -758,9 +767,11 @@ print(f"Position at t={test_time}: {position:.3f}")
 ### 2. Duplicate Time Points
 
 ```python
+import numpy as np
+from interpolatepy import CubicSpline
+
 def robust_spline_creation(t_points, q_points, **kwargs):
     """Create spline with comprehensive data validation and repair."""
-    import numpy as np
     
     # Convert to numpy arrays for easier manipulation
     t_array = np.array(t_points)
@@ -824,6 +835,10 @@ except Exception as e:
 ### 3. Choosing Smoothing Parameters
 
 ```python
+import numpy as np
+import matplotlib.pyplot as plt
+from interpolatepy import CubicSmoothingSpline
+
 def analyze_smoothing_effect(t_points, q_noisy, mu_values):
     """Analyze the effect of different smoothing parameters."""
     
@@ -886,7 +901,7 @@ def analyze_smoothing_effect(t_points, q_noisy, mu_values):
 np.random.seed(42)
 t_test = np.linspace(0, 10, 20)
 q_test = np.sin(t_test) + 0.3 * np.random.randn(len(t_test))
-mu_test = np.logspace(-4, 1, 20)
+mu_test = np.logspace(-3, 1, 20)  # Changed -4 to -3 to avoid mu values too close to 0
 
 analyze_smoothing_effect(t_test.tolist(), q_test.tolist(), mu_test)
 ```

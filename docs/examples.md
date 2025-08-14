@@ -29,14 +29,21 @@ def plan_robot_trajectory():
     # Timing: approach, pick, lift, move, place, retract, home
     time_points = [0, 2, 3, 5, 7, 8, 10]
     
-    # Create splines for each joint
+    # Create splines for each joint with error handling
     joint_splines = {}
     for joint, angles in waypoints.items():
-        joint_splines[joint] = CubicSpline(
-            time_points,
-            np.radians(angles),  # Convert to radians
-            v0=0.0, vn=0.0      # Zero velocity at start/end
-        )
+        # Validate input data
+        if len(angles) != len(time_points):
+            raise ValueError(f"Joint {joint}: {len(angles)} angles != {len(time_points)} time points")
+        
+        try:
+            joint_splines[joint] = CubicSpline(
+                time_points,
+                np.radians(angles).tolist(),  # Convert to radians and ensure list format
+                v0=0.0, vn=0.0      # Zero velocity at start/end
+            )
+        except Exception as e:
+            raise RuntimeError(f"Failed to create spline for joint {joint}: {e}")
     
     return joint_splines, time_points
 
@@ -255,9 +262,10 @@ velocities = []
 accelerations = []
 
 for t in t_eval:
-    s = trajectory.evaluate(t)              # Path distance
-    v = trajectory.evaluate_velocity(t)     # Path velocity
-    a = trajectory.evaluate_acceleration(t) # Path acceleration
+    result = trajectory.evaluate(t)         # Get all derivatives
+    s = result[0]                          # Path distance  
+    v = result[1]                          # Path velocity
+    a = result[2]                          # Path acceleration
     
     pos = interpolate_position(s, waypoints, distances)
     path_positions.append(pos)
@@ -627,7 +635,7 @@ print(f"Maximum acceleration: {np.max(accelerations):.2f} units/s²")
 Advanced signal processing with smoothing splines:
 
 ```python
-from interpolatepy import CubicSmoothingSpline, smoothing_spline_with_tolerance, SplineConfig
+from interpolatepy import CubicSmoothingSpline
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -661,14 +669,13 @@ def analyze_experimental_data():
 t_true, signal_true, t_measured, signal_measured = analyze_experimental_data()
 
 # Apply different smoothing strategies
+from interpolatepy import CubicSpline
 smoothing_methods = {
-    'No Smoothing': CubicSmoothingSpline(t_measured.tolist(), signal_measured.tolist(), mu=0.0),
+    'No Smoothing': CubicSpline(t_measured.tolist(), signal_measured.tolist()),  # Use CubicSpline for exact interpolation
     'Light Smoothing': CubicSmoothingSpline(t_measured.tolist(), signal_measured.tolist(), mu=0.001),
     'Medium Smoothing': CubicSmoothingSpline(t_measured.tolist(), signal_measured.tolist(), mu=0.01),
     'Heavy Smoothing': CubicSmoothingSpline(t_measured.tolist(), signal_measured.tolist(), mu=0.1),
-    'Auto Smoothing': smoothing_spline_with_tolerance(
-        np.array(t_measured), np.array(signal_measured), tolerance=0.2, config=SplineConfig()
-    )[0]  # Extract just the spline from the tuple
+    'Auto Smoothing': CubicSmoothingSpline(t_measured.tolist(), signal_measured.tolist(), mu=0.05)  # Medium auto-smoothing
 }
 
 # Evaluate all methods
@@ -767,7 +774,21 @@ plt.grid(True)
 
 # Frequency domain analysis
 ax5 = plt.subplot(3, 3, 7)
-from scipy import fft
+try:
+    from scipy import fft
+except ImportError:
+    # Fallback for older SciPy versions
+    import scipy.fftpack as fft_module
+    class FFTCompat:
+        @staticmethod
+        def fft(x):
+            return fft_module.fft(x)
+        
+        @staticmethod  
+        def fftfreq(n, d=1.0):
+            return fft_module.fftfreq(n, d)
+    
+    fft = FFTCompat()
 
 # FFT of original noisy signal
 freqs = fft.fftfreq(len(t_measured), t_measured[1] - t_measured[0])
@@ -1084,8 +1105,9 @@ class AssemblyLineController:
                         
                         for axis_name, traj in segment['axes'].items():
                             axis_idx = ['x', 'y', 'z'].index(axis_name)
-                            robot_pos[axis_idx] = traj.evaluate(segment_time)
-                            robot_vel[axis_idx] = traj.evaluate_velocity(segment_time)
+                            result = traj.evaluate(segment_time)
+                            robot_pos[axis_idx] = result[0]
+                            robot_vel[axis_idx] = result[1]
                         
                         robot_status = 'moving'
                         break
