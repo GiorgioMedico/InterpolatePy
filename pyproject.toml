@@ -12,7 +12,7 @@ description = "A comprehensive Python library for generating smooth trajectories
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 keywords = [
     "interpolation",
     "trajectory planning",
@@ -81,7 +81,7 @@ minversion = "8.4"
 testpaths = "tests"
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py312"
 line-length = 120
 extend-exclude = ["docs", "test", "tests"]
 
@@ -250,7 +250,7 @@ docstring-code-format = false
 docstring-code-line-length = "dynamic"
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 ignore_missing_imports = true
 follow_imports = "silent"
 no_implicit_optional = true
@@ -283,7 +283,7 @@ show_error_codes = true
 exclude = ["docs"]
 
 [tool.pyright]
-pythonVersion = "3.11"
+pythonVersion = "3.12"
 typeCheckingMode = "basic"
 reportDuplicateImport = true
 reportInvalidStubStatement = true
