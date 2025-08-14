@@ -108,10 +108,6 @@ class PolynomialTrajectory:
     acceleration, and jerk. The polynomials ensure smooth motion profiles with continuous
     derivatives up to the jerk level, making them ideal for robotics and control applications.
 
-    Parameters
-    ----------
-    None : This is a utility class with static methods only.
-
     Methods
     -------
     order_3_trajectory(initial, final, time)
