@@ -40,11 +40,11 @@ class LinearPath:
     >>> pi = np.array([0, 0, 0])
     >>> pf = np.array([1, 1, 1])
     >>> path = LinearPath(pi, pf)
-    >>> 
+    >>>
     >>> # Evaluate position at half the path length
     >>> midpoint = path.position(path.length / 2)
     >>> print(midpoint)  # Should be [0.5, 0.5, 0.5]
-    >>> 
+    >>>
     >>> # Generate complete trajectory
     >>> trajectory = path.all_traj(num_points=10)
     >>> positions = trajectory['position']
@@ -145,9 +145,7 @@ class LinearPath:
             Each array has shape (n, 3) where n is the number of s values.
         """
         # Convert scalar to array if needed
-        s_values_arr: np.ndarray = (
-            np.array([s_values]) if np.isscalar(s_values) else np.array(s_values)
-        )
+        s_values_arr: np.ndarray = np.array([s_values]) if np.isscalar(s_values) else np.array(s_values)
 
         # Clip values to valid range
         s_clipped = np.clip(s_values_arr, 0, self.length)
@@ -240,11 +238,11 @@ class CircularPath:
     >>> d = np.array([0, 0, 0])     # Origin on axis
     >>> pi = np.array([1, 0, 0])    # Point on circle
     >>> circle = CircularPath(r, d, pi)
-    >>> 
+    >>>
     >>> # Evaluate position at quarter circle
     >>> quarter_arc = np.pi * circle.radius / 2
     >>> pos = circle.position(quarter_arc)
-    >>> 
+    >>>
     >>> # Generate complete trajectory around the circle
     >>> trajectory = circle.all_traj(num_points=100)
     >>> positions = trajectory['position']
@@ -395,9 +393,7 @@ class CircularPath:
             Each array has shape (n, 3) where n is the number of s values.
         """
         # Convert scalar to array if needed
-        s_values_arr: np.ndarray = (
-            np.array([s_values]) if np.isscalar(s_values) else np.array(s_values)
-        )
+        s_values_arr: np.ndarray = np.array([s_values]) if np.isscalar(s_values) else np.array(s_values)
 
         # Initialize result arrays
         n = len(s_values_arr)

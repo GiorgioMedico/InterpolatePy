@@ -26,7 +26,6 @@ ORDER_7 = 7
 class BoundaryCondition:
     """
     Boundary conditions for polynomial trajectory generation.
-    
     Parameters
     ----------
     position : float
@@ -37,7 +36,6 @@ class BoundaryCondition:
         Acceleration constraint. Default is 0.0.
     jerk : float, optional
         Jerk constraint. Default is 0.0.
-        
     Notes
     -----
     Higher-order polynomial trajectories require more boundary conditions:
@@ -56,7 +54,7 @@ class BoundaryCondition:
 class TimeInterval:
     """
     Time interval for trajectory generation.
-    
+
     Parameters
     ----------
     start : float
@@ -73,7 +71,7 @@ class TimeInterval:
 class TrajectoryParams:
     """
     Parameters for multipoint polynomial trajectory generation.
-    
+
     Parameters
     ----------
     points : list[float]
@@ -132,13 +130,13 @@ class PolynomialTrajectory:
     Notes
     -----
     The polynomial trajectories are defined as:
-    
+
     3rd Order: q(t) = a₀ + a₁τ + a₂τ² + a₃τ³
     5th Order: q(t) = a₀ + a₁τ + a₂τ² + a₃τ³ + a₄τ⁴ + a₅τ⁵
     7th Order: q(t) = a₀ + a₁τ + ... + a₇τ⁷
-    
+
     Where τ = t - t_start is the normalized time within each segment.
-    
+
     The coefficients are computed to satisfy the specified boundary conditions:
     - 3rd order requires position and velocity at both endpoints (4 constraints)
     - 5th order requires position, velocity, and acceleration (6 constraints)
@@ -148,21 +146,21 @@ class PolynomialTrajectory:
     --------
     >>> import numpy as np
     >>> from interpolatepy import PolynomialTrajectory, BoundaryCondition, TimeInterval
-    >>> 
+    >>>
     >>> # Create a 5th order polynomial trajectory
     >>> initial = BoundaryCondition(position=0, velocity=0, acceleration=0)
     >>> final = BoundaryCondition(position=10, velocity=0, acceleration=0)
     >>> time_interval = TimeInterval(start=0, end=2.0)
-    >>> 
+    >>>
     >>> trajectory_func = PolynomialTrajectory.order_5_trajectory(
     ...     initial, final, time_interval
     ... )
-    >>> 
+    >>>
     >>> # Evaluate trajectory at various times
     >>> for t in np.linspace(0, 2, 5):
     ...     pos, vel, acc, jerk = trajectory_func(t)
     ...     print(f"t={t:.1f}: pos={pos:.2f}, vel={vel:.2f}, acc={acc:.2f}")
-    >>> 
+    >>>
     >>> # Multi-point trajectory example
     >>> from interpolatepy import TrajectoryParams
     >>> params = TrajectoryParams(
@@ -171,7 +169,7 @@ class PolynomialTrajectory:
     ...     order=5
     ... )
     >>> multi_traj = PolynomialTrajectory.multipoint_trajectory(params)
-    >>> 
+    >>>
     >>> # Evaluate at any time
     >>> pos, vel, acc, jerk = multi_traj(1.5)
     """
@@ -206,17 +204,17 @@ class PolynomialTrajectory:
         -----
         The 3rd order polynomial is defined as:
         q(τ) = a₀ + a₁τ + a₂τ² + a₃τ³
-        
+
         Where the coefficients are determined by the boundary conditions:
         - q(0) = q₀, q̇(0) = v₀
         - q(T) = q₁, q̇(T) = v₁
-        
+
         The coefficient formulas (equation 2.2) are:
         - a₀ = q₀
         - a₁ = v₀
         - a₂ = (3h - (2v₀ + v₁)T) / T²
         - a₃ = (-2h + (v₀ + v₁)T) / T³
-        
+
         Where h = q₁ - q₀ and T = t_end - t_start.
 
         Examples
@@ -226,7 +224,7 @@ class PolynomialTrajectory:
         >>> final = BoundaryCondition(position=5, velocity=0)
         >>> time_interval = TimeInterval(start=0, end=2.0)
         >>> traj = PolynomialTrajectory.order_3_trajectory(initial, final, time_interval)
-        >>> 
+        >>>
         >>> # Evaluate at midpoint
         >>> pos, vel, acc, jerk = traj(1.0)
         """
@@ -289,11 +287,11 @@ class PolynomialTrajectory:
         -----
         The 5th order polynomial provides smooth acceleration profiles and is defined as:
         q(τ) = a₀ + a₁τ + a₂τ² + a₃τ³ + a₄τ⁴ + a₅τ⁵
-        
+
         The six boundary conditions are:
         - q(0) = q₀, q̇(0) = v₀, q̈(0) = a₀
         - q(T) = q₁, q̇(T) = v₁, q̈(T) = a₁
-        
+
         The coefficients (equation 2.5) ensure continuous position, velocity, and
         acceleration, making this ideal for applications requiring smooth acceleration
         profiles such as robotic manipulators.
@@ -432,16 +430,7 @@ class PolynomialTrajectory:
             tau = t - time.start
 
             # Position
-            q = (
-                a0
-                + a1 * tau
-                + a2 * tau**2
-                + a3 * tau**3
-                + a4 * tau**4
-                + a5 * tau**5
-                + a6 * tau**6
-                + a7 * tau**7
-            )
+            q = a0 + a1 * tau + a2 * tau**2 + a3 * tau**3 + a4 * tau**4 + a5 * tau**5 + a6 * tau**6 + a7 * tau**7
 
             # Velocity
             qd = (
@@ -455,14 +444,7 @@ class PolynomialTrajectory:
             )
 
             # Acceleration
-            qdd = (
-                2 * a2
-                + 6 * a3 * tau
-                + 12 * a4 * tau**2
-                + 20 * a5 * tau**3
-                + 30 * a6 * tau**4
-                + 42 * a7 * tau**5
-            )
+            qdd = 2 * a2 + 6 * a3 * tau + 12 * a4 * tau**2 + 20 * a5 * tau**3 + 30 * a6 * tau**4 + 42 * a7 * tau**5
 
             # Jerk
             qddd = 6 * a3 + 24 * a4 * tau + 60 * a5 * tau**2 + 120 * a6 * tau**3 + 210 * a7 * tau**4
@@ -496,13 +478,13 @@ class PolynomialTrajectory:
         Notes
         -----
         The heuristic rule is defined as:
-        
+
         For intermediate points i = 1, 2, ..., n-1:
         - If sign(sᵢ₋₁) ≠ sign(sᵢ): vᵢ = 0
         - Otherwise: vᵢ = (sᵢ₋₁ + sᵢ) / 2
-        
+
         Where sᵢ = (qᵢ₊₁ - qᵢ) / (tᵢ₊₁ - tᵢ) is the slope of segment i.
-        
+
         The boundary velocities v₀ and vₙ are set to zero by default.
 
         Examples

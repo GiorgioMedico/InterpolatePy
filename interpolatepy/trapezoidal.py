@@ -16,7 +16,7 @@ EPSILON = 1e-10  # Small value to prevent division by zero
 class TrajectoryParams:
     """
     Parameters for trapezoidal trajectory generation.
-    
+
     Parameters
     ----------
     q0 : float
@@ -51,7 +51,7 @@ class TrajectoryParams:
 class CalculationParams:
     """
     Parameters for trajectory calculations.
-    
+
     Parameters
     ----------
     q0 : float
@@ -77,7 +77,7 @@ class CalculationParams:
 class InterpolationParams:
     """
     Parameters for multi-point interpolation.
-    
+
     Parameters
     ----------
     points : list[float]
@@ -130,16 +130,16 @@ class TrapezoidalTrajectory:
     Examples
     --------
     >>> from interpolatepy import TrapezoidalTrajectory, TrajectoryParams
-    >>> 
+    >>>
     >>> # Simple point-to-point trajectory with velocity constraint
     >>> params = TrajectoryParams(q0=0, q1=10, v0=0, v1=0, amax=2.0, vmax=5.0)
     >>> trajectory_func, duration = TrapezoidalTrajectory.generate_trajectory(params)
-    >>> 
+    >>>
     >>> # Evaluate trajectory at various times
     >>> for t in [0, duration/2, duration]:
     ...     pos, vel, acc = trajectory_func(t)
     ...     print(f"t={t:.2f}: pos={pos:.2f}, vel={vel:.2f}, acc={acc:.2f}")
-    >>> 
+    >>>
     >>> # Multi-point interpolation
     >>> from interpolatepy import InterpolationParams
     >>> waypoints = [0, 5, 3, 8]
@@ -148,9 +148,7 @@ class TrapezoidalTrajectory:
     """
 
     @staticmethod
-    def _calculate_duration_based_trajectory(
-        params: CalculationParams, duration: float
-    ) -> tuple[float, float, float]:
+    def _calculate_duration_based_trajectory(params: CalculationParams, duration: float) -> tuple[float, float, float]:
         """
         Calculate trajectory parameters for duration-based constraints.
 
@@ -183,18 +181,14 @@ class TrapezoidalTrajectory:
             raise ValueError("Trajectory not feasible. Try increasing amax or reducing velocities.")
 
         # Check minimum required acceleration (equation 3.15)
-        term_under_sqrt = (
-            4 * h**2 - 4 * h * (v0 + v1) * duration + 2 * (v0**2 + v1**2) * duration**2
-        )
+        term_under_sqrt = 4 * h**2 - 4 * h * (v0 + v1) * duration + 2 * (v0**2 + v1**2) * duration**2
 
         # Ensure term under sqrt is non-negative to avoid numerical issues
         if term_under_sqrt < 0:
             if term_under_sqrt > -EPSILON:  # Very close to zero, likely numerical error
                 term_under_sqrt = 0
             else:
-                raise ValueError(
-                    "Trajectory not feasible with given duration. Try increasing duration."
-                )
+                raise ValueError("Trajectory not feasible with given duration. Try increasing duration.")
 
         alim = (2 * h - duration * (v0 + v1) + np.sqrt(term_under_sqrt)) / max(duration**2, EPSILON)
 
@@ -204,9 +198,7 @@ class TrapezoidalTrajectory:
             print(f"Warning: Using minimum required acceleration: {alim:.4f}")
 
         # Calculate constant velocity (vv) from equation in section 3.2.7
-        sqrt_term = (
-            amax**2 * duration**2 - 4 * amax * h + 2 * amax * (v0 + v1) * duration - (v0 - v1) ** 2
-        )
+        sqrt_term = amax**2 * duration**2 - 4 * amax * h + 2 * amax * (v0 + v1) * duration - (v0 - v1) ** 2
 
         # Ensure sqrt term is non-negative
         if sqrt_term < 0:
@@ -214,8 +206,7 @@ class TrapezoidalTrajectory:
                 sqrt_term = 0
             else:
                 raise ValueError(
-                    "Numerical issue in trajectory calculation. "
-                    "The parameters may lead to an invalid trajectory."
+                    "Numerical issue in trajectory calculation. The parameters may lead to an invalid trajectory."
                 )
 
         vv = 0.5 * (v0 + v1 + amax * duration - np.sqrt(sqrt_term))
@@ -381,22 +372,16 @@ class TrapezoidalTrajectory:
         # Determine which case to use based on provided parameters
         if t_duration is not None and vmax is None:
             # Case 1: Preassigned duration and acceleration
-            vv, ta, td = TrapezoidalTrajectory._calculate_duration_based_trajectory(
-                calc_params, t_duration
-            )
+            vv, ta, td = TrapezoidalTrajectory._calculate_duration_based_trajectory(calc_params, t_duration)
             duration = t_duration
 
         elif vmax is not None and t_duration is None:
             # Case 2: Preassigned acceleration and velocity
-            vv, ta, td, duration = TrapezoidalTrajectory._calculate_velocity_based_trajectory(
-                calc_params, vmax
-            )
+            vv, ta, td, duration = TrapezoidalTrajectory._calculate_velocity_based_trajectory(calc_params, vmax)
 
         else:
             # This should not happen due to the parameter validation above
-            raise ValueError(
-                "Invalid parameter combination. Provide either (amax, duration) or (amax, vmax)."
-            )
+            raise ValueError("Invalid parameter combination. Provide either (amax, duration) or (amax, vmax).")
 
         t1 = t0 + duration
 
@@ -527,9 +512,7 @@ class TrapezoidalTrajectory:
                 segment_velocities.append(v_segment)
 
             # Choose a velocity that works well for all segments
-            v_max_segments = (
-                min(segment_velocities) * 0.8
-            )  # 80% of minimum optimal segment velocity
+            v_max_segments = min(segment_velocities) * 0.8  # 80% of minimum optimal segment velocity
 
             # OPTION 3: Curvature-Based Approach
             # Look at changes in direction to determine velocity
@@ -540,9 +523,7 @@ class TrapezoidalTrajectory:
                     direction_changes.append(1.0)  # Full direction change
                 else:
                     # Calculate relative change in slope
-                    rel_change = abs(h_values[i + 1] - h_values[i]) / (
-                        abs(h_values[i]) + abs(h_values[i + 1])
-                    )
+                    rel_change = abs(h_values[i + 1] - h_values[i]) / (abs(h_values[i]) + abs(h_values[i + 1]))
                     direction_changes.append(rel_change)
 
             # More direction changes or sharper changes suggest lower velocity
@@ -609,8 +590,7 @@ class TrapezoidalTrajectory:
             )
         elif len(params.inter_velocities) != len(params.points) - 2:
             raise ValueError(
-                f"Expected {len(params.points) - 2} intermediate velocities, "
-                f"got {len(params.inter_velocities)}"
+                f"Expected {len(params.points) - 2} intermediate velocities, got {len(params.inter_velocities)}"
             )
         else:
             # Use provided velocities
