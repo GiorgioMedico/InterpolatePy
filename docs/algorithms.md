@@ -349,10 +349,11 @@ The algorithm solves for total time considering all constraints and boundary con
     
     # Evaluate at midpoint
     t_mid = trajectory.get_duration() / 2
-    pos = trajectory.evaluate(t_mid)
-    vel = trajectory.evaluate_velocity(t_mid) 
-    acc = trajectory.evaluate_acceleration(t_mid)
-    jerk = trajectory.evaluate_jerk(t_mid)
+    result = trajectory.evaluate(t_mid)
+    pos = result[0]
+    vel = result[1]
+    acc = result[2]
+    jerk = result[3]
     ```
 
 ### Trapezoidal Trajectory

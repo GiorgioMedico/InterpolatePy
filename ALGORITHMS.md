@@ -690,7 +690,7 @@ from interpolatepy import PolynomialTrajectory, BoundaryCondition, TimeInterval
 # Define boundary conditions
 initial = BoundaryCondition(position=0, velocity=0, acceleration=0)
 final = BoundaryCondition(position=1, velocity=0, acceleration=0)
-interval = TimeInterval(t0=0, t1=2)
+interval = TimeInterval(start=0, end=2)
 
 # Generate quintic trajectory
 traj_func = PolynomialTrajectory.order_5_trajectory(initial, final, interval)
@@ -910,9 +910,9 @@ import numpy as np
 times = [0, 1, 2, 3]
 quats = [
     Quaternion.identity(),
-    Quaternion.from_angle_axis(np.pi/2, [1, 0, 0]),  # 90° about X
-    Quaternion.from_angle_axis(np.pi, [0, 1, 0]),    # 180° about Y  
-    Quaternion.from_angle_axis(np.pi/4, [0, 0, 1])   # 45° about Z
+    Quaternion.from_angle_axis(np.pi/2, np.array([1, 0, 0])),  # 90° about X
+    Quaternion.from_angle_axis(np.pi, np.array([0, 1, 0])),    # 180° about Y  
+    Quaternion.from_angle_axis(np.pi/4, np.array([0, 0, 1]))   # 45° about Z
 ]
 
 # Create C² continuous interpolator

@@ -42,7 +42,33 @@ trajectory = DoubleSTrajectory(state, bounds)
 print(f"Total duration: {trajectory.get_duration():.2f} seconds")
 
 # Plot the complete profile
-trajectory.plot()
+t_eval = np.linspace(0, trajectory.get_duration(), 100)
+results = [trajectory.evaluate(t) for t in t_eval]
+positions = [r[0] for r in results]
+velocities = [r[1] for r in results]
+accelerations = [r[2] for r in results]
+jerks = [r[3] for r in results]
+
+plt.figure(figsize=(12, 10))
+plt.subplot(4, 1, 1)
+plt.plot(t_eval, positions)
+plt.ylabel('Position')
+plt.title('Double-S Motion Profile')
+
+plt.subplot(4, 1, 2)
+plt.plot(t_eval, velocities)
+plt.ylabel('Velocity')
+
+plt.subplot(4, 1, 3)
+plt.plot(t_eval, accelerations)
+plt.ylabel('Acceleration')
+
+plt.subplot(4, 1, 4)
+plt.plot(t_eval, jerks)
+plt.ylabel('Jerk')
+plt.xlabel('Time (s)')
+
+plt.tight_layout()
 plt.show()
 ```
 
@@ -56,10 +82,11 @@ fig, axes = plt.subplots(4, 1, figsize=(14, 12))
 
 # Evaluate trajectory
 t_eval = np.linspace(0, trajectory.get_duration(), 1000)
-positions = [trajectory.evaluate(t) for t in t_eval]
-velocities = [trajectory.evaluate_velocity(t) for t in t_eval] 
-accelerations = [trajectory.evaluate_acceleration(t) for t in t_eval]
-jerks = [trajectory.evaluate_jerk(t) for t in t_eval]
+results = [trajectory.evaluate(t) for t in t_eval]
+positions = [r[0] for r in results]
+velocities = [r[1] for r in results]
+accelerations = [r[2] for r in results]
+jerks = [r[3] for r in results]
 
 # Position
 axes[0].plot(t_eval, positions, 'b-', linewidth=2)
@@ -109,6 +136,8 @@ print("Phase 7: Jerk-up (deceleration decreases to 0)")
 ### Effect of Different Constraints
 
 ```python
+from interpolatepy import StateParams, TrajectoryBounds
+
 # Compare different constraint combinations
 constraint_sets = [
     {'v_bound': 3.0, 'a_bound': 5.0, 'j_bound': 15.0, 'label': 'Conservative'},
@@ -126,8 +155,9 @@ for i, constraints in enumerate(constraint_sets):
     traj = DoubleSTrajectory(base_state, bounds)
     
     t_eval = np.linspace(0, traj.get_duration(), 200)
-    positions = [traj.evaluate(t) for t in t_eval]
-    velocities = [traj.evaluate_velocity(t) for t in t_eval]
+    results = [traj.evaluate(t) for t in t_eval]
+    positions = [r[0] for r in results]
+    velocities = [r[1] for r in results]
     
     color = ['blue', 'green', 'red'][i]
     label = constraints['label']
@@ -189,6 +219,8 @@ print("Key Insight: More aggressive constraints = faster trajectories")
 ### Handling Non-Zero Initial/Final Velocities
 
 ```python
+from interpolatepy import TrajectoryBounds, StateParams, DoubleSTrajectory
+
 # Moving between conveyor belts with different speeds
 scenarios = [
     {'v_0': 0.0, 'v_1': 0.0, 'label': 'Stop-to-stop'},
@@ -245,7 +277,11 @@ Trapezoidal profiles are simpler than S-curves but still provide bounded acceler
 ### Basic Trapezoidal Profile
 
 ```python
-from interpolatepy import TrapezoidalTrajectory, TrajectoryParams
+from interpolatepy import TrapezoidalTrajectory
+try:
+    from interpolatepy.trapezoidal import TrajectoryParams
+except ImportError:
+    from interpolatepy import TrajectoryParams
 
 # Define trajectory parameters
 params = TrajectoryParams(
@@ -300,7 +336,7 @@ plt.show()
 ```python
 # Compare trapezoidal vs triangular profiles
 distances = [5, 10, 20, 50]  # Different travel distances
-params_base = TrajectoryParams(q0=0.0, v0=0.0, v1=0.0, amax=5.0, vmax=8.0)
+params_base = TrajectoryParams(q0=0.0, q1=0.0, v0=0.0, v1=0.0, amax=5.0, vmax=8.0)
 
 fig, axes = plt.subplots(2, 2, figsize=(15, 10))
 axes = axes.flatten()
@@ -408,7 +444,7 @@ from interpolatepy import PolynomialTrajectory, BoundaryCondition, TimeInterval
 # Define boundary conditions
 initial = BoundaryCondition(position=0.0, velocity=0.0, acceleration=0.0, jerk=0.0)
 final = BoundaryCondition(position=10.0, velocity=0.0, acceleration=0.0, jerk=0.0)
-interval = TimeInterval(t0=0.0, t1=5.0)
+interval = TimeInterval(start=0.0, end=5.0)
 
 # Generate different order polynomials
 poly_3 = PolynomialTrajectory.order_3_trajectory(
@@ -636,6 +672,11 @@ print(f"\\nTotal journey time: {total_time:.1f} seconds ({total_time/60:.1f} min
 ### CNC Machine Tool Path
 
 ```python
+try:
+    from interpolatepy.trapezoidal import TrajectoryParams
+except ImportError:
+    from interpolatepy import TrajectoryParams
+
 # CNC machining with different motion profiles
 def compare_machining_profiles(distance=100, cutting_speed=50):
     """Compare motion profiles for CNC machining."""
@@ -766,6 +807,10 @@ for application, recommendation in recommendations.items():
 
 ```python
 import time
+try:
+    from interpolatepy.trapezoidal import TrajectoryParams
+except ImportError:
+    from interpolatepy import TrajectoryParams
 
 # Performance benchmark
 algorithms = {
@@ -779,7 +824,7 @@ algorithms = {
     'Polynomial 5th': lambda: PolynomialTrajectory.order_5_trajectory(
         BoundaryCondition(position=0, velocity=0, acceleration=0),
         BoundaryCondition(position=100, velocity=0, acceleration=0),
-        TimeInterval(0, 2)
+        TimeInterval(start=0, end=2)
     )
 }
 

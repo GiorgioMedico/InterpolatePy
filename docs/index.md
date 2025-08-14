@@ -64,7 +64,22 @@ bounds = TrajectoryBounds(v_bound=5.0, a_bound=10.0, j_bound=30.0)
 trajectory = DoubleSTrajectory(state, bounds)
 
 print(f"Duration: {trajectory.get_duration():.2f}s")
-trajectory.plot()
+
+# Manual plotting (DoubleSTrajectory doesn't have built-in plot method)
+t_eval = np.linspace(0, trajectory.get_duration(), 100)
+results = [trajectory.evaluate(t) for t in t_eval]
+positions = [r[0] for r in results]
+velocities = [r[1] for r in results]
+
+plt.figure(figsize=(10, 6))
+plt.subplot(2, 1, 1)
+plt.plot(t_eval, positions)
+plt.ylabel('Position')
+plt.title('Double-S Trajectory')
+plt.subplot(2, 1, 2)
+plt.plot(t_eval, velocities)
+plt.ylabel('Velocity')
+plt.xlabel('Time (s)')
 
 plt.show()
 ```

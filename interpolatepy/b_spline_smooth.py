@@ -1,3 +1,11 @@
+"""
+B-spline smoothing for noisy data approximation.
+
+This module implements smoothing B-splines that balance data fitting with curve smoothness,
+making them ideal for approximating noisy data points. The smoothing parameter controls
+the trade-off between exact interpolation and smooth curve generation.
+"""
+
 from dataclasses import dataclass
 
 import numpy as np

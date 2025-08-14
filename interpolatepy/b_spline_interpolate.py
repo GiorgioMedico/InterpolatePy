@@ -1,3 +1,11 @@
+"""
+B-spline curve interpolation through specified points.
+
+This module implements exact B-spline interpolation where the curve passes through
+all specified data points. The interpolation constructs smooth curves with precise
+control over continuity and boundary conditions.
+"""
+
 from __future__ import annotations
 
 import numpy as np

@@ -1,3 +1,11 @@
+"""
+B-spline curve approximation with least squares fitting.
+
+This module provides B-spline approximation algorithms that fit curves to datasets
+with fewer control points than data points. The approximation balances computational
+efficiency with curve quality using least squares optimization.
+"""
+
 import numpy as np
 
 from interpolatepy.b_spline import BSpline

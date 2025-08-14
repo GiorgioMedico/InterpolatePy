@@ -155,9 +155,10 @@ for i, segment in enumerate(elevator_plan):
     t_absolute = t_segment + current_time
     
     # Evaluate trajectory
-    positions = [traj.evaluate(t) for t in t_segment]
-    velocities = [traj.evaluate_velocity(t) for t in t_segment]
-    accelerations = [traj.evaluate_acceleration(t) for t in t_segment]
+    results = [traj.evaluate(t) for t in t_segment]
+    positions = [r[0] for r in results]
+    velocities = [r[1] for r in results]
+    accelerations = [r[2] for r in results]
     
     # Plot
     label = f"Floor {segment['start_floor']} → {segment['end_floor']}"
@@ -526,6 +527,8 @@ print(f"  Orientation range: Roll±{np.degrees(max(roll_angles)-min(roll_angles)
 Different algorithms support various boundary conditions:
 
 ```python
+from interpolatepy import CubicSpline
+
 # Natural boundaries (zero second derivative)
 spline1 = CubicSpline(t_points, q_points)  # Default: v0=0, vn=0
 
@@ -551,7 +554,9 @@ poly_traj = PolynomialTrajectory.order_7_trajectory(initial, final, TimeInterval
 
 #### Vectorized Evaluation
 ```python
-# Efficient: single vectorized call
+import numpy as np
+
+# Efficient: single vectorized call (assuming spline was created)
 t_array = np.linspace(0, 10, 1000)
 positions = spline.evaluate(t_array)
 
@@ -572,6 +577,8 @@ positions = [spline.evaluate(t) for t in t_array]
 ### Error Handling and Validation
 
 ```python
+from interpolatepy import CubicSpline
+
 try:
     # Potentially problematic input
     spline = CubicSpline([0, 1, 1, 2], [0, 1, 2, 3])  # Non-monotonic times

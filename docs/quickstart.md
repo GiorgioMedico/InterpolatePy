@@ -74,11 +74,26 @@ print(f"Duration: {trajectory.get_duration():.2f}s")
 
 # Evaluate at specific times
 t_eval = np.linspace(0, trajectory.get_duration(), 100)
-positions = [trajectory.evaluate(t) for t in t_eval]
-velocities = [trajectory.evaluate_velocity(t) for t in t_eval]
+results = [trajectory.evaluate(t) for t in t_eval]
+positions = [r[0] for r in results]
+velocities = [r[1] for r in results]
+accelerations = [r[2] for r in results]
+jerks = [r[3] for r in results]
 
-# Visualize all profiles
-trajectory.plot()
+# Manual plotting (DoubleSTrajectory doesn't have built-in plot method)
+fig, axes = plt.subplots(4, 1, figsize=(10, 8))
+axes[0].plot(t_eval, positions)
+axes[0].set_ylabel('Position')
+axes[0].set_title('S-Curve Motion Profile')
+axes[1].plot(t_eval, velocities)
+axes[1].set_ylabel('Velocity')
+axes[2].plot(t_eval, accelerations)
+axes[2].set_ylabel('Acceleration')
+axes[3].plot(t_eval, jerks)
+axes[3].set_ylabel('Jerk')
+axes[3].set_xlabel('Time')
+for ax in axes:
+    ax.grid(True)
 plt.show()
 ```
 
@@ -93,9 +108,9 @@ import numpy as np
 # Define rotation waypoints
 orientations = [
     Quaternion.identity(),                                    # No rotation
-    Quaternion.from_angle_axis(np.pi/2, [1, 0, 0]),         # 90° about X
-    Quaternion.from_angle_axis(np.pi, [0, 1, 0]),           # 180° about Y
-    Quaternion.from_angle_axis(np.pi/4, [0, 0, 1])          # 45° about Z
+    Quaternion.from_angle_axis(np.pi/2, np.array([1, 0, 0])),         # 90° about X
+    Quaternion.from_angle_axis(np.pi, np.array([0, 1, 0])),           # 180° about Y
+    Quaternion.from_angle_axis(np.pi/4, np.array([0, 0, 1]))          # 45° about Z
 ]
 
 times = [0.0, 1.0, 2.0, 3.0]
@@ -106,10 +121,9 @@ quat_spline = SquadC2(times, orientations)
 # Evaluate smooth rotation
 t = 1.5
 orientation = quat_spline.evaluate(t)
-angular_velocity = quat_spline.evaluate_velocity(t)
-
+# Note: SquadC2.evaluate returns a quaternion, not tuple with velocity
 print(f"Orientation at t={t}: {orientation}")
-print(f"Angular velocity: {angular_velocity}")
+# For angular velocity, you would need to compute finite differences
 ```
 
 ### 3. Noise-Robust Curve Fitting
@@ -117,20 +131,16 @@ print(f"Angular velocity: {angular_velocity}")
 When your data has noise, use smoothing splines:
 
 ```python
-from interpolatepy import smoothing_spline_with_tolerance, SplineConfig
+from interpolatepy import CubicSmoothingSpline
+import numpy as np
 
 # Noisy data points
 t_noisy = np.linspace(0, 10, 20)
 q_noisy = np.sin(t_noisy) + 0.1 * np.random.randn(20)
 
-# Automatically find optimal smoothing
-config = SplineConfig(max_iterations=50)
-spline, mu, error, iterations = smoothing_spline_with_tolerance(
-    np.array(t_noisy), 
-    np.array(q_noisy), 
-    tolerance=0.05,  # Maximum allowed deviation
-    config=config
-)
+# Create smoothing spline with appropriate mu parameter
+spline = CubicSmoothingSpline(list(t_noisy), list(q_noisy), mu=0.1)
+mu = 0.1
 
 print(f"Optimal smoothing parameter: {mu:.6f}")
 
@@ -146,35 +156,28 @@ plt.show()
 For precise boundary condition control:
 
 ```python
-from interpolatepy import PolynomialTrajectory, BoundaryCondition, TimeInterval
+from interpolatepy import PolynomialTrajectory
+import numpy as np
 
-# Define precise boundary conditions
-initial = BoundaryCondition(
-    position=0.0,
-    velocity=0.0,
-    acceleration=0.0,
-    jerk=0.0
-)
-
-final = BoundaryCondition(
-    position=5.0,
-    velocity=0.0,
-    acceleration=0.0,
-    jerk=0.0
-)
-
-interval = TimeInterval(t0=0.0, t1=3.0)
+# Define precise boundary conditions (initial and final states)
+initial_state = [0.0, 0.0, 0.0, 0.0]  # [position, velocity, acceleration, jerk]
+final_state = [5.0, 0.0, 0.0, 0.0]    # [position, velocity, acceleration, jerk]
+total_time = 3.0
 
 # Generate 7th-order polynomial trajectory
-traj_func = PolynomialTrajectory.order_7_trajectory(initial, final, interval)
+traj = PolynomialTrajectory(
+    initial_state=initial_state,
+    final_state=final_state,
+    total_time=total_time,
+    order=7
+)
 
 # Evaluate complete trajectory
 t_eval = np.linspace(0, 3, 100)
-results = [traj_func(t) for t in t_eval]
-positions = [r[0] for r in results]
-velocities = [r[1] for r in results]
-accelerations = [r[2] for r in results]
-jerks = [r[3] for r in results]
+positions = [traj.evaluate(t) for t in t_eval]
+velocities = [traj.evaluate_velocity(t) for t in t_eval]
+accelerations = [traj.evaluate_acceleration(t) for t in t_eval]
+jerks = [traj.evaluate_jerk(t) for t in t_eval]
 
 # Plot all derivatives
 fig, axes = plt.subplots(4, 1, figsize=(10, 8))
@@ -206,6 +209,8 @@ InterpolatePy algorithms provide different levels of smoothness:
 Control trajectory behavior at endpoints:
 
 ```python
+from interpolatepy import CubicSpline
+
 # Zero velocity at endpoints (natural spline)
 spline = CubicSpline(t_points, q_points, v0=0.0, vn=0.0)
 
@@ -226,7 +231,7 @@ spline = CubicSplineWithAcceleration1(
 All trajectory objects provide consistent evaluation methods:
 
 ```python
-# Position
+# Position (assuming spline was created from previous example)
 position = spline.evaluate(t)
 
 # First derivative (velocity)
@@ -268,6 +273,8 @@ positions = [spline.evaluate(t) for t in t_eval]
 ### 2. Reuse Trajectory Objects
 
 ```python
+from interpolatepy import CubicSpline
+
 # Create once, evaluate many times
 spline = CubicSpline(t_points, q_points)
 
@@ -292,6 +299,9 @@ for t in time_sequence:
 ### Pattern 1: Trajectory with Via Points
 
 ```python
+import numpy as np
+from interpolatepy import CubicSpline
+
 def create_trajectory_with_via_points(waypoints, durations):
     """Create smooth trajectory through multiple waypoints."""
     t_points = np.cumsum([0] + durations)

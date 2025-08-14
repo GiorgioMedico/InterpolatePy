@@ -1,3 +1,11 @@
+"""
+Linear trajectory generation utilities.
+
+This module provides basic linear interpolation functions for trajectory planning.
+Linear trajectories offer the simplest form of motion between two points with
+constant velocity profiles.
+"""
+
 import numpy as np
 
 

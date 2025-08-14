@@ -1,3 +1,11 @@
+"""
+Efficient tridiagonal matrix solver using the Thomas algorithm.
+
+This module provides optimized solutions for tridiagonal linear systems that arise
+frequently in spline interpolation and other numerical methods. The Thomas algorithm
+offers O(n) complexity compared to O(n³) for general matrix solvers.
+"""
+
 import numpy as np
 
 
