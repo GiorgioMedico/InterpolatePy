@@ -1,3 +1,12 @@
+"""
+Linear trajectories with parabolic blending at via points.
+
+This module implements trajectory planning that combines linear segments with 
+parabolic blends at intermediate via points. This approach provides smooth
+velocity profiles while maintaining computational efficiency for multi-point
+trajectories.
+"""
+
 from collections.abc import Callable  # noqa: EXE002
 
 import numpy as np

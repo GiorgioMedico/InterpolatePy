@@ -14,7 +14,28 @@ EPSILON = 1e-10  # Small value to prevent division by zero
 
 @dataclass
 class TrajectoryParams:
-    """Parameters for trapezoidal trajectory generation."""
+    """
+    Parameters for trapezoidal trajectory generation.
+    
+    Parameters
+    ----------
+    q0 : float
+        Initial position.
+    q1 : float
+        Final position.
+    t0 : float, optional
+        Initial time. Default is 0.0.
+    v0 : float, optional
+        Initial velocity. Default is 0.0.
+    v1 : float, optional
+        Final velocity. Default is 0.0.
+    amax : float, optional
+        Maximum acceleration constraint.
+    vmax : float, optional
+        Maximum velocity constraint.
+    duration : float, optional
+        Desired trajectory duration.
+    """
 
     q0: float
     q1: float
@@ -28,7 +49,22 @@ class TrajectoryParams:
 
 @dataclass
 class CalculationParams:
-    """Parameters for trajectory calculations."""
+    """
+    Parameters for trajectory calculations.
+    
+    Parameters
+    ----------
+    q0 : float
+        Initial position.
+    q1 : float
+        Final position.
+    v0 : float
+        Initial velocity.
+    v1 : float
+        Final velocity.
+    amax : float
+        Maximum acceleration.
+    """
 
     q0: float
     q1: float
@@ -39,7 +75,26 @@ class CalculationParams:
 
 @dataclass
 class InterpolationParams:
-    """Parameters for multi-point interpolation."""
+    """
+    Parameters for multi-point interpolation.
+    
+    Parameters
+    ----------
+    points : list[float]
+        List of position waypoints to interpolate through.
+    v0 : float, optional
+        Initial velocity. Default is 0.0.
+    vn : float, optional
+        Final velocity. Default is 0.0.
+    inter_velocities : list[float], optional
+        Intermediate velocities at waypoints. If None, velocities are computed heuristically.
+    times : list[float], optional
+        Time points corresponding to each waypoint. If None, times are computed optimally.
+    amax : float, optional
+        Maximum acceleration constraint. Default is 10.0.
+    vmax : float, optional
+        Maximum velocity constraint.
+    """
 
     points: list[float]
     v0: float = 0.0
@@ -56,7 +111,40 @@ class TrapezoidalTrajectory:
 
     This class provides methods to create trapezoidal velocity profiles for various
     trajectory planning scenarios, including single segment trajectories and
-    multi-point interpolation.
+    multi-point interpolation. The trapezoidal profile consists of three phases:
+    acceleration, constant velocity (cruise), and deceleration phases.
+
+    The implementation follows the mathematical formulations described in Chapter 3
+    of trajectory planning literature, handling both time-constrained and
+    velocity-constrained trajectory generation.
+
+    Methods
+    -------
+    generate_trajectory(params)
+        Generate a single-segment trapezoidal trajectory.
+    interpolate_waypoints(params)
+        Generate a multi-segment trajectory through waypoints.
+    calculate_heuristic_velocities(q_list, v0, vn, v_max, amax)
+        Compute intermediate velocities for multi-point trajectories.
+
+    Examples
+    --------
+    >>> from interpolatepy import TrapezoidalTrajectory, TrajectoryParams
+    >>> 
+    >>> # Simple point-to-point trajectory with velocity constraint
+    >>> params = TrajectoryParams(q0=0, q1=10, v0=0, v1=0, amax=2.0, vmax=5.0)
+    >>> trajectory_func, duration = TrapezoidalTrajectory.generate_trajectory(params)
+    >>> 
+    >>> # Evaluate trajectory at various times
+    >>> for t in [0, duration/2, duration]:
+    ...     pos, vel, acc = trajectory_func(t)
+    ...     print(f"t={t:.2f}: pos={pos:.2f}, vel={vel:.2f}, acc={acc:.2f}")
+    >>> 
+    >>> # Multi-point interpolation
+    >>> from interpolatepy import InterpolationParams
+    >>> waypoints = [0, 5, 3, 8]
+    >>> interp_params = InterpolationParams(points=waypoints, amax=2.0, vmax=4.0)
+    >>> traj_func, total_time = TrapezoidalTrajectory.interpolate_waypoints(interp_params)
     """
 
     @staticmethod

@@ -1,14 +1,66 @@
+"""Module for simple geometric path primitives.
+
+Provides basic geometric path classes for linear and circular trajectories
+used in 3D path planning applications. These primitives support evaluation
+of position, velocity, and acceleration profiles along parametric paths.
+"""
+
 import numpy as np
 
 
 class LinearPath:
+    """
+    A linear path between two points in 3D space.
+
+    This class represents a straight-line trajectory from an initial point to a final point,
+    providing methods to evaluate position, velocity, and acceleration along the path.
+
+    Parameters
+    ----------
+    pi : array_like
+        Initial point coordinates [x, y, z].
+    pf : array_like
+        Final point coordinates [x, y, z].
+
+    Attributes
+    ----------
+    pi : np.ndarray
+        Initial point coordinates.
+    pf : np.ndarray
+        Final point coordinates.
+    length : float
+        Total length of the linear path.
+    tangent : np.ndarray
+        Unit tangent vector (constant for linear path).
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> # Create a linear path from origin to point (1, 1, 1)
+    >>> pi = np.array([0, 0, 0])
+    >>> pf = np.array([1, 1, 1])
+    >>> path = LinearPath(pi, pf)
+    >>> 
+    >>> # Evaluate position at half the path length
+    >>> midpoint = path.position(path.length / 2)
+    >>> print(midpoint)  # Should be [0.5, 0.5, 0.5]
+    >>> 
+    >>> # Generate complete trajectory
+    >>> trajectory = path.all_traj(num_points=10)
+    >>> positions = trajectory['position']
+    >>> velocities = trajectory['velocity']
+    """
+
     def __init__(self, pi: np.ndarray, pf: np.ndarray) -> None:
         """
         Initialize a linear path from point pi to point pf.
 
-        Parameters:
-            pi (array-like): Initial point coordinates [x, y, z]
-            pf (array-like): Final point coordinates [x, y, z]
+        Parameters
+        ----------
+        pi : array_like
+            Initial point coordinates [x, y, z].
+        pf : array_like
+            Final point coordinates [x, y, z].
         """
         self.pi: np.ndarray = np.array(pi)
         self.pf: np.ndarray = np.array(pf)
@@ -24,11 +76,15 @@ class LinearPath:
         """
         Calculate position at arc length s.
 
-        Parameters:
-            s (float or array): Arc length parameter(s)
+        Parameters
+        ----------
+        s : float or array_like
+            Arc length parameter(s).
 
-        Returns:
-            numpy.ndarray: Position vector(s)
+        Returns
+        -------
+        np.ndarray
+            Position vector(s) at the specified arc length(s).
         """
         # Ensure s is within valid range
         s = np.clip(s, 0, self.length)
@@ -41,11 +97,15 @@ class LinearPath:
         Calculate first derivative with respect to arc length.
         For linear path, this is constant and doesn't depend on s.
 
-        Parameters:
-            _s (float, optional): Arc length parameter (not used for linear path)
+        Parameters
+        ----------
+        _s : float, optional
+            Arc length parameter (not used for linear path).
 
-        Returns:
-            numpy.ndarray: Velocity (tangent) vector
+        Returns
+        -------
+        np.ndarray
+            Velocity (tangent) vector.
         """
         # Equation 4.35: dp/ds = (pf-pi)/||pf-pi||
         return self.tangent
@@ -56,11 +116,15 @@ class LinearPath:
         Calculate second derivative with respect to arc length.
         For linear path, this is always zero.
 
-        Parameters:
-            _s (float, optional): Arc length parameter (not used for linear path)
+        Parameters
+        ----------
+        _s : float, optional
+            Arc length parameter (not used for linear path).
 
-        Returns:
-            numpy.ndarray: Acceleration vector (always zero for linear path)
+        Returns
+        -------
+        np.ndarray
+            Acceleration vector (always zero for linear path).
         """
         # Equation 4.36: d²p/ds² = 0
         return np.zeros(3)
@@ -69,12 +133,16 @@ class LinearPath:
         """
         Evaluate position, velocity, and acceleration at specific arc length values.
 
-        Parameters:
-            s_values (float or array-like): Arc length parameter(s)
+        Parameters
+        ----------
+        s_values : float or array_like
+            Arc length parameter(s).
 
-        Returns:
-            dict: Dictionary containing arrays for position, velocity, and acceleration
-                 Each array has shape (n, 3) where n is the number of s values
+        Returns
+        -------
+        dict[str, np.ndarray]
+            Dictionary containing arrays for position, velocity, and acceleration.
+            Each array has shape (n, 3) where n is the number of s values.
         """
         # Convert scalar to array if needed
         s_values_arr: np.ndarray = (
@@ -109,12 +177,16 @@ class LinearPath:
         """
         Generate a complete trajectory along the entire linear path.
 
-        Parameters:
-            num_points (int): Number of points to generate along the path
+        Parameters
+        ----------
+        num_points : int, optional
+            Number of points to generate along the path. Default is 100.
 
-        Returns:
-            dict: Dictionary containing arrays for position, velocity, and acceleration
-                 Each array has shape (num_points, 3)
+        Returns
+        -------
+        dict[str, np.ndarray]
+            Dictionary containing arrays for position, velocity, and acceleration.
+            Each array has shape (num_points, 3).
         """
         # Generate evenly spaced points along the entire path
         s_values = np.linspace(0, self.length, num_points)
@@ -124,14 +196,72 @@ class LinearPath:
 
 
 class CircularPath:
+    """
+    A circular path in 3D space defined by an axis and a point on the circle.
+
+    This class represents a circular trajectory defined by an axis vector,
+    a point on the axis, and a point on the circle. It provides methods to
+    evaluate position, velocity, and acceleration along the circular arc.
+
+    Parameters
+    ----------
+    r : array_like
+        Unit vector of circle axis.
+    d : array_like
+        Position vector of a point on the circle axis.
+    pi : array_like
+        Position vector of a point on the circle.
+
+    Attributes
+    ----------
+    r : np.ndarray
+        Normalized axis vector of the circle.
+    d : np.ndarray
+        Position vector of a point on the circle axis.
+    pi : np.ndarray
+        Position vector of a point on the circle.
+    center : np.ndarray
+        Center point of the circle.
+    radius : float
+        Radius of the circle.
+    R : np.ndarray
+        Rotation matrix from local to global coordinates.
+
+    Raises
+    ------
+    ValueError
+        If the point pi lies on the circle axis.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> # Create a circular path in the XY plane centered at origin
+    >>> r = np.array([0, 0, 1])     # Z-axis
+    >>> d = np.array([0, 0, 0])     # Origin on axis
+    >>> pi = np.array([1, 0, 0])    # Point on circle
+    >>> circle = CircularPath(r, d, pi)
+    >>> 
+    >>> # Evaluate position at quarter circle
+    >>> quarter_arc = np.pi * circle.radius / 2
+    >>> pos = circle.position(quarter_arc)
+    >>> 
+    >>> # Generate complete trajectory around the circle
+    >>> trajectory = circle.all_traj(num_points=100)
+    >>> positions = trajectory['position']
+    """
+
     def __init__(self, r: np.ndarray, d: np.ndarray, pi: np.ndarray) -> None:
         """
         Initialize a circular path.
 
-        Parameters:
-            r (array-like): Unit vector of circle axis
-            d (array-like): Position vector of a point on the circle axis
-            pi (array-like): Position vector of a point on the circle
+        Parameters
+        ----------
+        r : array_like
+            Unit vector of circle axis.
+        d : array_like
+            Position vector of a point on the circle axis.
+        pi : array_like
+            Position vector of a point on the circle.
         """
         self.r: np.ndarray = np.array(r)
         self.d: np.ndarray = np.array(d)
@@ -165,11 +295,15 @@ class CircularPath:
         """
         Calculate position at arc length s.
 
-        Parameters:
-            s (float or array): Arc length parameter(s)
+        Parameters
+        ----------
+        s : float or array_like
+            Arc length parameter(s).
 
-        Returns:
-            numpy.ndarray: Position vector(s)
+        Returns
+        -------
+        np.ndarray
+            Position vector(s) at the specified arc length(s).
         """
         if np.isscalar(s):
             # Position in local coordinate system (equation 4.38)
@@ -203,11 +337,15 @@ class CircularPath:
         """
         Calculate first derivative with respect to arc length.
 
-        Parameters:
-            s (float): Arc length parameter
+        Parameters
+        ----------
+        s : float
+            Arc length parameter.
 
-        Returns:
-            numpy.ndarray: Velocity (tangent) vector
+        Returns
+        -------
+        np.ndarray
+            Velocity (tangent) vector.
         """
         # Velocity in local coordinate system (equation 4.40)
         dp_prime_ds = np.array([-np.sin(s / self.radius), np.cos(s / self.radius), 0])
@@ -219,11 +357,15 @@ class CircularPath:
         """
         Calculate second derivative with respect to arc length.
 
-        Parameters:
-            s (float): Arc length parameter
+        Parameters
+        ----------
+        s : float
+            Arc length parameter.
 
-        Returns:
-            numpy.ndarray: Acceleration vector
+        Returns
+        -------
+        np.ndarray
+            Acceleration vector.
         """
         # Acceleration in local coordinate system (equation 4.41)
         d2p_prime_ds2 = np.array(
@@ -241,12 +383,16 @@ class CircularPath:
         """
         Evaluate position, velocity, and acceleration at specific arc length values.
 
-        Parameters:
-            s_values (float or array-like): Arc length parameter(s)
+        Parameters
+        ----------
+        s_values : float or array_like
+            Arc length parameter(s).
 
-        Returns:
-            dict: Dictionary containing arrays for position, velocity, and acceleration
-                 Each array has shape (n, 3) where n is the number of s values
+        Returns
+        -------
+        dict[str, np.ndarray]
+            Dictionary containing arrays for position, velocity, and acceleration.
+            Each array has shape (n, 3) where n is the number of s values.
         """
         # Convert scalar to array if needed
         s_values_arr: np.ndarray = (
@@ -276,12 +422,16 @@ class CircularPath:
         """
         Generate a complete trajectory around the entire circular path.
 
-        Parameters:
-            num_points (int): Number of points to generate around the circle
+        Parameters
+        ----------
+        num_points : int, optional
+            Number of points to generate around the circle. Default is 100.
 
-        Returns:
-            dict: Dictionary containing arrays for position, velocity, and acceleration
-                 Each array has shape (num_points, 3)
+        Returns
+        -------
+        dict[str, np.ndarray]
+            Dictionary containing arrays for position, velocity, and acceleration.
+            Each array has shape (num_points, 3).
         """
         # Generate evenly spaced points for a complete circle
         s_values = np.linspace(0, 2 * np.pi * self.radius, num_points)
