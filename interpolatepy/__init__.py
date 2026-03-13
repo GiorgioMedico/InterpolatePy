@@ -45,6 +45,8 @@ from .lin_poly_parabolic import ParabolicBlendTrajectory
 from .quat_core import Quaternion
 from .quat_spline import QuaternionSpline
 from .squad_c2 import SquadC2
+from .log_quat import LogQuaternionInterpolation
+from .log_quat import ModifiedLogQuaternionInterpolation
 
 # Linear interpolation
 from .linear import linear_traj
@@ -54,6 +56,13 @@ from .frenet_frame import compute_trajectory_frames
 from .frenet_frame import circular_trajectory_with_derivatives
 from .frenet_frame import helicoidal_trajectory_with_derivatives
 from .frenet_frame import plot_frames
+
+# Protocols
+from .protocols import CurveEvaluator
+from .protocols import GeometricPath
+from .protocols import QuaternionTrajectory
+from .protocols import ScalarTrajectory
+from .protocols import TrajectoryFunction
 
 # Utility functions
 from .tridiagonal_inv import solve_tridiagonal
@@ -72,13 +81,20 @@ __all__ = [
     "CubicSpline",
     "CubicSplineWithAcceleration1",
     "CubicSplineWithAcceleration2",
+    # Protocols
+    "CurveEvaluator",
     "DoubleSTrajectory",
+    "GeometricPath",
     "InterpolationParams",
     "LinearPath",
+    "LogQuaternionInterpolation",
+    "ModifiedLogQuaternionInterpolation",
     "ParabolicBlendTrajectory",
     "PolynomialTrajectory",
     "Quaternion",
     "QuaternionSpline",
+    "QuaternionTrajectory",
+    "ScalarTrajectory",
     "SmoothingCubicBSpline",
     "SplineConfig",
     "SplineParameters",
@@ -86,6 +102,7 @@ __all__ = [
     "StateParams",
     "TimeInterval",
     "TrajectoryBounds",
+    "TrajectoryFunction",
     "TrajectoryParams",
     "TrapezoidalTrajectory",
     # Version and functions

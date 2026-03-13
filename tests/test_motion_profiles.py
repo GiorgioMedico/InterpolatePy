@@ -150,13 +150,13 @@ class TestDoubleSTrajectoryEvaluation:
         trajectory = DoubleSTrajectory(state_params, bounds)
 
         # Evaluate at start
-        q, v, a, j = trajectory.evaluate(0.0)
+        q, v, a, j = trajectory.evaluate_full(0.0)
         assert abs(q - 0.0) < self.NUMERICAL_ATOL
         assert abs(v - 0.0) < self.NUMERICAL_ATOL
 
         # Evaluate at end
         duration = trajectory.get_duration()
-        q, v, a, j = trajectory.evaluate(duration)
+        q, v, a, j = trajectory.evaluate_full(duration)
         assert abs(q - 10.0) < self.NUMERICAL_ATOL
         assert abs(v - 0.0) < self.NUMERICAL_ATOL
 
@@ -169,7 +169,7 @@ class TestDoubleSTrajectoryEvaluation:
 
         # Test with array input
         t_array = np.array([0.0, 1.0, 2.0])
-        q, v, a, j = trajectory.evaluate(t_array)
+        q, v, a, j = trajectory.evaluate_full(t_array)
 
         assert isinstance(q, np.ndarray)
         assert isinstance(v, np.ndarray)
@@ -188,13 +188,13 @@ class TestDoubleSTrajectoryEvaluation:
         trajectory = DoubleSTrajectory(state_params, bounds)
 
         # Check initial conditions
-        q0, v0, a0, j0 = trajectory.evaluate(0.0)
+        q0, v0, a0, j0 = trajectory.evaluate_full(0.0)
         assert abs(q0 - state_params.q_0) < self.NUMERICAL_ATOL
         assert abs(v0 - state_params.v_0) < self.NUMERICAL_ATOL
 
         # Check final conditions
         duration = trajectory.get_duration()
-        q1, v1, a1, j1 = trajectory.evaluate(duration)
+        q1, v1, a1, j1 = trajectory.evaluate_full(duration)
         assert abs(q1 - state_params.q_1) < self.NUMERICAL_ATOL
         assert abs(v1 - state_params.v_1) < self.NUMERICAL_ATOL
 
@@ -210,7 +210,7 @@ class TestDoubleSTrajectoryEvaluation:
         t_samples = np.linspace(0, duration, 100)
 
         for t in t_samples:
-            _, v, _, _ = trajectory.evaluate(t)
+            _, v, _, _ = trajectory.evaluate_full(t)
             assert abs(v) <= bounds.v_bound + self.NUMERICAL_ATOL
 
     def test_acceleration_bounds_satisfaction(self) -> None:
@@ -225,7 +225,7 @@ class TestDoubleSTrajectoryEvaluation:
         t_samples = np.linspace(0, duration, 100)
 
         for t in t_samples:
-            _, _, a, _ = trajectory.evaluate(t)
+            _, _, a, _ = trajectory.evaluate_full(t)
             assert abs(a) <= bounds.a_bound + self.NUMERICAL_ATOL
 
     def test_jerk_bounds_satisfaction(self) -> None:
@@ -294,7 +294,7 @@ class TestDoubleSTrajectoryEdgeCases:
         assert duration >= 0
 
         # Position should remain constant
-        q, v, a, j = trajectory.evaluate(duration / 2)
+        q, v, a, j = trajectory.evaluate_full(duration / 2)
         assert abs(q - 5.0) < self.NUMERICAL_ATOL
 
     def test_small_displacement(self) -> None:
@@ -309,7 +309,7 @@ class TestDoubleSTrajectoryEdgeCases:
         assert duration > 0
 
         # Check final position
-        q_final, _, _, _ = trajectory.evaluate(duration)
+        q_final, _, _, _ = trajectory.evaluate_full(duration)
         assert abs(q_final - 0.001) < self.NUMERICAL_ATOL
 
     def test_large_displacement(self) -> None:
@@ -324,7 +324,7 @@ class TestDoubleSTrajectoryEdgeCases:
         assert duration > 0
 
         # Check final position
-        q_final, _, _, _ = trajectory.evaluate(duration)
+        q_final, _, _, _ = trajectory.evaluate_full(duration)
         assert abs(q_final - 1000.0) < self.NUMERICAL_ATOL
 
     def test_negative_displacement(self) -> None:
@@ -339,7 +339,7 @@ class TestDoubleSTrajectoryEdgeCases:
         assert duration > 0
 
         # Check final position
-        q_final, _, _, _ = trajectory.evaluate(duration)
+        q_final, _, _, _ = trajectory.evaluate_full(duration)
         assert abs(q_final - 0.0) < self.NUMERICAL_ATOL
 
     def test_non_zero_initial_final_velocities(self) -> None:
@@ -350,12 +350,12 @@ class TestDoubleSTrajectoryEdgeCases:
         trajectory = DoubleSTrajectory(state_params, bounds)
 
         # Check boundary conditions
-        q0, v0, _, _ = trajectory.evaluate(0.0)
+        q0, v0, _, _ = trajectory.evaluate_full(0.0)
         assert abs(q0 - 0.0) < self.NUMERICAL_ATOL
         assert abs(v0 - 1.0) < self.NUMERICAL_ATOL
 
         duration = trajectory.get_duration()
-        q1, v1, _, _ = trajectory.evaluate(duration)
+        q1, v1, _, _ = trajectory.evaluate_full(duration)
         assert abs(q1 - 10.0) < self.NUMERICAL_ATOL
         assert abs(v1 - 2.0) < self.NUMERICAL_ATOL
 
@@ -673,7 +673,7 @@ class TestMotionProfilePerformance:
         t_values = np.linspace(0, duration, n_evaluations)
 
         def evaluate_trajectory() -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-            q, v, a, j = trajectory.evaluate(t_values)
+            q, v, a, j = trajectory.evaluate_full(t_values)
             return q, v, a, j
 
         q, v, a, j = benchmark(evaluate_trajectory)

@@ -256,6 +256,8 @@ ruff format interpolatepy/
 ruff check interpolatepy/
 mypy interpolatepy/
 
+# Run all pre-commit hooks
+pre-commit run --all-files
 ```
 </details>
 

@@ -321,6 +321,120 @@ class QuaternionSpline:
             raise ValueError(f"Interpolation failed with status {status}")
         return result
 
+    def evaluate(self, t: float) -> Quaternion:
+        """
+        Evaluate the quaternion at time t.
+
+        Wrapper around ``interpolate_at_time`` that returns only the quaternion
+        and raises on error, conforming to the ``QuaternionTrajectory`` protocol.
+
+        Parameters
+        ----------
+        t : float
+            Time at which to evaluate.
+
+        Returns
+        -------
+        Quaternion
+            Interpolated quaternion at time t.
+
+        Raises
+        ------
+        ValueError
+            If the spline is empty or time is out of range.
+        """
+        result, status = self.interpolate_at_time(t)
+        if status != 0:
+            if status == -1:
+                raise ValueError("Spline is empty")
+            if status == INTERPOLATION_OUT_OF_RANGE_ERROR:
+                raise ValueError(f"Time {t} is out of range")
+            raise ValueError(f"Interpolation failed with status {status}")
+        return result
+
+    def evaluate_velocity(self, t: float) -> np.ndarray:
+        """
+        Evaluate the angular velocity at time t.
+
+        Uses ``interpolate_with_velocity`` internally and returns only the
+        angular velocity vector, conforming to the ``QuaternionTrajectory`` protocol.
+
+        Parameters
+        ----------
+        t : float
+            Time at which to evaluate.
+
+        Returns
+        -------
+        np.ndarray
+            3D angular velocity vector.
+
+        Raises
+        ------
+        ValueError
+            If the spline is empty or time is out of range.
+        """
+        _, omega, status = self.interpolate_with_velocity(t)
+        if status != 0:
+            if status == -1:
+                raise ValueError("Spline is empty")
+            if status == INTERPOLATION_OUT_OF_RANGE_ERROR:
+                raise ValueError(f"Time {t} is out of range")
+            raise ValueError(f"Interpolation failed with status {status}")
+        return omega
+
+    def evaluate_acceleration(self, t: float) -> np.ndarray:
+        """
+        Evaluate the angular acceleration at time t using finite differences.
+
+        Computes a central-difference approximation of angular acceleration
+        from the angular velocity, conforming to the ``QuaternionTrajectory`` protocol.
+
+        Parameters
+        ----------
+        t : float
+            Time at which to evaluate.
+
+        Returns
+        -------
+        np.ndarray
+            3D angular acceleration vector (finite-difference approximation).
+
+        Raises
+        ------
+        ValueError
+            If the spline is empty or time is out of range.
+
+        Notes
+        -----
+        This is a numerical approximation using finite differences with
+        step size dt=1e-6. For applications requiring exact angular
+        acceleration, consider using ``SquadC2`` or log-quaternion methods.
+        """
+        dt = 1e-6
+        times = list(self.quat_data.keys())
+
+        if not times:
+            raise ValueError("Spline is empty")
+
+        t_min, t_max = times[0], times[-1]
+
+        # Central difference when possible, forward/backward at boundaries
+        if t - dt >= t_min and t + dt <= t_max:
+            w_forward = self.evaluate_velocity(t + dt)
+            w_backward = self.evaluate_velocity(t - dt)
+            return (w_forward - w_backward) / (2.0 * dt)
+        if t + dt <= t_max:
+            w_now = self.evaluate_velocity(t)
+            w_forward = self.evaluate_velocity(t + dt)
+            return (w_forward - w_now) / dt
+        if t - dt >= t_min:
+            w_now = self.evaluate_velocity(t)
+            w_backward = self.evaluate_velocity(t - dt)
+            return (w_now - w_backward) / dt
+
+        return np.zeros(3)
+
     def get_time_points(self) -> list[float]:
         """Get all time points in the spline"""
         return list(self.quat_data.keys())
