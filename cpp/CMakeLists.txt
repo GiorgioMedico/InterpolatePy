@@ -64,6 +64,27 @@ set(INTERPOLATECPP_SOURCES
     src/cubic_spline_with_acc1.cpp
     src/cubic_spline_with_acc2.cpp
     src/smoothing_search.cpp
+    # Phase 2: B-spline
+    src/bspline.cpp
+    src/cubic_bspline_interpolation.cpp
+    src/bspline_interpolator.cpp
+    src/approximation_bspline.cpp
+    src/smoothing_cubic_bspline.cpp
+    # Phase 3: Motion
+    src/polynomial_trajectory.cpp
+    src/double_s_trajectory.cpp
+    src/trapezoidal_trajectory.cpp
+    src/parabolic_blend_trajectory.cpp
+    # Phase 4: Quaternion
+    src/quaternion.cpp
+    src/quaternion_spline.cpp
+    src/squad_c2.cpp
+    src/log_quaternion_interpolation.cpp
+    # Phase 5: Path
+    src/linear_path.cpp
+    src/circular_path.cpp
+    src/frenet_frame.cpp
+    src/linear_traj.cpp
 )
 
 add_library(interpolatecpp ${INTERPOLATECPP_SOURCES})

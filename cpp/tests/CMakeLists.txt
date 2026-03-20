@@ -13,6 +13,19 @@ set(TEST_SOURCES
     test_cubic_spline_with_acc2.cpp
     test_smoothing_search.cpp
     test_concepts.cpp
+    # Phase 2: B-spline
+    test_bspline.cpp
+    test_bspline_variants.cpp
+    # Phase 3: Motion
+    test_polynomial_trajectory.cpp
+    test_double_s_trajectory.cpp
+    test_trapezoidal_trajectory.cpp
+    test_parabolic_blend_trajectory.cpp
+    # Phase 4: Quaternion
+    test_quaternion.cpp
+    test_quaternion_spline.cpp
+    # Phase 5: Path
+    test_paths.cpp
 )
 
 add_executable(interpolatecpp_tests ${TEST_SOURCES})
