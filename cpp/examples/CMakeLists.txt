@@ -1,0 +1,2 @@
+add_executable(basic_spline basic_spline.cpp)
+target_link_libraries(basic_spline PRIVATE interpolatecpp::interpolatecpp)
