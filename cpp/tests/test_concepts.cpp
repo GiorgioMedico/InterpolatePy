@@ -11,6 +11,10 @@
 #include <interpolatecpp/bspline/bspline_interpolator.hpp>
 #include <interpolatecpp/bspline/cubic_bspline_interpolation.hpp>
 #include <interpolatecpp/bspline/smoothing_cubic_bspline.hpp>
+// Phase 4
+#include <interpolatecpp/quat/log_quaternion_interpolation.hpp>
+#include <interpolatecpp/quat/quaternion_spline.hpp>
+#include <interpolatecpp/quat/squad_c2.hpp>
 // Phase 5
 #include <interpolatecpp/path/circular_path.hpp>
 #include <interpolatecpp/path/linear_path.hpp>
@@ -39,6 +43,16 @@ static_assert(CurveEvaluator<bspline::ApproximationBSpline>,
               "ApproximationBSpline must satisfy CurveEvaluator concept");
 static_assert(CurveEvaluator<bspline::SmoothingCubicBSpline>,
               "SmoothingCubicBSpline must satisfy CurveEvaluator concept");
+
+// Phase 4: Quaternion trajectory
+static_assert(QuaternionTrajectory<quat::SquadC2>,
+              "SquadC2 must satisfy QuaternionTrajectory concept");
+static_assert(QuaternionTrajectory<quat::LogQuaternionInterpolation>,
+              "LogQuaternionInterpolation must satisfy QuaternionTrajectory concept");
+static_assert(QuaternionTrajectory<quat::QuaternionSpline>,
+              "QuaternionSpline must satisfy QuaternionTrajectory concept");
+// Note: ModifiedLogQuaternionInterpolation uses 4D velocity/acceleration
+// so it deliberately does NOT satisfy QuaternionTrajectory (3D).
 
 // Phase 5: Path primitives
 static_assert(GeometricPath<path::LinearPath>,

@@ -2,6 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <interpolatecpp/quat/log_quaternion_interpolation.hpp>
+#include <interpolatecpp/quat/modified_log_quaternion_interpolation.hpp>
 #include <interpolatecpp/quat/quaternion_spline.hpp>
 #include <interpolatecpp/quat/squad_c2.hpp>
 #include "test_data.hpp"
@@ -125,6 +126,14 @@ TEST_CASE("SquadC2 endpoints", "[squad_c2]") {
     REQUIRE_THAT(std::abs(rn.dot_product(quats[5])), WithinAbs(1.0, kNumericalAtol));
 }
 
+TEST_CASE("SquadC2 validation", "[squad_c2]") {
+    SECTION("Non-monotonic times") {
+        std::vector<double> t = {0, 1, 0.5, 3};
+        auto quats = make_test_quats(4);
+        REQUIRE_THROWS_AS(SquadC2(t, quats), std::invalid_argument);
+    }
+}
+
 TEST_CASE("SquadC2 zero-clamped boundaries", "[squad_c2]") {
     auto times = make_test_times(6);
     auto quats = make_test_quats(6);
@@ -196,4 +205,130 @@ TEST_CASE("LogQuaternionInterpolation validation", "[log_quat]") {
         std::vector<Quaternion> q = {Quaternion::identity()};
         REQUIRE_THROWS_AS(LogQuaternionInterpolation(t, q), std::invalid_argument);
     }
+
+    SECTION("Invalid degree") {
+        auto times = make_test_times(6);
+        auto quats = make_test_quats(6);
+        REQUIRE_THROWS_AS(LogQuaternionInterpolation(times, quats, 2), std::invalid_argument);
+    }
+
+    SECTION("Non-monotonic times") {
+        std::vector<double> t = {0, 1, 0.5, 3};
+        auto quats = make_test_quats(4);
+        REQUIRE_THROWS_AS(LogQuaternionInterpolation(t, quats), std::invalid_argument);
+    }
+}
+
+// ===== ModifiedLogQuaternionInterpolation =====
+
+TEST_CASE("ModifiedLogQuaternionInterpolation construction", "[mod_log_quat]") {
+    auto times = make_test_times(6);
+    auto quats = make_test_quats(6);
+    ModifiedLogQuaternionInterpolation mlqi(times, quats, 3);
+
+    SECTION("Unit norm throughout") {
+        for (int i = 0; i <= 20; ++i) {
+            double t = 5.0 * i / 20.0;
+            auto r = mlqi.evaluate(t);
+            REQUIRE_THAT(r.norm(), WithinAbs(1.0, 1e-4));
+        }
+    }
+}
+
+TEST_CASE("ModifiedLogQuaternionInterpolation endpoints", "[mod_log_quat]") {
+    auto times = make_test_times(6);
+    auto quats = make_test_quats(6);
+    ModifiedLogQuaternionInterpolation mlqi(times, quats, 3);
+
+    auto r0 = mlqi.evaluate(0.0);
+    auto rn = mlqi.evaluate(5.0);
+
+    REQUIRE_THAT(std::abs(r0.dot_product(quats[0])), WithinAbs(1.0, 1e-4));
+    REQUIRE_THAT(std::abs(rn.dot_product(quats[5])), WithinAbs(1.0, 1e-4));
+}
+
+TEST_CASE("ModifiedLogQuaternionInterpolation velocity returns 4D", "[mod_log_quat]") {
+    auto times = make_test_times(6);
+    auto quats = make_test_quats(6);
+    ModifiedLogQuaternionInterpolation mlqi(times, quats, 3);
+
+    auto v = mlqi.evaluate_velocity(2.5);
+    auto a = mlqi.evaluate_acceleration(2.5);
+
+    REQUIRE(v.size() == 4);
+    REQUIRE(a.size() == 4);
+    REQUIRE(v.allFinite());
+    REQUIRE(a.allFinite());
+}
+
+TEST_CASE("ModifiedLogQuaternionInterpolation without normalization", "[mod_log_quat]") {
+    auto times = make_test_times(6);
+    auto quats = make_test_quats(6);
+    ModifiedLogQuaternionInterpolation mlqi(times, quats, 3, false);
+
+    REQUIRE_FALSE(mlqi.normalize_axis());
+
+    for (int i = 0; i <= 10; ++i) {
+        double t = 5.0 * i / 10.0;
+        auto r = mlqi.evaluate(t);
+        REQUIRE(r.norm() > 0.0);
+        REQUIRE(std::isfinite(r.norm()));
+    }
+}
+
+TEST_CASE("ModifiedLogQuaternionInterpolation validation", "[mod_log_quat]") {
+    SECTION("Mismatched sizes") {
+        std::vector<double> t = {0, 1};
+        std::vector<Quaternion> q = {Quaternion::identity()};
+        REQUIRE_THROWS_AS(ModifiedLogQuaternionInterpolation(t, q), std::invalid_argument);
+    }
+
+    SECTION("Too few points") {
+        std::vector<double> t = {0};
+        std::vector<Quaternion> q = {Quaternion::identity()};
+        REQUIRE_THROWS_AS(ModifiedLogQuaternionInterpolation(t, q), std::invalid_argument);
+    }
+
+    SECTION("Invalid degree") {
+        auto times = make_test_times(6);
+        auto quats = make_test_quats(6);
+        REQUIRE_THROWS_AS(ModifiedLogQuaternionInterpolation(times, quats, 2),
+                          std::invalid_argument);
+        REQUIRE_THROWS_AS(ModifiedLogQuaternionInterpolation(times, quats, 6),
+                          std::invalid_argument);
+    }
+
+    SECTION("Non-monotonic times") {
+        std::vector<double> t = {0, 1, 0.5, 3};
+        auto quats = make_test_quats(4);
+        REQUIRE_THROWS_AS(ModifiedLogQuaternionInterpolation(t, quats), std::invalid_argument);
+    }
+
+    SECTION("Wrong velocity size") {
+        auto times = make_test_times(6);
+        auto quats = make_test_quats(6);
+        Eigen::VectorXd bad_vel(3);
+        bad_vel << 0, 0, 0;
+        REQUIRE_THROWS_AS(
+            ModifiedLogQuaternionInterpolation(times, quats, 3, true, bad_vel),
+            std::invalid_argument);
+    }
+}
+
+// ===== SquadC2 Config =====
+
+TEST_CASE("SquadC2 config constructor", "[squad_c2]") {
+    auto times = make_test_times(6);
+    auto quats = make_test_quats(6);
+
+    SquadC2Config config;
+    config.time_points = times;
+    config.quaternions = quats;
+    config.validate_continuity = true;
+
+    SquadC2 spline(config);
+
+    REQUIRE(spline.validate_continuity());
+    auto r = spline.evaluate(2.5);
+    REQUIRE_THAT(r.norm(), WithinAbs(1.0, kNumericalAtol));
 }

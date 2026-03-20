@@ -71,8 +71,16 @@ LogQuaternionInterpolation::LogQuaternionInterpolation(
     if (quaternions.size() < 2) {
         throw std::invalid_argument("Need at least 2 quaternions");
     }
+    if (degree < 3 || degree > 5) {
+        throw std::invalid_argument("Degree must be 3, 4, or 5");
+    }
     if (static_cast<int>(quaternions.size()) < degree + 1) {
         throw std::invalid_argument("Need at least degree+1 quaternions");
+    }
+    for (size_t i = 1; i < time_points.size(); ++i) {
+        if (time_points[i] <= time_points[i - 1]) {
+            throw std::invalid_argument("Time points must be strictly increasing");
+        }
     }
 
     // Normalize quaternions

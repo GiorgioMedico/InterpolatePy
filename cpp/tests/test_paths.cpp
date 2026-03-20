@@ -191,6 +191,70 @@ TEST_CASE("Frenet frame circular path", "[frenet_frame]") {
     REQUIRE_THAT(frames[0].curvature, WithinAbs(1.0, kNumericalAtol));
 }
 
+// ===== Frenet Helper Functions =====
+
+TEST_CASE("circular_trajectory_with_derivatives", "[frenet_helpers]") {
+    SECTION("At u=0") {
+        auto [p, dp, d2p] = circular_trajectory_with_derivatives(0.0, 2.0);
+
+        REQUIRE_THAT(p(0), WithinAbs(2.0, kRegularAtol));
+        REQUIRE_THAT(p(1), WithinAbs(0.0, kRegularAtol));
+        REQUIRE_THAT(p(2), WithinAbs(0.0, kRegularAtol));
+
+        REQUIRE_THAT(dp(0), WithinAbs(0.0, kRegularAtol));
+        REQUIRE_THAT(dp(1), WithinAbs(2.0, kRegularAtol));
+        REQUIRE_THAT(dp(2), WithinAbs(0.0, kRegularAtol));
+
+        REQUIRE_THAT(d2p(0), WithinAbs(-2.0, kRegularAtol));
+        REQUIRE_THAT(d2p(1), WithinAbs(0.0, kRegularAtol));
+    }
+
+    SECTION("At u=PI/2") {
+        auto [p, dp, d2p] = circular_trajectory_with_derivatives(M_PI / 2.0, 1.0);
+
+        REQUIRE_THAT(p(0), WithinAbs(0.0, kNumericalAtol));
+        REQUIRE_THAT(p(1), WithinAbs(1.0, kNumericalAtol));
+    }
+}
+
+TEST_CASE("helicoidal_trajectory_with_derivatives", "[frenet_helpers]") {
+    SECTION("At u=0") {
+        auto [p, dp, d2p] = helicoidal_trajectory_with_derivatives(0.0, 2.0, 0.5);
+
+        REQUIRE_THAT(p(0), WithinAbs(2.0, kRegularAtol));
+        REQUIRE_THAT(p(1), WithinAbs(0.0, kRegularAtol));
+        REQUIRE_THAT(p(2), WithinAbs(0.0, kRegularAtol));
+
+        REQUIRE_THAT(dp(2), WithinAbs(0.5, kRegularAtol));  // z-velocity = d
+    }
+
+    SECTION("Z component grows linearly") {
+        double u = 3.0;
+        double d = 0.5;
+        auto [p, dp, d2p] = helicoidal_trajectory_with_derivatives(u, 2.0, d);
+
+        REQUIRE_THAT(p(2), WithinAbs(d * u, kRegularAtol));
+        REQUIRE_THAT(d2p(2), WithinAbs(0.0, kRegularAtol));  // No z-acceleration
+    }
+}
+
+TEST_CASE("Frenet frames with helicoidal helper", "[frenet_helpers]") {
+    Eigen::VectorXd s(5);
+    for (int i = 0; i < 5; ++i) s[i] = M_PI * i / 4.0;
+
+    auto curve = [](double u) {
+        return helicoidal_trajectory_with_derivatives(u, 2.0, 0.5);
+    };
+
+    auto frames = compute_frenet_frames(curve, s);
+    REQUIRE(frames.size() == 5);
+
+    for (const auto& f : frames) {
+        REQUIRE(f.tangent.allFinite());
+        REQUIRE(f.curvature >= 0.0);
+    }
+}
+
 // ===== Linear Trajectory =====
 
 TEST_CASE("Linear trajectory 1D", "[linear_traj]") {

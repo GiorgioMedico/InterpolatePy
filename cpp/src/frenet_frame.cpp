@@ -54,4 +54,20 @@ std::vector<FrenetFrame> compute_frenet_frames(
     return frames;
 }
 
+std::tuple<Eigen::Vector3d, Eigen::Vector3d, Eigen::Vector3d>
+circular_trajectory_with_derivatives(double u, double r) {
+    Eigen::Vector3d p(r * std::cos(u), r * std::sin(u), 0.0);
+    Eigen::Vector3d dp(-r * std::sin(u), r * std::cos(u), 0.0);
+    Eigen::Vector3d d2p(-r * std::cos(u), -r * std::sin(u), 0.0);
+    return {p, dp, d2p};
+}
+
+std::tuple<Eigen::Vector3d, Eigen::Vector3d, Eigen::Vector3d>
+helicoidal_trajectory_with_derivatives(double u, double r, double d) {
+    Eigen::Vector3d p(r * std::cos(u), r * std::sin(u), d * u);
+    Eigen::Vector3d dp(-r * std::sin(u), r * std::cos(u), d);
+    Eigen::Vector3d d2p(-r * std::cos(u), -r * std::sin(u), 0.0);
+    return {p, dp, d2p};
+}
+
 }  // namespace interpolatecpp::path

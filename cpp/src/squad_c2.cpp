@@ -97,13 +97,19 @@ int SquadC2::find_segment(double t) const {
 }
 
 SquadC2::SquadC2(const std::vector<double>& time_points,
-                 const std::vector<Quaternion>& quaternions, bool normalize_quaternions)
-    : times_(time_points) {
+                 const std::vector<Quaternion>& quaternions, bool normalize_quaternions,
+                 bool validate_continuity)
+    : times_(time_points), validate_continuity_(validate_continuity) {
     if (time_points.size() != quaternions.size()) {
         throw std::invalid_argument("Time points and quaternions must have same length");
     }
     if (quaternions.size() < 2) {
         throw std::invalid_argument("Need at least 2 quaternions");
+    }
+    for (size_t i = 1; i < time_points.size(); ++i) {
+        if (time_points[i] <= time_points[i - 1]) {
+            throw std::invalid_argument("Time points must be strictly increasing");
+        }
     }
 
     if (normalize_quaternions) {
@@ -118,6 +124,10 @@ SquadC2::SquadC2(const std::vector<double>& time_points,
     build_extended_sequence();
     compute_intermediates();
 }
+
+SquadC2::SquadC2(const SquadC2Config& config)
+    : SquadC2(config.time_points, config.quaternions, config.normalize_quaternions,
+              config.validate_continuity) {}
 
 Quaternion SquadC2::evaluate(double t) const {
     t = std::clamp(t, times_.front(), times_.back());

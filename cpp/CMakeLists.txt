@@ -80,6 +80,7 @@ set(INTERPOLATECPP_SOURCES
     src/quaternion_spline.cpp
     src/squad_c2.cpp
     src/log_quaternion_interpolation.cpp
+    src/modified_log_quaternion_interpolation.cpp
     # Phase 5: Path
     src/linear_path.cpp
     src/circular_path.cpp
