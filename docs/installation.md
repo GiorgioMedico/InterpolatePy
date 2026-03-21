@@ -1,13 +1,13 @@
 # Installation Guide
 
-InterpolatePy is available on PyPI and can be installed with pip. We support Python 3.10+ on Windows, macOS, and Linux.
+InterpolatePy is available on PyPI and can be installed with pip. We support Python 3.11+ on Windows, macOS, and Linux.
 
 ## Requirements
 
-- **Python**: ≥3.10
-- **NumPy**: ≥2.0.0 
-- **SciPy**: ≥1.15.2
-- **Matplotlib**: ≥3.10.1
+- **Python**: ≥3.11
+- **NumPy**: ≥2.3.0
+- **SciPy**: ≥1.16.0
+- **Matplotlib**: ≥3.10.5
 
 ## Installation
 
@@ -16,7 +16,7 @@ InterpolatePy is available on PyPI and can be installed with pip. We support Pyt
 **Step 1: Verify Python Version**
 ```bash
 python --version
-# Should show Python 3.10 or higher
+# Should show Python 3.11 or higher
 ```
 
 **Step 2: Install InterpolatePy**
@@ -101,19 +101,92 @@ python -m pytest tests/
 python -m pytest tests/ --cov=interpolatepy --cov-report=html --cov-report=term
 ```
 
+## C++ Backend (Optional)
+
+InterpolatePy includes an optional C++ extension that accelerates computation-heavy algorithms. The pure-Python install works out of the box without it.
+
+### Check Backend Status
+
+```python
+import interpolatepy
+print(f"C++ backend active: {interpolatepy.HAS_CPP}")
+```
+
+### Building from Source
+
+**Requirements:**
+
+- CMake >= 3.21
+- C++20 compatible compiler (GCC >= 10, Clang >= 13, MSVC >= 19.29)
+- Python development headers
+
+Dependencies (Eigen, pybind11, Catch2) are fetched automatically via CMake FetchContent.
+
+**Build steps:**
+
+```bash
+git clone https://github.com/GiorgioMedico/InterpolatePy.git
+cd InterpolatePy/cpp
+mkdir build && cd build
+cmake .. -DINTERPOLATECPP_BUILD_BINDINGS=ON
+make -j$(nproc)
+```
+
+Copy the compiled extension into the package directory:
+```bash
+cp bindings/interpolatecpp_py*.so ../../interpolatepy/
+```
+
+**Verify:**
+```bash
+python -c "import interpolatepy; print(interpolatepy.HAS_CPP)"
+# Expected: True
+```
+
+### Disabling C++ Backend
+
+To force pure-Python mode even when the extension is installed:
+```bash
+export INTERPOLATEPY_NO_CPP=1
+```
+
+### C++ Build Troubleshooting
+
+**CMake not found or too old:**
+```bash
+pip install cmake  # or: sudo apt install cmake
+cmake --version    # Must be >= 3.21
+```
+
+**Missing C++20 support:**
+```bash
+g++ --version  # Must be >= 10 for C++20
+# On Ubuntu: sudo apt install g++-12
+```
+
+**Eigen fetch fails (network issues):**
+```bash
+# Pre-install Eigen system-wide
+sudo apt install libeigen3-dev  # Ubuntu/Debian
+brew install eigen               # macOS
+```
+
+For more details on the dual-backend architecture, see the [Architecture Guide](architecture.md).
+
 ## Optional Dependencies
 
 ### Testing Dependencies
-- `pytest>=7.3.1` - Test framework
+- `pytest>=8.4.0` - Test framework
 - `pytest-cov>=4.1.0` - Coverage reporting
 - `pytest-benchmark>=4.0.0` - Performance benchmarking
 - `codecov>=2.1.13` - Coverage upload
+- `pre-commit>=4.2.0` - Git hooks
 
-### Development Dependencies  
-- `ruff>=0.1.5` - Linting and formatting
-- `mypy>=1.6.1` - Type checking
-- `pre-commit>=4.1.0` - Git hooks
-- `pyright>=1.1.335` - Additional type checking
+### Development Dependencies
+- `ruff>=0.12.8` - Linting and formatting
+- `mypy>=1.17.0` - Type checking
+- `pre-commit>=4.2.0` - Git hooks
+- `pyright>=1.1.400` - Additional type checking
 - `build>=1.0.3` - Package building
 - `twine>=4.0.2` - Package publishing
 
@@ -196,7 +269,7 @@ pip install InterpolatePy
 
 **Solution 2**: Install dependencies manually:
 ```bash
-pip install numpy>=2.0.0 scipy>=1.15.2 matplotlib>=3.10.1
+pip install numpy>=2.3.0 scipy>=1.16.0 matplotlib>=3.10.5
 pip install InterpolatePy
 ```
 

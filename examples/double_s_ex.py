@@ -47,7 +47,7 @@ def example_standard_trajectory() -> None:
     time_array = np.arange(0, t_duration + t_sample, t_sample)
 
     # Evaluate trajectory at those time points
-    positions, velocities, accelerations, jerks = trajectory.evaluate(time_array)
+    positions, velocities, accelerations, jerks = trajectory.evaluate_full(time_array)
 
     # Get phase durations
     phase_durations = trajectory.get_phase_durations()
@@ -135,7 +135,7 @@ def example_velocity_matching() -> None:
     time_array = np.arange(0, t_duration + t_sample, t_sample)
 
     # Evaluate trajectory at those time points
-    positions, velocities, accelerations, jerks = trajectory.evaluate(time_array)
+    positions, velocities, accelerations, jerks = trajectory.evaluate_full(time_array)
 
     # Plot results
     fig, (ax1, ax2, ax3, ax4) = plt.subplots(4, 1, figsize=(12, 10), sharex=True)
@@ -202,7 +202,7 @@ def example_negative_displacement() -> None:
     time_array = np.arange(0, t_duration + t_sample, t_sample)
 
     # Evaluate trajectory at those time points
-    positions, velocities, accelerations, jerks = trajectory.evaluate(time_array)
+    positions, velocities, accelerations, jerks = trajectory.evaluate_full(time_array)
 
     # Get phase durations
     phase_durations = trajectory.get_phase_durations()
@@ -290,7 +290,7 @@ def example_asymmetric_velocities() -> None:
     time_array = np.arange(0, t_duration + t_sample, t_sample)
 
     # Evaluate trajectory at those time points
-    positions, velocities, accelerations, jerks = trajectory.evaluate(time_array)
+    positions, velocities, accelerations, jerks = trajectory.evaluate_full(time_array)
 
     # Get phase durations
     phase_durations = trajectory.get_phase_durations()

@@ -5,7 +5,27 @@ All notable changes to InterpolatePy will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - 2025-01-XX
+## [3.0.0] - 2025-08-14
+
+### Added
+- **C++ backend** with pybind11 bindings for performance-critical algorithms
+  - Eigen-based C++20 implementation of all spline, B-spline, motion profile, path, and quaternion algorithms
+  - Transparent adapter layer (`_adapters/`) preserving the existing Python API
+  - Runtime backend detection via `HAS_CPP` flag
+  - Pure-Python fallback when C++ extension is unavailable
+  - `INTERPOLATEPY_NO_CPP=1` environment variable to force pure-Python mode
+  - 142 C++ unit tests with Catch2 framework
+  - 16 C++ example programs
+- **Protocol definitions** (`protocols.py`) for structural typing
+  - `ScalarTrajectory`, `CurveEvaluator`, `GeometricPath`, `QuaternionTrajectory`, `TrajectoryFunction`
+- **Duration-based `TrapezoidalTrajectory` constructor**
+
+### Changed
+- Minimum Python version updated to 3.11
+- Updated dependencies: NumPy >=2.3.0, SciPy >=1.16.0, Matplotlib >=3.10.5
+- Backend-aware import system via `_api.py` conditionally routes to C++ or pure-Python
+
+## [2.0.0] - 2025-08-06
 
 ### Added
 - **Complete MkDocs documentation** with Material theme
@@ -58,10 +78,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking Changes
 - Some internal API changes for consistency
-- Updated minimum Python version to 3.10
+- Updated minimum Python version to 3.11
 - Renamed some utility functions for clarity
 
-## [1.5.0] - 2024-XX-XX
+## [1.1.0] - 2025-05-17
 
 ### Added
 - Initial quaternion interpolation support
@@ -76,7 +96,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Edge cases in cubic spline interpolation
 - Performance issues with large datasets
 
-## [1.0.0] - 2024-XX-XX
+## [1.0.1] - 2025-03-26
 
 ### Added
 - Initial release of InterpolatePy
@@ -172,19 +192,23 @@ result = spline.evaluate(t)
 
 ## Roadmap
 
+### Completed
+
+- [x] **C++ Backend**: Native C++20 implementation with pybind11 bindings (v3.0.0)
+- [x] **Protocol Definitions**: Structural typing for algorithm interchangeability (v3.0.0)
+
 ### Planned Features
 
-#### Version 2.1 (Next Minor Release)
+#### Version 3.1 (Next Minor Release)
 - [ ] **Enhanced B-splines**: NURBS support and surface interpolation
 - [ ] **Optimization Integration**: Interface with scipy.optimize for trajectory optimization
-- [ ] **Real-time Interface**: Zero-copy evaluation for embedded systems
 - [ ] **Extended Examples**: More industry-specific use cases
+- [ ] **Pre-built Wheels**: Distribute pre-compiled C++ extensions via PyPI
 
-#### Version 2.2
+#### Version 3.2
 - [ ] **Multi-dimensional Trajectories**: Native support for N-dimensional spaces
 - [ ] **Constraint Handling**: General inequality constraints on derivatives
 - [ ] **Adaptive Algorithms**: Automatic degree/parameter selection
-- [ ] **GPU Acceleration**: CUDA support for large-scale problems
 
 #### Version 3.0 (Future Major Release)
 - [ ] **Modern Python Features**: Python 3.12+ features and optimizations

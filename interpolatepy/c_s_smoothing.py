@@ -281,7 +281,7 @@ class CubicSmoothingSpline:
         n = self.n
 
         # For pure interpolation (μ = 1): Aω = c (equation 4.22)
-        if self.mu == 1.0:
+        if self.mu == 1.0:  # noqa: RUF069  — mu is user-provided, not computed
             # Construct the vector c according to equation (4.24)
             c = np.zeros(n)
 
@@ -366,7 +366,7 @@ class CubicSmoothingSpline:
         For smoothing spline (0<μ<1): s = q - λW⁻¹Cᵀω (equation 4.36)
         """
         # For pure interpolation (μ = 1), s = q (exact fit)
-        if self.mu == 1.0:
+        if self.mu == 1.0:  # noqa: RUF069  — mu is user-provided, not computed
             return self.q.copy()
 
         # For smoothing spline (0 < μ < 1), s = q - λW⁻¹Cᵀω (equation 4.36)

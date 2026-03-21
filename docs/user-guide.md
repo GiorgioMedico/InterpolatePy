@@ -281,8 +281,8 @@ axes[0, 1].set_ylabel('Angular Speed (deg/s)')
 axes[0, 1].grid(True)
 
 # 3D trajectory visualization (quaternion components)
-quaternion_components = np.array([[q.w, q.x, q.y, q.z] for q in orientations])
-for i, label in enumerate(['w', 'x', 'y', 'z']):
+quaternion_components = np.array([[q.s_, *q.v_] for q in orientations])
+for i, label in enumerate(['s', 'v1', 'v2', 'v3']):
     axes[1, 0].plot(t_eval, quaternion_components[:, i], label=f'q_{label}', linewidth=2)
 
 axes[1, 0].set_title('Quaternion Components')

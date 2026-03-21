@@ -365,25 +365,25 @@ class DoubleSTrajectory:
         # Round final time to discrete ticks (in milliseconds)
         self.T = round(self.T * 1000) / 1000
 
-    def evaluate(self, t: float | np.ndarray) -> tuple[float | np.ndarray, ...]:
+    def evaluate_full(self, t: float | np.ndarray) -> tuple[float | np.ndarray, ...]:
         """
-        Evaluate the double-S trajectory at time t.
+        Evaluate all trajectory components at time t.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         t : float or ndarray
-            Time(s) at which to evaluate the trajectory
+            Time(s) at which to evaluate the trajectory.
 
-        Returns:
-        --------
+        Returns
+        -------
         q : float or ndarray
-            Position at time t
+            Position at time t.
         qp : float or ndarray
-            Velocity at time t
+            Velocity at time t.
         qpp : float or ndarray
-            Acceleration at time t
+            Acceleration at time t.
         qppp : float or ndarray
-            Jerk at time t
+            Jerk at time t.
         """
         # Handle array input
         if isinstance(t, list | np.ndarray):
@@ -395,7 +395,7 @@ class DoubleSTrajectory:
 
             # Compute for each time point
             for i, t_i in enumerate(t):
-                q[i], qp[i], qpp[i], qppp[i] = self.evaluate(float(t_i))
+                q[i], qp[i], qpp[i], qppp[i] = self.evaluate_full(float(t_i))
             return q, qp, qpp, qppp
 
         # Special case for equal positions with equal velocities
@@ -527,6 +527,74 @@ class DoubleSTrajectory:
 
         return q_final, qp_final, qpp_final, qppp_final
 
+    def evaluate(self, t: float | np.ndarray) -> float | np.ndarray:
+        """
+        Evaluate position at time t.
+
+        Parameters
+        ----------
+        t : float or ndarray
+            Time(s) at which to evaluate.
+
+        Returns
+        -------
+        float or ndarray
+            Position at time t.
+        """
+        q, _, _, _ = self.evaluate_full(t)
+        return q
+
+    def evaluate_velocity(self, t: float | np.ndarray) -> float | np.ndarray:
+        """
+        Evaluate velocity at time t.
+
+        Parameters
+        ----------
+        t : float or ndarray
+            Time(s) at which to evaluate.
+
+        Returns
+        -------
+        float or ndarray
+            Velocity at time t.
+        """
+        _, v, _, _ = self.evaluate_full(t)
+        return v
+
+    def evaluate_acceleration(self, t: float | np.ndarray) -> float | np.ndarray:
+        """
+        Evaluate acceleration at time t.
+
+        Parameters
+        ----------
+        t : float or ndarray
+            Time(s) at which to evaluate.
+
+        Returns
+        -------
+        float or ndarray
+            Acceleration at time t.
+        """
+        _, _, a, _ = self.evaluate_full(t)
+        return a
+
+    def evaluate_jerk(self, t: float | np.ndarray) -> float | np.ndarray:
+        """
+        Evaluate jerk at time t.
+
+        Parameters
+        ----------
+        t : float or ndarray
+            Time(s) at which to evaluate.
+
+        Returns
+        -------
+        float or ndarray
+            Jerk at time t.
+        """
+        _, _, _, j = self.evaluate_full(t)
+        return j
+
     def get_duration(self) -> float:
         """
         Returns the total duration of the trajectory.
@@ -582,6 +650,6 @@ class DoubleSTrajectory:
         planner = DoubleSTrajectory(state_params, bounds)
 
         def trajectory(t: float | np.ndarray) -> tuple[float | np.ndarray, ...]:
-            return planner.evaluate(t)
+            return planner.evaluate_full(t)
 
         return trajectory, planner.get_duration()

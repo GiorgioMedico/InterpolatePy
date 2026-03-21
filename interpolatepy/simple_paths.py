@@ -110,8 +110,7 @@ class LinearPath:
         # Equation 4.35: dp/ds = (pf-pi)/||pf-pi||
         return self.tangent
 
-    @staticmethod
-    def acceleration(_s: float | None = None) -> np.ndarray:
+    def acceleration(self, _s: float | None = None) -> np.ndarray:  # noqa: PLR6301
         """
         Calculate second derivative with respect to arc length.
         For linear path, this is always zero.
