@@ -146,8 +146,11 @@ nav:
     - Tutorials:
       - Spline Interpolation: tutorials/spline-interpolation.md
       - Motion Profiles: tutorials/motion-profiles.md
+      - Quaternion Interpolation: tutorials/quaternion-interpolation.md
+      - Path Planning: tutorials/path-planning.md
   - Reference:
     - API Reference: api-reference.md
+    - Architecture: architecture.md
     - Algorithms: algorithms.md
     - Examples: examples.md
     - Troubleshooting: troubleshooting.md

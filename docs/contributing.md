@@ -48,19 +48,38 @@ Thank you for your interest in contributing to InterpolatePy! This guide will he
 
 ```
 InterpolatePy/
-├── interpolatepy/          # Main package source
-│   ├── __init__.py        # Package exports
-│   ├── cubic_spline.py    # Core algorithms
-│   ├── double_s.py        # Motion profiles
-│   └── ...                # Other modules
-├── tests/                 # Test suite
-│   ├── test_splines.py    # Algorithm tests
-│   └── ...                # Other test files
-├── examples/              # Usage examples
-├── docs/                  # Documentation source
-├── pyproject.toml         # Build configuration
-└── README.md              # Project overview
+├── interpolatepy/              # Main Python package
+│   ├── __init__.py             # Public API exports
+│   ├── _api.py                 # Backend-aware import router
+│   ├── _backend.py             # C++ extension detection
+│   ├── _adapters/              # C++-backed class adapters
+│   │   ├── _spline.py          # Spline adapters
+│   │   ├── _bspline.py         # B-spline adapters
+│   │   ├── _motion.py          # Motion profile adapters
+│   │   ├── _paths.py           # Path adapters
+│   │   ├── _quaternion.py      # Quaternion adapters
+│   │   └── _direct.py          # Direct C++ re-exports
+│   ├── protocols.py            # PEP 544 protocol definitions
+│   ├── cubic_spline.py         # Pure-Python algorithms
+│   ├── double_s.py             # S-curve motion profiles
+│   ├── quat_core.py            # Quaternion class
+│   └── ...                     # Other algorithm modules
+├── cpp/                        # C++ backend (optional)
+│   ├── include/interpolatecpp/ # Header-only public interface
+│   ├── src/                    # Implementation files (23 .cpp)
+│   ├── bindings/               # pybind11 binding definitions
+│   ├── tests/                  # Catch2 unit tests
+│   ├── examples/               # C++ usage examples
+│   └── CMakeLists.txt          # CMake build configuration
+├── tests/                      # Python test suite
+├── examples/                   # Python usage examples (23 scripts)
+├── docs/                       # MkDocs documentation source
+├── pyproject.toml              # Build configuration
+├── mkdocs.yml                  # Documentation site config
+└── README.md                   # Project overview
 ```
+
+See the [Architecture Guide](architecture.md) for details on the dual-backend design.
 
 ## Development Workflow
 
@@ -508,6 +527,39 @@ def create_robot_trajectory():
     return trajectories
 ```
 
+## C++ Development
+
+### Building and Testing C++
+
+```bash
+cd cpp
+mkdir build && cd build
+cmake .. -DINTERPOLATECPP_BUILD_TESTS=ON -DINTERPOLATECPP_BUILD_BINDINGS=ON
+make -j$(nproc)
+
+# Run C++ unit tests
+./tests/interpolatecpp_tests
+
+# Run specific test
+./tests/interpolatecpp_tests "[cubic_spline]"
+```
+
+### Adding a New C++ Algorithm
+
+1. **Header**: Create `include/interpolatecpp/<category>/new_algo.hpp`
+2. **Source**: Create `src/new_algo.cpp`
+3. **Binding**: Add to `bindings/bind_<category>.cpp`
+4. **Adapter**: Create or update `interpolatepy/_adapters/_<category>.py` to subclass the C++ class and add `plot()`, `__repr__`
+5. **Wire up**: Add to `_adapters/__init__.py` and `_api.py` (both the `HAS_CPP` and fallback branches)
+6. **Tests**: Add Catch2 tests in `tests/` and Python tests in the main `tests/` directory
+
+### C++ Code Style
+
+- C++20 with concepts for type safety
+- Eigen 3.4 for linear algebra
+- `snake_case` for functions, `PascalCase` for classes
+- Header-only public interface with separate `.cpp` compilation units
+
 ## Algorithm Contributions
 
 ### Adding New Algorithms
@@ -516,7 +568,7 @@ When contributing new interpolation algorithms:
 
 1. **Research Background**: Include references to papers/books
 2. **Mathematical Foundation**: Document the theory clearly
-3. **Implementation**: Follow our class structure guidelines
+3. **Implementation**: Follow our class structure guidelines (Python and optionally C++)
 4. **Testing**: Comprehensive test coverage
 5. **Documentation**: Examples and usage guidelines
 6. **Performance**: Benchmarks and complexity analysis

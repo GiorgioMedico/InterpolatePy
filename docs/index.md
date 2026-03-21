@@ -3,7 +3,7 @@
 [![PyPI Downloads](https://static.pepy.tech/badge/interpolatepy)](https://pepy.tech/projects/interpolatepy)
 [![CI Tests](https://github.com/GiorgioMedico/InterpolatePy/actions/workflows/test.yml/badge.svg)](https://github.com/GiorgioMedico/InterpolatePy/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python](https://img.shields.io/badge/python-3.10+-blue)](https://www.python.org/downloads/)
+[![Python](https://img.shields.io/badge/python-3.11+-blue)](https://www.python.org/downloads/)
 
 **Production-ready trajectory planning and interpolation for robotics, animation, and scientific computing.**
 
@@ -14,7 +14,7 @@ InterpolatePy provides 20+ algorithms for smooth trajectory generation with prec
 <div class="feature-grid">
   <div class="feature-card">
     <h3>⚡ Fast Performance</h3>
-    <p>Vectorized NumPy operations with ~1ms evaluation for 1000-point cubic splines. Optimized algorithms for real-time applications.</p>
+    <p>Optional C++ backend (Eigen + pybind11) for maximum speed; pure-Python fallback uses vectorized NumPy. ~1ms for 1000-point cubic splines.</p>
   </div>
   <div class="feature-card">
     <h3>🎯 Research-Grade Precision</h3>
@@ -152,10 +152,14 @@ plt.show()
 
 ## 🛠️ Development & Quality
 
-- **Modern Python**: 3.10+ with strict typing and dataclass-based APIs
-- **High Test Coverage**: 85%+ coverage with continuous integration
+- **Modern Python**: 3.11+ with strict typing and dataclass-based APIs
+- **Dual Backend**: Optional C++ extension for performance; pure-Python fallback always available
+- **High Test Coverage**: 85%+ Python coverage + 142 C++ unit tests
 - **Research-Grade**: Peer-reviewed algorithms from robotics literature
 - **Production-Ready**: Used in industrial applications and research projects
+
+!!! info "C++ Backend"
+    InterpolatePy automatically uses a compiled C++ extension when available. Check with `interpolatepy.HAS_CPP`. See the [Architecture Guide](architecture.md) for details.
 
 ## 📖 Getting Started
 

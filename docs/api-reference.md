@@ -150,6 +150,33 @@ velocity = bspline.evaluate_derivative(t, order=1)
     options:
       show_source: false
 
+#### CubicBSplineInterpolation {#cubic-b-spline-interpolation}
+
+::: interpolatepy.CubicBSplineInterpolation
+    options:
+      show_source: false
+
+**Example:**
+```python
+from interpolatepy import CubicBSplineInterpolation
+import numpy as np
+
+# 2D data points
+points = np.array([[0, 0], [1, 2], [3, 1], [5, 3], [7, 0]])
+
+# Create cubic B-spline interpolation with chord-length parameterization
+bspline = CubicBSplineInterpolation(
+    points=points,
+    method="chord_length",
+    auto_derivatives=True
+)
+
+# Evaluate curve at parameter value
+u = 0.5
+position = bspline.evaluate(u)
+derivative = bspline.evaluate_derivative(u, order=1)
+```
+
 ## Motion Profiles
 
 ### DoubleSTrajectory {#double-s-trajectory}
@@ -238,6 +265,18 @@ pos, vel, acc = traj_func(t)
 print(f"At t={t}: pos={pos:.2f}, vel={vel:.2f}, acc={acc:.2f}")
 ```
 
+#### CalculationParams
+
+::: interpolatepy.CalculationParams
+    options:
+      show_source: false
+
+#### InterpolationParams
+
+::: interpolatepy.InterpolationParams
+    options:
+      show_source: false
+
 ### PolynomialTrajectory {#polynomial-trajectory}
 
 ::: interpolatepy.PolynomialTrajectory
@@ -290,6 +329,27 @@ pos, vel, acc, jerk = traj_func(t)
 ::: interpolatepy.ParabolicBlendTrajectory
     options:
       show_source: false
+
+**Example:**
+```python
+from interpolatepy import ParabolicBlendTrajectory
+import numpy as np
+
+# Define via points and timing
+q = [0.0, 5.0, 2.0, 8.0]          # Via positions
+t = [0.0, 2.0, 4.0, 6.0]          # Nominal times
+dt_blend = [0.5, 0.5, 0.5, 0.5]   # Blend durations at each via point
+
+# Generate trajectory
+traj = ParabolicBlendTrajectory(q, t, dt_blend)
+traj_func, duration = traj.generate()
+
+# Evaluate
+t_eval = np.linspace(0, duration, 200)
+results = [traj_func(ti) for ti in t_eval]
+positions = [r[0] for r in results]
+velocities = [r[1] for r in results]
+```
 
 ## Quaternion Interpolation
 
@@ -373,8 +433,39 @@ angular_acceleration = squad.evaluate_acceleration(t)
     options:
       show_source: false
 
-<a id="log-quaternion-interpolation"></a>
-<a id="modified-log-quaternion-interpolation"></a>
+### LogQuaternionInterpolation {#log-quaternion-interpolation}
+
+::: interpolatepy.LogQuaternionInterpolation
+    options:
+      show_source: false
+
+**Example:**
+```python
+from interpolatepy import LogQuaternionInterpolation, Quaternion
+import numpy as np
+
+# Define rotation waypoints
+times = [0.0, 1.0, 2.0, 3.0]
+quaternions = [
+    Quaternion.identity(),
+    Quaternion.from_angle_axis(np.pi / 4, np.array([1, 0, 0])),
+    Quaternion.from_angle_axis(np.pi / 2, np.array([0, 1, 0])),
+    Quaternion.from_angle_axis(np.pi / 3, np.array([0, 0, 1])),
+]
+
+# Interpolate in logarithmic quaternion space
+log_interp = LogQuaternionInterpolation(times, quaternions)
+
+# Evaluate smooth rotation
+q = log_interp.evaluate(1.5)
+omega = log_interp.evaluate_velocity(1.5)
+```
+
+### ModifiedLogQuaternionInterpolation {#modified-log-quaternion-interpolation}
+
+::: interpolatepy.ModifiedLogQuaternionInterpolation
+    options:
+      show_source: false
 
 ## Path Planning
 
@@ -629,9 +720,78 @@ def validate_waypoints(t_points, q_points):
         raise ValueError("Time points must be strictly increasing")
 ```
 
-## Version Information
+## Protocols
 
-Current version: **2.0.0**
+InterpolatePy defines [PEP 544](https://peps.python.org/pep-0544/) runtime-checkable protocols for structural typing. Classes conform by having the right method signatures — no inheritance required.
+
+### ScalarTrajectory
+
+::: interpolatepy.ScalarTrajectory
+    options:
+      show_source: false
+
+**Conforming classes:** `CubicSpline`, `CubicSplineWithAcceleration1`, `CubicSplineWithAcceleration2`, `CubicSmoothingSpline`, `DoubleSTrajectory`
+
+### CurveEvaluator
+
+::: interpolatepy.CurveEvaluator
+    options:
+      show_source: false
+
+**Conforming classes:** `BSpline`, `BSplineInterpolator`, `CubicBSplineInterpolation`, `SmoothingCubicBSpline`, `ApproximationBSpline`
+
+### GeometricPath
+
+::: interpolatepy.GeometricPath
+    options:
+      show_source: false
+
+**Conforming classes:** `LinearPath`, `CircularPath`
+
+### QuaternionTrajectory
+
+::: interpolatepy.QuaternionTrajectory
+    options:
+      show_source: false
+
+**Conforming classes:** `SquadC2`, `LogQuaternionInterpolation`, `ModifiedLogQuaternionInterpolation`, `QuaternionSpline`
+
+### TrajectoryFunction
+
+::: interpolatepy.TrajectoryFunction
+    options:
+      show_source: false
+
+**Conforming callables:** Output of `TrapezoidalTrajectory`, `ParabolicBlendTrajectory`, and `PolynomialTrajectory` factory methods.
+
+**Example:**
+```python
+from interpolatepy import ScalarTrajectory, CubicSpline
+
+# Check protocol conformance at runtime
+spline = CubicSpline([0, 1, 2], [0, 1, 0])
+print(isinstance(spline, ScalarTrajectory))  # True
+```
+
+## Backend
+
+### HAS_CPP
+
+`interpolatepy.HAS_CPP: bool`
+
+Runtime flag indicating whether the compiled C++ extension is active.
+
+- `True`: C++ backend loaded; computation-heavy classes use native code
+- `False`: Pure-Python fallback; all algorithms still work, using NumPy
+
+```python
+import interpolatepy
+print(f"C++ backend: {interpolatepy.HAS_CPP}")
+```
+
+Set `INTERPOLATEPY_NO_CPP=1` to force `False`. See the [Architecture Guide](architecture.md) for details.
+
+## Version Information
 
 Access version information:
 ```python
