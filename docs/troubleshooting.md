@@ -380,6 +380,35 @@ except ValueError as e:
     print(f"Data validation error: {e}")
 ```
 
+## C++ Backend Issues
+
+### Problem: C++ Extension Not Found
+
+The C++ backend is optional. If it is not available, the library falls back to pure Python automatically.
+
+**Check backend status:**
+```python
+import interpolatepy
+print(f"C++ backend: {interpolatepy.HAS_CPP}")
+```
+
+If `HAS_CPP` is `False` and you want the C++ backend, see the [Installation Guide](installation.md#c-backend-optional) for build instructions.
+
+### Problem: Force Pure-Python Mode
+```bash
+export INTERPOLATEPY_NO_CPP=1
+python your_script.py
+```
+
+### Problem: C++ Build Fails
+
+Common causes:
+- **CMake too old** -- need >= 3.21
+- **Compiler lacks C++20** -- need GCC >= 10, Clang >= 13, or MSVC >= 19.29
+- **Network issues** -- Eigen/pybind11 fetched via CMake FetchContent; install system packages as fallback
+
+See [C++ Build Troubleshooting](installation.md#c-build-troubleshooting) for detailed solutions.
+
 ## Getting Help
 
 If you encounter issues not covered here:
@@ -403,7 +432,7 @@ When reporting issues, please include:
 Example bug report template:
 ```python
 # InterpolatePy version: 2.0.0
-# Python version: 3.10.0 
+# Python version: 3.11.0
 # Platform: Ubuntu 22.04
 
 from interpolatepy import CubicSpline

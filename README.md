@@ -1,6 +1,6 @@
 # InterpolatePy
 
-![Python](https://img.shields.io/badge/python-3.10+-blue)
+![Python](https://img.shields.io/badge/python-3.11+-blue)
 [![PyPI Downloads](https://static.pepy.tech/badge/interpolatepy)](https://pepy.tech/projects/interpolatepy)
 [![pre-commit](https://github.com/GiorgioMedico/InterpolatePy/actions/workflows/pre-commit.yml/badge.svg)](https://github.com/GiorgioMedico/InterpolatePy/actions/workflows/pre-commit.yml)
 [![ci-test](https://github.com/GiorgioMedico/InterpolatePy/actions/workflows/test.yml/badge.svg)](https://github.com/GiorgioMedico/InterpolatePy/actions/workflows/test.yml)
@@ -10,9 +10,9 @@
 
 InterpolatePy provides 20+ algorithms for smooth trajectory generation with precise control over position, velocity, acceleration, and jerk. From cubic splines and B-curves to quaternion interpolation and S-curve motion profiles — everything you need for professional motion control.
 
-**⚡ Fast:** Vectorized NumPy operations, ~1ms for 1000-point cubic splines  
-**🎯 Precise:** Research-grade algorithms with C² continuity and bounded derivatives  
-**📊 Visual:** Built-in plotting for every algorithm  
+**⚡ Fast:** Optional C++ backend with pybind11; pure-Python fallback uses vectorized NumPy
+**🎯 Precise:** Research-grade algorithms with C² continuity and bounded derivatives
+**📊 Visual:** Built-in plotting for every algorithm
 **🔧 Complete:** Splines, motion profiles, quaternions, and path planning in one library
 
 ---
@@ -23,7 +23,7 @@ InterpolatePy provides 20+ algorithms for smooth trajectory generation with prec
 pip install InterpolatePy
 ```
 
-**Requirements:** Python ≥3.10, NumPy ≥2.0, SciPy ≥1.15, Matplotlib ≥3.10
+**Requirements:** Python ≥3.11, NumPy ≥2.3, SciPy ≥1.16, Matplotlib ≥3.10.5
 
 <details>
 <summary><strong>Development Installation</strong></summary>
@@ -222,12 +222,23 @@ plt.show()
 
 ## Performance & Quality
 
-- **Fast:** Vectorized NumPy operations, optimized algorithms
-- **Reliable:** 85%+ test coverage, continuous integration
-- **Modern:** Python 3.10+, strict typing, dataclass-based APIs
+- **Fast:** Optional C++ backend (Eigen + pybind11) for maximum performance; pure-Python fallback uses vectorized NumPy
+- **Reliable:** 85%+ test coverage, continuous integration, 142 additional C++ unit tests
+- **Modern:** Python 3.11+, strict typing, dataclass-based APIs
 - **Research-grade:** Peer-reviewed algorithms from robotics literature
 
-**Typical Performance:**
+**C++ Backend:**
+
+InterpolatePy includes an optional compiled C++ extension for performance-critical workloads. The API is identical regardless of backend:
+
+```python
+import interpolatepy
+print(f"C++ backend: {interpolatepy.HAS_CPP}")  # True if extension is available
+```
+
+Set `INTERPOLATEPY_NO_CPP=1` to force pure-Python mode.
+
+**Typical Performance (pure-Python):**
 - Cubic spline (1000 points): ~1ms
 - B-spline evaluation (10k points): ~5ms
 - S-curve trajectory planning: ~0.5ms

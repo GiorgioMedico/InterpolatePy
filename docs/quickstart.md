@@ -153,36 +153,33 @@ plt.show()
 
 ### 4. Polynomial Trajectories
 
-For precise boundary condition control:
+For precise boundary condition control using static factory methods:
 
 ```python
-from interpolatepy import PolynomialTrajectory
+from interpolatepy import PolynomialTrajectory, BoundaryCondition, TimeInterval
 import numpy as np
+import matplotlib.pyplot as plt
 
-# Define precise boundary conditions (initial and final states)
-initial_state = [0.0, 0.0, 0.0, 0.0]  # [position, velocity, acceleration, jerk]
-final_state = [5.0, 0.0, 0.0, 0.0]    # [position, velocity, acceleration, jerk]
-total_time = 3.0
+# Define boundary conditions (position, velocity, acceleration, jerk)
+initial = BoundaryCondition(position=0.0, velocity=0.0, acceleration=0.0, jerk=0.0)
+final = BoundaryCondition(position=5.0, velocity=0.0, acceleration=0.0, jerk=0.0)
+interval = TimeInterval(start=0.0, end=3.0)
 
-# Generate 7th-order polynomial trajectory
-traj = PolynomialTrajectory(
-    initial_state=initial_state,
-    final_state=final_state,
-    total_time=total_time,
-    order=7
-)
+# Generate 7th-order polynomial trajectory (returns a callable)
+traj_func = PolynomialTrajectory.order_7_trajectory(initial, final, interval)
 
 # Evaluate complete trajectory
 t_eval = np.linspace(0, 3, 100)
-positions = [traj.evaluate(t) for t in t_eval]
-velocities = [traj.evaluate_velocity(t) for t in t_eval]
-accelerations = [traj.evaluate_acceleration(t) for t in t_eval]
-jerks = [traj.evaluate_jerk(t) for t in t_eval]
+results = [traj_func(t) for t in t_eval]
+positions = [r[0] for r in results]
+velocities = [r[1] for r in results]
+accelerations = [r[2] for r in results]
+jerks = [r[3] for r in results]
 
 # Plot all derivatives
 fig, axes = plt.subplots(4, 1, figsize=(10, 8))
 axes[0].plot(t_eval, positions, label='Position')
-axes[1].plot(t_eval, velocities, label='Velocity')  
+axes[1].plot(t_eval, velocities, label='Velocity')
 axes[2].plot(t_eval, accelerations, label='Acceleration')
 axes[3].plot(t_eval, jerks, label='Jerk')
 
