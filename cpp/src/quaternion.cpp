@@ -1,5 +1,6 @@
 #include <interpolatecpp/quat/quaternion.hpp>
 
+#include <algorithm>
 #include <cmath>
 #include <stdexcept>
 
@@ -172,6 +173,80 @@ std::pair<Eigen::Vector3d, double> Quaternion::to_axis_angle() const {
         return {Eigen::Vector3d::UnitX(), 0.0};
     }
     return {axis, angle};
+}
+
+Eigen::Matrix4d Quaternion::to_transformation_matrix() const {
+    Eigen::Matrix4d T = Eigen::Matrix4d::Identity();
+    T.block<3, 3>(0, 0) = to_rotation_matrix();
+    return T;
+}
+
+std::tuple<double, double, double> Quaternion::to_euler_angles() const {
+    double w = q_.w(), x = q_.x(), y = q_.y(), z = q_.z();
+
+    // Roll (x-axis rotation)
+    double sinr_cosp = 2.0 * (w * x + y * z);
+    double cosr_cosp = 1.0 - 2.0 * (x * x + y * y);
+    double roll = std::atan2(sinr_cosp, cosr_cosp);
+
+    // Pitch (y-axis rotation)
+    double sinp = 2.0 * (w * y - z * x);
+    double pitch = (std::abs(sinp) >= 1.0)
+                       ? std::copysign(M_PI / 2.0, sinp)
+                       : std::asin(sinp);
+
+    // Yaw (z-axis rotation)
+    double siny_cosp = 2.0 * (w * z + x * y);
+    double cosy_cosp = 1.0 - 2.0 * (y * y + z * z);
+    double yaw = std::atan2(siny_cosp, cosy_cosp);
+
+    return {roll, pitch, yaw};
+}
+
+Quaternion Quaternion::from_rotation_matrix(const Eigen::Matrix3d& rotation_matrix) {
+    Eigen::Quaterniond eq(rotation_matrix);
+    eq.normalize();
+    return Quaternion(eq);
+}
+
+Eigen::Matrix3d Quaternion::E(int sign) const {
+    Eigen::Matrix3d I = Eigen::Matrix3d::Identity();
+    Eigen::Vector3d v = vec();
+
+    // Skew-symmetric matrix of v
+    Eigen::Matrix3d S;
+    S << 0, -v.z(), v.y(),
+         v.z(), 0, -v.x(),
+         -v.y(), v.x(), 0;
+
+    if (sign == 1) {
+        // Body frame: E = sI + S(v)
+        return w() * I + S;
+    }
+    // Base frame: E = sI - S(v)
+    return w() * I - S;
+}
+
+Quaternion Quaternion::dot(const Eigen::Vector3d& omega, int sign) const {
+    // Scalar derivative: s_dot = -0.5 * v^T * omega
+    double s_dot = -0.5 * vec().dot(omega);
+
+    // Vector derivative: v_dot = 0.5 * E(sign) * omega
+    Eigen::Vector3d v_dot = 0.5 * E(sign) * omega;
+
+    return Quaternion(s_dot, v_dot.x(), v_dot.y(), v_dot.z());
+}
+
+Eigen::Vector3d Quaternion::Omega(const Quaternion& q, const Quaternion& q_dot) {
+    Eigen::Matrix3d e_matrix = 0.5 * q.E(0);  // Base frame
+    Eigen::Vector3d v_dot(q_dot.x(), q_dot.y(), q_dot.z());
+
+    double det = e_matrix.determinant();
+    if (std::abs(det) > kEpsilon) {
+        return e_matrix.inverse() * v_dot;
+    }
+    // Fallback to pseudo-inverse for singular case
+    return e_matrix.completeOrthogonalDecomposition().solve(v_dot);
 }
 
 }  // namespace interpolatecpp::quat

@@ -92,6 +92,14 @@ void bind_motion(py::module_& m) {
         .def(py::init<double, double, double, double, double, double, double>(),
              py::arg("q0"), py::arg("q1"), py::arg("amax"), py::arg("vmax"),
              py::arg("v0") = 0.0, py::arg("v1") = 0.0, py::arg("t0") = 0.0)
+        .def(py::init([](double q0, double q1, double amax, double v0, double v1,
+                         double t0, double duration) {
+                 return TrapezoidalTrajectory(TrapezoidalTrajectory::DurationBased{}, q0,
+                                              q1, amax, v0, v1, t0, duration);
+             }),
+             py::arg("q0"), py::arg("q1"), py::arg("amax"), py::arg("v0"),
+             py::arg("v1"), py::arg("t0"), py::arg("duration"),
+             "Duration-based constructor (computes required acceleration).")
         .def("evaluate", &TrapezoidalTrajectory::evaluate, py::arg("t"))
         .def_property_readonly("duration", &TrapezoidalTrajectory::duration)
         .def_property_readonly("t_start", &TrapezoidalTrajectory::t_start)

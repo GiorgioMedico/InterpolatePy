@@ -30,19 +30,42 @@ void bind_quaternion(py::module_& m) {
         .def_property_readonly("vec", &Quaternion::vec)
         .def("__mul__",
              py::overload_cast<const Quaternion&>(&Quaternion::operator*, py::const_))
+        .def("__mul__",
+             py::overload_cast<double>(&Quaternion::operator*, py::const_))
+        .def("__rmul__",
+             [](const Quaternion& q, double s) { return q * s; })
+        .def("__add__",
+             py::overload_cast<const Quaternion&>(&Quaternion::operator+, py::const_))
+        .def("__sub__",
+             py::overload_cast<const Quaternion&>(&Quaternion::operator-, py::const_))
         .def("__neg__", [](const Quaternion& q) { return -q; })
         .def("conjugate", &Quaternion::conjugate)
         .def("inverse", &Quaternion::inverse)
         .def("unit", &Quaternion::unit)
         .def("norm", &Quaternion::norm)
+        .def("norm_squared", &Quaternion::norm_squared)
         .def("dot_product", &Quaternion::dot_product, py::arg("other"))
         .def("to_rotation_matrix", &Quaternion::to_rotation_matrix)
+        .def("to_transformation_matrix", &Quaternion::to_transformation_matrix)
         .def("to_axis_angle", &Quaternion::to_axis_angle)
+        .def("to_euler_angles", &Quaternion::to_euler_angles)
+        .def_static("from_rotation_matrix", &Quaternion::from_rotation_matrix,
+                    py::arg("rotation_matrix"))
+        // Dynamics
+        .def("E", &Quaternion::E, py::arg("sign"))
+        .def("dot", &Quaternion::dot, py::arg("omega"), py::arg("sign"))
+        .def_static("Omega", &Quaternion::Omega, py::arg("q"), py::arg("q_dot"))
         .def_static("slerp", &Quaternion::slerp, py::arg("q0"), py::arg("q1"), py::arg("t"))
+        .def_static("slerp_prime", &Quaternion::slerp_prime, py::arg("q0"),
+                    py::arg("q1"), py::arg("t"))
         .def_static("squad", &Quaternion::squad, py::arg("p"), py::arg("a"), py::arg("b"),
                     py::arg("q"), py::arg("t"))
+        .def_static("compute_intermediate_quaternion",
+                    &Quaternion::compute_intermediate_quaternion, py::arg("q_prev"),
+                    py::arg("q_curr"), py::arg("q_next"))
         .def_static("exp", &Quaternion::exp, py::arg("q"))
-        .def_static("log", &Quaternion::log, py::arg("q"));
+        .def_static("log", &Quaternion::log, py::arg("q"))
+        .def_static("power", &Quaternion::power, py::arg("q"), py::arg("t"));
 
     // QuaternionSpline
     py::enum_<QuaternionSpline::Method>(quat_mod, "QuaternionSplineMethod")

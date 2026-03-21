@@ -68,7 +68,24 @@ class INTERPOLATECPP_API Quaternion {
 
     // Conversions
     [[nodiscard]] Eigen::Matrix3d to_rotation_matrix() const;
+    [[nodiscard]] Eigen::Matrix4d to_transformation_matrix() const;
     [[nodiscard]] std::pair<Eigen::Vector3d, double> to_axis_angle() const;
+    [[nodiscard]] std::tuple<double, double, double> to_euler_angles() const;
+
+    // Factory: construct from rotation matrix (3x3)
+    [[nodiscard]] static Quaternion from_rotation_matrix(
+        const Eigen::Matrix3d& rotation_matrix);
+
+    // Dynamics
+    /// E-matrix for quaternion kinematics.  sign=0 → base frame, sign=1 → body frame.
+    [[nodiscard]] Eigen::Matrix3d E(int sign) const;
+
+    /// Quaternion time derivative  qdot = 0.5 * E(sign) * omega.
+    [[nodiscard]] Quaternion dot(const Eigen::Vector3d& omega, int sign) const;
+
+    /// Extract angular velocity from q and qdot.
+    [[nodiscard]] static Eigen::Vector3d Omega(const Quaternion& q,
+                                                const Quaternion& q_dot);
 
     // Conversion to Eigen::Quaterniond for concept conformance
     operator Eigen::Quaterniond() const noexcept { return q_; }

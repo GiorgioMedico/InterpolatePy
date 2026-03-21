@@ -43,7 +43,14 @@ void bind_bspline(py::module_& m) {
         .def_property_readonly("n_control_points", &BSpline::n_control_points)
         .def_static("create_uniform_knots", &BSpline::create_uniform_knots, py::arg("degree"),
                     py::arg("num_control_points"), py::arg("domain_min") = 0.0,
-                    py::arg("domain_max") = 1.0);
+                    py::arg("domain_max") = 1.0)
+        .def_static("create_periodic_knots", &BSpline::create_periodic_knots,
+                    py::arg("degree"), py::arg("num_control_points"),
+                    py::arg("domain_min") = 0.0, py::arg("domain_max") = 1.0)
+        .def("basis_functions", &BSpline::basis_functions, py::arg("u"),
+             py::arg("span_index"))
+        .def("basis_function_derivatives", &BSpline::basis_function_derivatives,
+             py::arg("u"), py::arg("span_index"), py::arg("order"));
 
     // CubicBSplineInterpolation
     py::class_<CubicBSplineInterpolation, BSpline>(bspline_mod, "CubicBSplineInterpolation")
