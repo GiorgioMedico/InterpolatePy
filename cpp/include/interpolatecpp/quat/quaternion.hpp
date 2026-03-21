@@ -28,12 +28,12 @@ class INTERPOLATECPP_API Quaternion {
                                                       double yaw);
 
     // Component access
-    [[nodiscard]] double w() const { return q_.w(); }
-    [[nodiscard]] double x() const { return q_.x(); }
-    [[nodiscard]] double y() const { return q_.y(); }
-    [[nodiscard]] double z() const { return q_.z(); }
-    [[nodiscard]] Eigen::Vector3d vec() const { return q_.vec(); }
-    [[nodiscard]] const Eigen::Quaterniond& eigen() const { return q_; }
+    [[nodiscard]] double w() const noexcept { return q_.w(); }
+    [[nodiscard]] double x() const noexcept { return q_.x(); }
+    [[nodiscard]] double y() const noexcept { return q_.y(); }
+    [[nodiscard]] double z() const noexcept { return q_.z(); }
+    [[nodiscard]] Eigen::Vector3d vec() const noexcept { return q_.vec(); }
+    [[nodiscard]] const Eigen::Quaterniond& eigen() const noexcept { return q_; }
 
     // Arithmetic (immutable - returns new Quaternion)
     [[nodiscard]] Quaternion operator*(const Quaternion& other) const;
@@ -46,8 +46,8 @@ class INTERPOLATECPP_API Quaternion {
     [[nodiscard]] Quaternion conjugate() const;
     [[nodiscard]] Quaternion inverse() const;
     [[nodiscard]] Quaternion unit() const;
-    [[nodiscard]] double norm() const;
-    [[nodiscard]] double norm_squared() const;
+    [[nodiscard]] double norm() const noexcept;
+    [[nodiscard]] double norm_squared() const noexcept;
     [[nodiscard]] double dot_product(const Quaternion& other) const;
 
     // Exponential/logarithmic maps
@@ -71,7 +71,7 @@ class INTERPOLATECPP_API Quaternion {
     [[nodiscard]] std::pair<Eigen::Vector3d, double> to_axis_angle() const;
 
     // Conversion to Eigen::Quaterniond for concept conformance
-    operator Eigen::Quaterniond() const { return q_; }
+    operator Eigen::Quaterniond() const noexcept { return q_; }
 
   private:
     Eigen::Quaterniond q_;

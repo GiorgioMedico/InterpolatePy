@@ -22,8 +22,8 @@ class INTERPOLATECPP_API QuaternionSpline {
     [[nodiscard]] Eigen::Vector3d evaluate_velocity(double t) const;
     [[nodiscard]] Eigen::Vector3d evaluate_acceleration(double t) const;
 
-    [[nodiscard]] double t_min() const { return times_.front(); }
-    [[nodiscard]] double t_max() const { return times_.back(); }
+    [[nodiscard]] double t_min() const noexcept { return times_.front(); }
+    [[nodiscard]] double t_max() const noexcept { return times_.back(); }
 
   private:
     std::vector<double> times_;

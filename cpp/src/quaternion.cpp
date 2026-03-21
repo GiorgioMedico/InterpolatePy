@@ -71,9 +71,9 @@ Quaternion Quaternion::unit() const {
     return Quaternion(q_.w() / n, q_.x() / n, q_.y() / n, q_.z() / n);
 }
 
-double Quaternion::norm() const { return q_.norm(); }
+double Quaternion::norm() const noexcept { return q_.norm(); }
 
-double Quaternion::norm_squared() const { return q_.squaredNorm(); }
+double Quaternion::norm_squared() const noexcept { return q_.squaredNorm(); }
 
 double Quaternion::dot_product(const Quaternion& other) const {
     return q_.w() * other.q_.w() + q_.x() * other.q_.x() + q_.y() * other.q_.y() +

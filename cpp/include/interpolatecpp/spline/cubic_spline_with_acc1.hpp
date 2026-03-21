@@ -35,15 +35,15 @@ class INTERPOLATECPP_API CubicSplineWithAcceleration1 {
     [[nodiscard]] Eigen::VectorXd evaluate_acceleration(const Eigen::VectorXd& t) const;
 
     // Accessors
-    [[nodiscard]] const Eigen::VectorXd& t_points() const { return t_; }
-    [[nodiscard]] const Eigen::VectorXd& q_points() const { return q_; }
-    [[nodiscard]] const Eigen::VectorXd& t_orig() const { return t_orig_; }
-    [[nodiscard]] const Eigen::VectorXd& q_orig() const { return q_orig_; }
-    [[nodiscard]] const Eigen::VectorXd& omega() const { return omega_; }
-    [[nodiscard]] const Eigen::MatrixXd& coefficients() const { return coeffs_; }
-    [[nodiscard]] const std::vector<int>& original_indices() const { return original_indices_; }
-    [[nodiscard]] int n_points() const { return n_; }
-    [[nodiscard]] int n_orig() const { return n_orig_; }
+    [[nodiscard]] const Eigen::VectorXd& t_points() const noexcept { return t_; }
+    [[nodiscard]] const Eigen::VectorXd& q_points() const noexcept { return q_; }
+    [[nodiscard]] const Eigen::VectorXd& t_orig() const noexcept { return t_orig_; }
+    [[nodiscard]] const Eigen::VectorXd& q_orig() const noexcept { return q_orig_; }
+    [[nodiscard]] const Eigen::VectorXd& omega() const noexcept { return omega_; }
+    [[nodiscard]] const Eigen::MatrixXd& coefficients() const noexcept { return coeffs_; }
+    [[nodiscard]] const std::vector<int>& original_indices() const noexcept { return original_indices_; }
+    [[nodiscard]] int n_points() const noexcept { return n_; }
+    [[nodiscard]] int n_orig() const noexcept { return n_orig_; }
 
   private:
     Eigen::VectorXd t_orig_;

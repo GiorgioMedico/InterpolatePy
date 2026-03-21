@@ -34,8 +34,8 @@ class INTERPOLATECPP_API BSplineInterpolator : public BSpline {
         bool cyclic = false);
 
     // Accessors
-    [[nodiscard]] const Eigen::MatrixXd& interp_points() const { return interp_points_; }
-    [[nodiscard]] const Eigen::VectorXd& times() const { return times_; }
+    [[nodiscard]] const Eigen::MatrixXd& interp_points() const noexcept { return interp_points_; }
+    [[nodiscard]] const Eigen::VectorXd& times() const noexcept { return times_; }
 
   private:
     Eigen::MatrixXd interp_points_;

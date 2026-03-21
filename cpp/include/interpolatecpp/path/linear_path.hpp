@@ -15,7 +15,7 @@ class INTERPOLATECPP_API LinearPath {
     [[nodiscard]] Eigen::MatrixXd position(const Eigen::VectorXd& s) const;
     [[nodiscard]] Eigen::Vector3d velocity(double s) const;
     [[nodiscard]] Eigen::Vector3d acceleration(double s) const;
-    [[nodiscard]] double length() const { return length_; }
+    [[nodiscard]] double length() const noexcept { return length_; }
 
   private:
     Eigen::Vector3d pi_, pf_, tangent_;

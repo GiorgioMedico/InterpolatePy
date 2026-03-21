@@ -34,8 +34,8 @@ class INTERPOLATECPP_API ApproximationBSpline : public BSpline {
     [[nodiscard]] double calculate_approximation_error() const;
 
     // Accessors
-    [[nodiscard]] const Eigen::MatrixXd& original_points() const { return original_points_; }
-    [[nodiscard]] const Eigen::VectorXd& original_parameters() const {
+    [[nodiscard]] const Eigen::MatrixXd& original_points() const noexcept { return original_points_; }
+    [[nodiscard]] const Eigen::VectorXd& original_parameters() const noexcept {
         return original_parameters_;
     }
 

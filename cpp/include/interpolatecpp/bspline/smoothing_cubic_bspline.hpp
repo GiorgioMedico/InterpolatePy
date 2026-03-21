@@ -30,12 +30,12 @@ class INTERPOLATECPP_API SmoothingCubicBSpline : public BSpline {
     [[nodiscard]] double calculate_total_error() const;
 
     // Accessors
-    [[nodiscard]] const Eigen::MatrixXd& approximation_points() const {
+    [[nodiscard]] const Eigen::MatrixXd& approximation_points() const noexcept {
         return approximation_points_;
     }
-    [[nodiscard]] const Eigen::VectorXd& u_bars() const { return u_bars_; }
-    [[nodiscard]] double mu() const { return mu_; }
-    [[nodiscard]] double lambda_param() const { return lambda_param_; }
+    [[nodiscard]] const Eigen::VectorXd& u_bars() const noexcept { return u_bars_; }
+    [[nodiscard]] double mu() const noexcept { return mu_; }
+    [[nodiscard]] double lambda_param() const noexcept { return lambda_param_; }
 
   private:
     Eigen::MatrixXd approximation_points_;

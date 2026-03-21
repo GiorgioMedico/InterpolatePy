@@ -38,12 +38,12 @@ class INTERPOLATECPP_API CubicSpline {
     [[nodiscard]] Eigen::VectorXd evaluate_acceleration(const Eigen::VectorXd& t) const;
 
     // Accessors
-    [[nodiscard]] const Eigen::VectorXd& t_points() const { return t_points_; }
-    [[nodiscard]] const Eigen::VectorXd& q_points() const { return q_points_; }
-    [[nodiscard]] const Eigen::VectorXd& t_intervals() const { return t_intervals_; }
-    [[nodiscard]] const Eigen::VectorXd& velocities() const { return velocities_; }
-    [[nodiscard]] const Eigen::MatrixXd& coefficients() const { return coefficients_; }
-    [[nodiscard]] int n_segments() const { return n_; }
+    [[nodiscard]] const Eigen::VectorXd& t_points() const noexcept { return t_points_; }
+    [[nodiscard]] const Eigen::VectorXd& q_points() const noexcept { return q_points_; }
+    [[nodiscard]] const Eigen::VectorXd& t_intervals() const noexcept { return t_intervals_; }
+    [[nodiscard]] const Eigen::VectorXd& velocities() const noexcept { return velocities_; }
+    [[nodiscard]] const Eigen::MatrixXd& coefficients() const noexcept { return coefficients_; }
+    [[nodiscard]] int n_segments() const noexcept { return n_; }
 
   protected:
     Eigen::VectorXd t_points_;

@@ -14,6 +14,10 @@ namespace interpolatecpp::spline {
 ///
 /// Extends CubicSpline: replaces first/last segments with 5th-degree polynomials
 /// when acceleration constraints are provided (section 4.4.4 of the reference).
+///
+/// NOTE: Evaluate methods intentionally hide (not override) the base class
+/// non-virtual methods. Do not call through a CubicSpline* pointer — use the
+/// concrete CubicSplineWithAcceleration2 type directly.
 class INTERPOLATECPP_API CubicSplineWithAcceleration2 : public CubicSpline {
   public:
     using QuinticCoeffs = Eigen::Vector<double, 6>;
@@ -31,10 +35,10 @@ class INTERPOLATECPP_API CubicSplineWithAcceleration2 : public CubicSpline {
     [[nodiscard]] Eigen::VectorXd evaluate_acceleration(const Eigen::VectorXd& t) const;
 
     // Accessors
-    [[nodiscard]] std::optional<double> a0() const { return a0_; }
-    [[nodiscard]] std::optional<double> an() const { return an_; }
-    [[nodiscard]] bool has_quintic_first() const { return quintic_first_.has_value(); }
-    [[nodiscard]] bool has_quintic_last() const { return quintic_last_.has_value(); }
+    [[nodiscard]] std::optional<double> a0() const noexcept { return a0_; }
+    [[nodiscard]] std::optional<double> an() const noexcept { return an_; }
+    [[nodiscard]] bool has_quintic_first() const noexcept { return quintic_first_.has_value(); }
+    [[nodiscard]] bool has_quintic_last() const noexcept { return quintic_last_.has_value(); }
 
   private:
     std::optional<double> a0_;

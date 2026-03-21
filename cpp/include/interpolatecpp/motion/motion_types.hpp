@@ -36,7 +36,7 @@ struct TimeInterval {
     double start = 0.0;
     double end = 0.0;
 
-    [[nodiscard]] double duration() const { return end - start; }
+    [[nodiscard]] double duration() const noexcept { return end - start; }
 };
 
 /// State parameters for trajectory planning (immutable).

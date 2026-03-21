@@ -49,13 +49,13 @@ class INTERPOLATECPP_API BSpline {
                                                                double domain_max = 1.0);
 
     // Accessors
-    [[nodiscard]] int degree() const { return degree_; }
-    [[nodiscard]] const Eigen::VectorXd& knots() const { return knots_; }
-    [[nodiscard]] const Eigen::MatrixXd& control_points() const { return control_points_; }
-    [[nodiscard]] double u_min() const { return u_min_; }
-    [[nodiscard]] double u_max() const { return u_max_; }
-    [[nodiscard]] int dimension() const { return dimension_; }
-    [[nodiscard]] int n_control_points() const {
+    [[nodiscard]] int degree() const noexcept { return degree_; }
+    [[nodiscard]] const Eigen::VectorXd& knots() const noexcept { return knots_; }
+    [[nodiscard]] const Eigen::MatrixXd& control_points() const noexcept { return control_points_; }
+    [[nodiscard]] double u_min() const noexcept { return u_min_; }
+    [[nodiscard]] double u_max() const noexcept { return u_max_; }
+    [[nodiscard]] int dimension() const noexcept { return dimension_; }
+    [[nodiscard]] int n_control_points() const noexcept {
         return static_cast<int>(control_points_.rows());
     }
 

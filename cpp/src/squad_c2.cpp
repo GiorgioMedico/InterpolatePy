@@ -24,7 +24,6 @@ void SquadC2::build_extended_sequence() {
     if (n < 2) return;
 
     // Extended sequence: [q₁, q₁ᵛⁱʳᵗ, q₂, ..., qₙ₋₁, qₙ₋₁ᵛⁱʳᵗ, qₙ]
-    // Virtual waypoints at midpoints between original segments
     ext_quats_.clear();
     ext_times_.clear();
 
@@ -32,10 +31,18 @@ void SquadC2::build_extended_sequence() {
     ext_quats_.push_back(quaternions_[0]);
     ext_times_.push_back(times_[0]);
 
-    // First virtual = first original
-    double t_mid = (times_[0] + times_[1]) / 2.0;
-    ext_quats_.push_back(quaternions_[0]);
-    ext_times_.push_back(t_mid);
+    // First virtual = first original quaternion
+    if (n == 2) {
+        // Special case: dt/3 spacing for 2-waypoint case
+        double dt = times_[1] - times_[0];
+        ext_quats_.push_back(quaternions_[0]);
+        ext_times_.push_back(times_[0] + dt / 3.0);
+    } else {
+        // General case: midpoint spacing
+        double t_mid = (times_[0] + times_[1]) / 2.0;
+        ext_quats_.push_back(quaternions_[0]);
+        ext_times_.push_back(t_mid);
+    }
 
     // Interior original points
     for (int i = 1; i < n - 1; ++i) {
@@ -43,8 +50,14 @@ void SquadC2::build_extended_sequence() {
         ext_times_.push_back(times_[i]);
     }
 
-    // Last virtual = last original
-    if (n >= 2) {
+    // Last virtual = last original quaternion
+    if (n == 2) {
+        // Special case: dt/3 spacing for 2-waypoint case
+        double dt = times_[1] - times_[0];
+        ext_quats_.push_back(quaternions_[n - 1]);
+        ext_times_.push_back(times_[1] - dt / 3.0);
+    } else {
+        // General case: midpoint spacing
         double t_mid2 = (times_[n - 2] + times_[n - 1]) / 2.0;
         ext_quats_.push_back(quaternions_[n - 1]);
         ext_times_.push_back(t_mid2);
@@ -86,13 +99,13 @@ void SquadC2::compute_intermediates() {
     }
 }
 
-int SquadC2::find_segment(double t) const {
-    const int n = static_cast<int>(ext_times_.size());
-    if (t <= ext_times_[0]) return 0;
-    if (t >= ext_times_[n - 1]) return n - 2;
+int SquadC2::find_original_segment(double t) const {
+    const int n = static_cast<int>(times_.size());
+    if (t <= times_[0]) return 0;
+    if (t >= times_[n - 1]) return n - 2;
 
-    auto it = std::upper_bound(ext_times_.begin(), ext_times_.end(), t);
-    int idx = static_cast<int>(it - ext_times_.begin()) - 1;
+    auto it = std::upper_bound(times_.begin(), times_.end(), t);
+    int idx = static_cast<int>(it - times_.begin()) - 1;
     return std::clamp(idx, 0, n - 2);
 }
 
@@ -130,16 +143,26 @@ SquadC2::SquadC2(const SquadC2Config& config)
               config.validate_continuity) {}
 
 Quaternion SquadC2::evaluate(double t) const {
-    t = std::clamp(t, times_.front(), times_.back());
-    int seg = find_segment(t);
-    const int n_ext = static_cast<int>(ext_times_.size());
+    // Boundary cases — return original endpoint quaternions
+    if (t <= times_.front()) return quaternions_.front();
+    if (t >= times_.back()) return quaternions_.back();
 
-    if (seg >= n_ext - 1) seg = n_ext - 2;
+    // Find segment in ORIGINAL time points
+    int seg = find_original_segment(t);
 
-    double u = quintic_u(t, ext_times_[seg], ext_times_[seg + 1]);
+    // Quintic parameterization over the original segment
+    double u = quintic_u(t, times_[seg], times_[seg + 1]);
 
-    return Quaternion::squad(ext_quats_[seg], ext_intermediates_[seg],
-                             ext_intermediates_[seg + 1], ext_quats_[seg + 1], u);
+    // Map original segment index to extended sequence for SQUAD:
+    // q1, q2 from original waypoints; s1, s2 from extended intermediates.
+    // Extended layout: [q₁, q₁ᵛⁱʳᵗ, q₂, ..., qₙ₋₁, qₙᵛⁱʳᵗ, qₙ]
+    // For original segment i: s1 = ext_intermediates_[i+1], s2 = ext_intermediates_[i+2]
+    const Quaternion& q1 = quaternions_[seg];
+    const Quaternion& q2 = quaternions_[seg + 1];
+    const Quaternion& s1 = ext_intermediates_[static_cast<size_t>(seg) + 1];
+    const Quaternion& s2 = ext_intermediates_[static_cast<size_t>(seg) + 2];
+
+    return Quaternion::squad(q1, s1, s2, q2, u);
 }
 
 Eigen::Vector3d SquadC2::evaluate_velocity(double t) const {

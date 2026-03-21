@@ -29,7 +29,7 @@ class INTERPOLATECPP_API ParabolicBlendTrajectory {
     [[nodiscard]] double duration() const;
 
     /// Get number of waypoints.
-    [[nodiscard]] int n_waypoints() const { return n_; }
+    [[nodiscard]] int n_waypoints() const noexcept { return n_; }
 
   private:
     int n_;  // Number of waypoints

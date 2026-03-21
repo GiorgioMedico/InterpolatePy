@@ -39,14 +39,14 @@ class INTERPOLATECPP_API CubicSmoothingSpline {
     [[nodiscard]] Eigen::VectorXd evaluate_acceleration(const Eigen::VectorXd& t) const;
 
     // Accessors
-    [[nodiscard]] const Eigen::VectorXd& t_points() const { return t_; }
-    [[nodiscard]] const Eigen::VectorXd& q_points() const { return q_; }
-    [[nodiscard]] const Eigen::VectorXd& s_points() const { return s_; }
-    [[nodiscard]] const Eigen::VectorXd& omega() const { return omega_; }
-    [[nodiscard]] const Eigen::MatrixXd& coefficients() const { return coeffs_; }
-    [[nodiscard]] double mu() const { return mu_; }
-    [[nodiscard]] double lambda() const { return lambd_; }
-    [[nodiscard]] int n_points() const { return n_; }
+    [[nodiscard]] const Eigen::VectorXd& t_points() const noexcept { return t_; }
+    [[nodiscard]] const Eigen::VectorXd& q_points() const noexcept { return q_; }
+    [[nodiscard]] const Eigen::VectorXd& s_points() const noexcept { return s_; }
+    [[nodiscard]] const Eigen::VectorXd& omega() const noexcept { return omega_; }
+    [[nodiscard]] const Eigen::MatrixXd& coefficients() const noexcept { return coeffs_; }
+    [[nodiscard]] double mu() const noexcept { return mu_; }
+    [[nodiscard]] double lambda() const noexcept { return lambd_; }
+    [[nodiscard]] int n_points() const noexcept { return n_; }
 
   private:
     Eigen::VectorXd t_;

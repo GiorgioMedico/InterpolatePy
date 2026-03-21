@@ -27,11 +27,11 @@ class INTERPOLATECPP_API PolynomialTrajectory {
     [[nodiscard]] FullTrajectoryResult evaluate(double t) const;
 
     // Accessors
-    [[nodiscard]] int order() const { return order_; }
-    [[nodiscard]] double t_start() const { return t_start_; }
-    [[nodiscard]] double t_end() const { return t_end_; }
-    [[nodiscard]] double duration() const { return t_end_ - t_start_; }
-    [[nodiscard]] const Eigen::VectorXd& coefficients() const { return coeffs_; }
+    [[nodiscard]] int order() const noexcept { return order_; }
+    [[nodiscard]] double t_start() const noexcept { return t_start_; }
+    [[nodiscard]] double t_end() const noexcept { return t_end_; }
+    [[nodiscard]] double duration() const noexcept { return t_end_ - t_start_; }
+    [[nodiscard]] const Eigen::VectorXd& coefficients() const noexcept { return coeffs_; }
 
     /// Compute heuristic velocities for intermediate waypoints.
     [[nodiscard]] static std::vector<double> heuristic_velocities(

@@ -25,7 +25,7 @@ class INTERPOLATECPP_API DoubleSTrajectory {
     [[nodiscard]] FullTrajectoryResult evaluate(double t) const;
 
     /// Get total trajectory duration.
-    [[nodiscard]] double duration() const { return T_; }
+    [[nodiscard]] double duration() const noexcept { return T_; }
 
     /// Get phase durations.
     [[nodiscard]] std::map<std::string, double> phase_durations() const;

@@ -25,11 +25,11 @@ class INTERPOLATECPP_API TrapezoidalTrajectory {
     [[nodiscard]] TrajectoryResult evaluate(double t) const;
 
     /// Get total trajectory duration.
-    [[nodiscard]] double duration() const { return duration_; }
+    [[nodiscard]] double duration() const noexcept { return duration_; }
 
     /// Get start time.
-    [[nodiscard]] double t_start() const { return t0_; }
-    [[nodiscard]] double t_end() const { return t0_ + duration_; }
+    [[nodiscard]] double t_start() const noexcept { return t0_; }
+    [[nodiscard]] double t_end() const noexcept { return t0_ + duration_; }
 
     /// Compute heuristic velocities for waypoints.
     [[nodiscard]] static std::vector<double> heuristic_velocities(

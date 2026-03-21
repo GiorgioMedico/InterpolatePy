@@ -17,8 +17,8 @@ class INTERPOLATECPP_API CircularPath {
     [[nodiscard]] Eigen::MatrixXd position(const Eigen::VectorXd& s) const;
     [[nodiscard]] Eigen::Vector3d velocity(double s) const;
     [[nodiscard]] Eigen::Vector3d acceleration(double s) const;
-    [[nodiscard]] double radius() const { return radius_; }
-    [[nodiscard]] const Eigen::Vector3d& center() const { return center_; }
+    [[nodiscard]] double radius() const noexcept { return radius_; }
+    [[nodiscard]] const Eigen::Vector3d& center() const noexcept { return center_; }
 
   private:
     Eigen::Vector3d axis_, center_;

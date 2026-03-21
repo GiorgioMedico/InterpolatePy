@@ -31,12 +31,12 @@ class INTERPOLATECPP_API CubicBSplineInterpolation : public BSpline {
         bool auto_derivatives = false);
 
     // Accessors
-    [[nodiscard]] const Eigen::MatrixXd& interpolation_points() const {
+    [[nodiscard]] const Eigen::MatrixXd& interpolation_points() const noexcept {
         return interpolation_points_;
     }
-    [[nodiscard]] const Eigen::VectorXd& u_bars() const { return u_bars_; }
-    [[nodiscard]] const Eigen::VectorXd& start_derivative() const { return v0_; }
-    [[nodiscard]] const Eigen::VectorXd& end_derivative() const { return vn_; }
+    [[nodiscard]] const Eigen::VectorXd& u_bars() const noexcept { return u_bars_; }
+    [[nodiscard]] const Eigen::VectorXd& start_derivative() const noexcept { return v0_; }
+    [[nodiscard]] const Eigen::VectorXd& end_derivative() const noexcept { return vn_; }
 
   private:
     Eigen::MatrixXd interpolation_points_;

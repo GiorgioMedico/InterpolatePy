@@ -36,9 +36,9 @@ class INTERPOLATECPP_API SquadC2 {
     [[nodiscard]] Eigen::Vector3d evaluate_velocity(double t) const;
     [[nodiscard]] Eigen::Vector3d evaluate_acceleration(double t) const;
 
-    [[nodiscard]] double t_min() const { return times_.front(); }
-    [[nodiscard]] double t_max() const { return times_.back(); }
-    [[nodiscard]] bool validate_continuity() const { return validate_continuity_; }
+    [[nodiscard]] double t_min() const noexcept { return times_.front(); }
+    [[nodiscard]] double t_max() const noexcept { return times_.back(); }
+    [[nodiscard]] bool validate_continuity() const noexcept { return validate_continuity_; }
 
   private:
     std::vector<double> times_;
@@ -54,7 +54,7 @@ class INTERPOLATECPP_API SquadC2 {
 
     void build_extended_sequence();
     void compute_intermediates();
-    [[nodiscard]] int find_segment(double t) const;
+    [[nodiscard]] int find_original_segment(double t) const;
     [[nodiscard]] static double quintic_u(double t, double t0, double t1);
 };
 
