@@ -42,6 +42,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Visualization",
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Python Modules",
+    "Programming Language :: C++",
 ]
 dependencies = ["numpy>=2.3.0", "matplotlib>=3.10.5", "scipy>=1.16.0"]
 dynamic = ["version"]
@@ -66,11 +67,23 @@ dev = [
     "build>=1.0.3",
     "twine>=4.0.2",
 ]
-all = ["interpolatepy[test,dev]"]
+docs = [
+    "mkdocs>=1.5.3",
+    "mkdocs-material>=9.4.8",
+    "pymdown-extensions>=10.3.0",
+    "mkdocs-autorefs>=0.5.0",
+    "mkdocstrings>=0.23.0",
+    "mkdocstrings-python>=1.7.3",
+    "Pygments>=2.16.1",
+]
+all = ["interpolatepy[test,dev,docs]"]
 
 [tool.setuptools]
 platforms = ["unix", "linux", "osx", "cygwin", "win32"]
-packages = ["interpolatepy"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["interpolatepy*"]
 
 [tool.setuptools.dynamic]
 version = { attr = "interpolatepy.version.__version__" }
@@ -82,6 +95,7 @@ testpaths = "tests"
 [tool.ruff]
 target-version = "py312"
 line-length = 120
+preview = true
 extend-exclude = ["docs", "test", "tests"]
 
 [tool.ruff.lint]
@@ -199,28 +213,7 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 force-single-line = true
 force-sort-within-sections = false
 lines-after-imports = 2
-known-third-party = [
-    "numpy",
-    "pandas",
-    "keras",
-    "tensorflow",
-    "sklearn",
-    "matplotlib",
-    "scipy",
-    "h5py",
-    "seaborn",
-    "numba",
-    "gym",
-    "PyQt5",
-    "PyQt6",
-    "pyqtgraph",
-    "torch",
-    "tqdm",
-    "cv2",
-    "skimage",
-    "tensorcross",
-    "tensorflow_datasets",
-]
+known-third-party = ["numpy", "matplotlib", "scipy"]
 split-on-trailing-comma = true
 combine-as-imports = true
 force-wrap-aliases = true
