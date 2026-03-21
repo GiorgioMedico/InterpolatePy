@@ -23,5 +23,3 @@ ignore:
   - "tests/*"
   - "docs/*"
   - "examples/*"
-  - "setup.py"
-  - "**/__init__.py"
