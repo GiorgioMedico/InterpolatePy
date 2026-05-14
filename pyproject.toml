@@ -51,7 +51,7 @@ dynamic = ["version"]
 "Homepage" = "https://github.com/GiorgioMedico/InterpolatePy"
 "Bug Tracker" = "https://github.com/GiorgioMedico/InterpolatePy/issues"
 
-[project.optional-dependencies]
+[dependency-groups]
 test = [
     "pytest>=8.4.0",
     "pytest-cov>=4.1.0",
@@ -76,7 +76,9 @@ docs = [
     "mkdocstrings-python>=1.7.3",
     "Pygments>=2.16.1",
 ]
-all = ["interpolatepy[test,dev,docs]"]
+
+[tool.uv]
+default-groups = ["dev", "test"]
 
 [tool.setuptools]
 platforms = ["unix", "linux", "osx", "cygwin", "win32"]
