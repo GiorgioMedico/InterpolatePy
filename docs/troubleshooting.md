@@ -18,8 +18,8 @@ ModuleNotFoundError: No module named 'interpolatepy'
 # Install from PyPI
 pip install interpolatepy
 
-# Or install from source for development
-pip install -e .
+# Or install from source for development (uses uv)
+uv sync
 ```
 
 #### Problem: Specific Class Import Failed

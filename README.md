@@ -28,11 +28,15 @@ pip install InterpolatePy
 <details>
 <summary><strong>Development Installation</strong></summary>
 
+This project uses [uv](https://docs.astral.sh/uv/) for dependency and environment management.
+
 ```bash
 git clone https://github.com/GiorgioMedico/InterpolatePy.git
 cd InterpolatePy
-pip install -e '.[all]'  # Includes testing and development tools
+uv sync  # creates .venv with the default dev + test groups
 ```
+
+To include the docs group as well: `uv sync --all-groups`.
 </details>
 
 ## Quick Start
@@ -253,22 +257,22 @@ Set `INTERPOLATEPY_NO_CPP=1` to force pure-Python mode.
 ```bash
 git clone https://github.com/GiorgioMedico/InterpolatePy.git
 cd InterpolatePy
-pip install -e '.[all]'
-pre-commit install
+uv sync                       # creates .venv with dev + test groups
+uv run pre-commit install
 
 # Run tests
-python -m pytest tests/
+uv run pytest tests/
 
 # Run tests with coverage
-python -m pytest tests/ --cov=interpolatepy --cov-report=html --cov-report=term
+uv run pytest tests/ --cov=interpolatepy --cov-report=html --cov-report=term
 
 # Code quality
-ruff format interpolatepy/
-ruff check interpolatepy/
-mypy interpolatepy/
+uv run ruff format interpolatepy/
+uv run ruff check interpolatepy/
+uv run mypy interpolatepy/
 
 # Run all pre-commit hooks
-pre-commit run --all-files
+uv run pre-commit run --all-files
 ```
 </details>
 
@@ -279,9 +283,9 @@ pre-commit run --all-files
 Contributions welcome! Please:
 
 1. Fork the repo and create a feature branch
-2. Install dev dependencies: `pip install -e '.[all]'`
+2. Install dev dependencies: `uv sync`
 3. Follow existing patterns and add tests
-4. Run `pre-commit run --all-files` before submitting
+4. Run `uv run pre-commit run --all-files` before submitting
 5. Open a pull request with clear description
 
 For major changes, open an issue first to discuss the approach.

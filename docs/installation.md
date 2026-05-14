@@ -66,39 +66,44 @@ For contributing to InterpolatePy or accessing the latest features:
 
 ### Clone and Install
 
+InterpolatePy uses [uv](https://docs.astral.sh/uv/) for development. Install uv first, then:
+
 ```bash
 git clone https://github.com/GiorgioMedico/InterpolatePy.git
 cd InterpolatePy
-pip install -e '.[all]'  # Includes testing and development tools
+uv sync  # creates .venv with the default dev + test groups
 ```
 
-### With Development Dependencies
+### Selecting Dependency Groups
 
 ```bash
-# Install with all optional dependencies
-pip install -e '.[all]'
+# Default: dev + test groups
+uv sync
 
-# Or install specific groups
-pip install -e '.[test]'     # Testing tools
-pip install -e '.[dev]'      # Development tools
+# Include the docs group as well
+uv sync --all-groups
+
+# Or pick a specific group
+uv sync --group test
+uv sync --group docs
 ```
 
 ### Development Tools Setup
 
 ```bash
 # Install pre-commit hooks
-pre-commit install
+uv run pre-commit install
 
 # Run code quality checks
-ruff format interpolatepy/
-ruff check interpolatepy/
-mypy interpolatepy/
+uv run ruff format interpolatepy/
+uv run ruff check interpolatepy/
+uv run mypy interpolatepy/
 
 # Run tests
-python -m pytest tests/
+uv run pytest tests/
 
 # Run tests with coverage
-python -m pytest tests/ --cov=interpolatepy --cov-report=html --cov-report=term
+uv run pytest tests/ --cov=interpolatepy --cov-report=html --cov-report=term
 ```
 
 ## C++ Backend (Optional)

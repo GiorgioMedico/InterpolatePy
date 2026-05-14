@@ -276,9 +276,9 @@ class Quaternion:
 
         For unit q = [cos(θ), v*sin(θ)], log(q) = [0, v*θ]
         """
-        # Clamp s to avoid numerical issues with acos
+        # Clamp s to avoid numerical issues with arccos
         s_clamped = max(-1.0, min(1.0, abs(self.s_)))
-        theta = np.acos(s_clamped)
+        theta = np.arccos(s_clamped)
 
         if theta < self.EPSILON:
             # For small angles, return vector part directly to avoid division by zero
@@ -506,16 +506,16 @@ class Quaternion:
         # Roll (x-axis rotation)
         sinr_cosp = 2 * (s * v1 + v2 * v3)
         cosr_cosp = 1 - 2 * (v1 * v1 + v2 * v2)
-        roll = np.atan2(sinr_cosp, cosr_cosp)
+        roll = np.arctan2(sinr_cosp, cosr_cosp)
 
         # Pitch (y-axis rotation)
         sinp = 2 * (s * v2 - v3 * v1)
-        pitch = np.copysign(np.pi / 2, sinp) if abs(sinp) >= 1 else np.asin(sinp)
+        pitch = np.copysign(np.pi / 2, sinp) if abs(sinp) >= 1 else np.arcsin(sinp)
 
         # Yaw (z-axis rotation)
         siny_cosp = 2 * (s * v3 + v1 * v2)
         cosy_cosp = 1 - 2 * (v2 * v2 + v3 * v3)
-        yaw = np.atan2(siny_cosp, cosy_cosp)
+        yaw = np.arctan2(siny_cosp, cosy_cosp)
 
         return roll, pitch, yaw
 
@@ -524,7 +524,7 @@ class Quaternion:
         if abs(self.s_) >= 1.0:
             return np.array([1.0, 0.0, 0.0]), 0.0
 
-        angle = 2.0 * np.acos(abs(self.s_))
+        angle = 2.0 * np.arccos(abs(self.s_))
         sin_half_angle = np.sqrt(1.0 - self.s_**2)
 
         axis = np.array([1.0, 0.0, 0.0]) if sin_half_angle < self.EPSILON else self.v_ / sin_half_angle

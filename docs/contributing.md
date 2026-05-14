@@ -22,26 +22,22 @@ Thank you for your interest in contributing to InterpolatePy! This guide will he
    cd InterpolatePy
    ```
 
-2. **Create a virtual environment**:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+2. **Install [uv](https://docs.astral.sh/uv/)** (project uses uv for environment management).
 
 3. **Install development dependencies**:
    ```bash
-   pip install -e '.[all]'  # Installs package + dev dependencies
+   uv sync  # creates .venv with the default dev + test groups
    ```
 
 4. **Install pre-commit hooks**:
    ```bash
-   pre-commit install
+   uv run pre-commit install
    ```
 
 5. **Verify installation**:
    ```bash
-   python -c "import interpolatepy; print(interpolatepy.__version__)"
-   pytest tests/ -v
+   uv run python -c "import interpolatepy; print(interpolatepy.__version__)"
+   uv run pytest tests/ -v
    ```
 
 ### Project Structure
@@ -104,32 +100,32 @@ Follow our [coding standards](#coding-standards) and ensure your changes:
 
 ```bash
 # Run all tests
-pytest tests/
+uv run pytest tests/
 
 # Run specific test file
-pytest tests/test_cubic_spline.py -v
+uv run pytest tests/test_cubic_spline.py -v
 
 # Run with coverage
-pytest tests/ --cov=interpolatepy --cov-report=html --cov-report=term
+uv run pytest tests/ --cov=interpolatepy --cov-report=html --cov-report=term
 
 # Run benchmarks
-pytest tests/ -k "benchmark" --benchmark-only
+uv run pytest tests/ -k "benchmark" --benchmark-only
 ```
 
 ### 4. Check Code Quality
 
 ```bash
 # Format code
-ruff format interpolatepy/
+uv run ruff format interpolatepy/
 
 # Check linting
-ruff check interpolatepy/
+uv run ruff check interpolatepy/
 
 # Type checking
-mypy interpolatepy/
+uv run mypy interpolatepy/
 
 # Run pre-commit checks
-pre-commit run --all-files
+uv run pre-commit run --all-files
 ```
 
 ### 5. Commit Changes
