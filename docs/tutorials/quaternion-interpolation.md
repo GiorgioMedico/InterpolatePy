@@ -209,4 +209,4 @@ Interpolation near 180-degree rotations can be problematic because the interpola
 
 - **[API Reference](../api-reference.md#quaternion)** for complete method documentation
 - **[Algorithms Guide](../algorithms.md)** for mathematical foundations
-- **Example scripts**: `examples/squad_c2_ex.py`, `examples/log_quat_ex.py`, `examples/quat_visualization_ex.py`
+- **Example scripts**: `examples/squad_c2_ex.py`, `examples/log_quat_new_ex.py`, `examples/quat_visualization_ex.py`

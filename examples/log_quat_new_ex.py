@@ -5,9 +5,6 @@ This example demonstrates the LogQuaternionInterpolation class (LQI method)
 for smooth quaternion trajectory generation using logarithmic quaternion
 representation with B-spline interpolation.
 
-Note: This example has been updated to use LogQuaternionInterpolation instead
-of the deprecated LogQuaternionBSpline class.
-
 Key Features Demonstrated:
 - Logarithmic quaternion space interpolation for smooth trajectories
 - Algorithm 1 from Parker et al. (2023) for continuous axis-angle recovery
@@ -27,7 +24,6 @@ Mathematical Background:
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Using LogQuaternionInterpolation instead of deprecated LogQuaternionBSpline
 from interpolatepy.log_quat import LogQuaternionInterpolation, ModifiedLogQuaternionInterpolation
 from interpolatepy.quat_core import Quaternion
 from interpolatepy.quat_spline import QuaternionSpline

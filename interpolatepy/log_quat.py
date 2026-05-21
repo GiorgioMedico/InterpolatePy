@@ -1,352 +1,126 @@
 """
-Logarithmic Quaternion B-spline Interpolation
+Logarithmic Quaternion Interpolation.
 
-This module provides smooth quaternion trajectory generation using logarithmic
-quaternion representation with cubic B-spline interpolation.
+Implements two methods from Parker et al. (2023) for smooth quaternion
+trajectory generation via B-spline interpolation in axis-angle space:
 
-The algorithm:
-1. Transform unit quaternions to logarithmic space using q.Log()
-2. Interpolate the 3D vector parts using cubic B-splines
-3. Transform back to unit quaternions using exp() mapping
-
-This approach provides smooth, continuously differentiable quaternion trajectories
-with precise control over rotational motion profiles.
+- :class:`LogQuaternionInterpolation` (LQI): interpolates the rotation
+  vector r = θ * n̂ as a single 3D B-spline.
+- :class:`ModifiedLogQuaternionInterpolation` (mLQI): interpolates θ and
+  the unit axis (X, Y, Z) as separate B-splines for better numerical
+  stability.
 """
 
 from __future__ import annotations
 
 import warnings
+
 import numpy as np
 
-from .quat_core import Quaternion
 from .b_spline_interpolate import BSplineInterpolator
-
-try:
-    import matplotlib.pyplot as plt
-    from mpl_toolkits.mplot3d import Axes3D
-except ImportError:
-    plt = None
-    Axes3D = None
+from .quat_core import Quaternion
 
 
-class LogQuaternionBSpline:
-    """
-    Logarithmic Quaternion B-spline Interpolation.
+_EPSILON = 1e-10
+_DEFAULT_DEGREE = 3
+_VALID_DEGREES = {3, 4, 5}
+_MIN_QUATERNIONS = 2
 
-    .. deprecated::
-        LogQuaternionBSpline is deprecated and will be removed in a future version.
-        Use LogQuaternionInterpolation or ModifiedLogQuaternionInterpolation instead,
-        which provide improved algorithms based on Parker et al. (2023) with better
-        handling of quaternion double-cover and axis-angle discontinuities.
 
-    This class provides smooth quaternion interpolation by working in logarithmic
-    quaternion space and using cubic B-splines for interpolation.
-
-    Parameters
-    ----------
-    time_points : array_like
-        Time values corresponding to each quaternion (must be strictly increasing).
-    quaternions : array_like
-        List of unit quaternions to interpolate between.
-    degree : int, optional
-        Degree of the B-spline (3, 4, or 5). Default is 3 (cubic).
-    initial_velocity : array_like, optional
-        Initial angular velocity constraint (3D vector). Default is None.
-    final_velocity : array_like, optional
-        Final angular velocity constraint (3D vector). Default is None.
-    initial_acceleration : array_like, optional
-        Initial angular acceleration constraint (3D vector). Default is None.
-    final_acceleration : array_like, optional
-        Final angular acceleration constraint (3D vector). Default is None.
-
-    Attributes
-    ----------
-    time_points : ndarray
-        Time values for the quaternion waypoints.
-    quaternions : list[Quaternion]
-        Original quaternion waypoints.
-    degree : int
-        Degree of the B-spline (3, 4, or 5).
-    t_min : float
-        Minimum valid time value.
-    t_max : float
-        Maximum valid time value.
-    """
-
-    # Constants
-    EPSILON = 1e-10
-    DEFAULT_DEGREE = 3
-
-    def __init__(  # noqa: PLR0913
-        self,
-        time_points: list | np.ndarray,
-        quaternions: list[Quaternion],
-        degree: int = DEFAULT_DEGREE,
-        initial_velocity: list | np.ndarray | None = None,
-        final_velocity: list | np.ndarray | None = None,
-        initial_acceleration: list | np.ndarray | None = None,
-        final_acceleration: list | np.ndarray | None = None,
-    ) -> None:
-        """
-        Initialize the logarithmic quaternion B-spline interpolator.
-
-        Parameters
-        ----------
-        time_points : array_like
-            Time values corresponding to each quaternion.
-        quaternions : list[Quaternion]
-            Unit quaternions to interpolate between.
-        degree : int, optional
-            Degree of the B-spline (3, 4, or 5). Default is 3 (cubic).
-        initial_velocity : array_like, optional
-            Initial angular velocity constraint (3D vector). Default is None.
-        final_velocity : array_like, optional
-            Final angular velocity constraint (3D vector). Default is None.
-        initial_acceleration : array_like, optional
-            Initial angular acceleration constraint (3D vector). Default is None.
-        final_acceleration : array_like, optional
-            Final angular acceleration constraint (3D vector). Default is None.
-
-        Raises
-        ------
-        ValueError
-            If inputs are invalid or quaternions are not unit quaternions.
-        """
-        warnings.warn(
-            "LogQuaternionBSpline is deprecated and will be removed in a future version. "
-            "Use LogQuaternionInterpolation or ModifiedLogQuaternionInterpolation instead, "
-            "which provide improved algorithms with better handling of quaternion "
-            "double-cover and axis-angle discontinuities.",
-            DeprecationWarning,
-            stacklevel=2,
+def _validate_inputs(
+    time_points: np.ndarray,
+    quaternions: list[Quaternion],
+    degree: int,
+) -> None:
+    if len(time_points) != len(quaternions):
+        raise ValueError("Number of time points must match number of quaternions")
+    if len(quaternions) < _MIN_QUATERNIONS:
+        raise ValueError("At least 2 quaternions are required for interpolation")
+    if degree not in _VALID_DEGREES:
+        raise ValueError(f"Degree must be 3, 4, or 5, got {degree}")
+    if len(quaternions) < degree + 1:
+        raise ValueError(
+            f"Not enough quaternions for degree {degree} B-spline interpolation. "
+            f"Need at least {degree + 1} quaternions, got {len(quaternions)}"
         )
+    if not np.all(np.diff(time_points) > 0):
+        raise ValueError("Time points must be strictly increasing")
 
-        # Convert time points to numpy array
-        self.time_points = np.array(time_points, dtype=np.float64)
-        self.quaternions = list(quaternions)  # Keep original quaternions
-        self.degree = degree
-
-        # Validate inputs
-        self._validate_inputs()
-
-        # Ensure quaternions have consistent orientation (handle double-cover)
-        self._ensure_quaternion_continuity()
-
-        # Transform to logarithmic space
-        log_quaternions = self._transform_to_log_space()
-
-        # Create B-spline interpolator with direct time-based interpolation
-        self.bspline_interpolator = BSplineInterpolator(
-            degree=degree,
-            points=log_quaternions,
-            times=self.time_points,
-            initial_velocity=initial_velocity,
-            final_velocity=final_velocity,
-            initial_acceleration=initial_acceleration,
-            final_acceleration=final_acceleration,
-        )
-
-        # Store time range
-        self.t_min = self.time_points[0]
-        self.t_max = self.time_points[-1]
-
-    def _validate_inputs(self) -> None:
-        """Validate input parameters."""
-        if len(self.time_points) != len(self.quaternions):
-            raise ValueError("Number of time points must match number of quaternions")
-
-        min_quaternions = 2
-        if len(self.quaternions) < min_quaternions:
-            raise ValueError("At least 2 quaternions are required for interpolation")
-
-        # Validate degree
-        if self.degree not in {3, 4, 5}:
-            raise ValueError(f"Degree must be 3, 4, or 5, got {self.degree}")
-
-        # Check minimum points for the degree
-        min_points = self.degree + 1
-        if len(self.quaternions) < min_points:
-            raise ValueError(
-                f"Not enough quaternions for degree {self.degree} B-spline interpolation. "
-                f"Need at least {min_points} quaternions, got {len(self.quaternions)}"
+    for i, q in enumerate(quaternions):
+        if not isinstance(q, Quaternion):
+            raise TypeError(f"Element {i} is not a Quaternion instance")
+        norm = q.norm()
+        if abs(norm - 1.0) > _EPSILON:
+            warnings.warn(
+                f"Quaternion {i} is not unit (norm={norm:.6f}), normalizing.",
+                UserWarning,
+                stacklevel=3,
             )
+            quaternions[i] = q.unit()
 
-        # Check time points are strictly increasing
-        if not np.all(np.diff(self.time_points) > 0):
-            raise ValueError("Time points must be strictly increasing")
 
-        # Validate quaternions are unit quaternions
-        for i, q in enumerate(self.quaternions):
-            if not isinstance(q, Quaternion):
-                raise TypeError(f"Element {i} is not a Quaternion instance")
+def _extract_axis_angle_raw(q: Quaternion) -> tuple[np.ndarray, float]:
+    """
+    Axis-angle extraction without canonicalising the sign of the scalar
+    part, so the angle ranges over [0, 2π] instead of [0, π]. Downstream
+    unwrap/branch-tracking steps need the original branch to detect
+    rotations past 180°.
+    """
+    s = q.s_
+    sin_half = np.sqrt(max(0.0, 1.0 - s * s))
+    axis = np.array([1.0, 0.0, 0.0]) if sin_half < _EPSILON else q.v_ / sin_half
+    angle = 2.0 * np.arccos(np.clip(s, -1.0, 1.0))
+    return axis, angle
 
-            norm = q.norm()
-            if abs(norm - 1.0) > self.EPSILON:
-                print(f"Warning: Quaternion {i} is not unit (norm={norm:.6f}), normalizing...")
-                self.quaternions[i] = q.unit()
 
-    def _ensure_quaternion_continuity(self) -> None:
-        """
-        Ensure quaternion continuity by handling the double-cover property.
-        Choose the sign of each quaternion to minimize the distance to the previous one.
-        """
-        for i in range(1, len(self.quaternions)):
-            # Check both q and -q to see which is closer to the previous quaternion
-            q_pos = self.quaternions[i]
-            q_neg = -self.quaternions[i]
+def _canonicalize_double_cover(quaternions: list[Quaternion]) -> None:
+    """Flip each q so it stays in the same hemisphere as its predecessor."""
+    for i in range(1, len(quaternions)):
+        prev = quaternions[i - 1]
+        if prev.dot_product(-quaternions[i]) > prev.dot_product(quaternions[i]):
+            quaternions[i] = -quaternions[i]
 
-            # Use dot product to measure similarity (closer to 1 means more similar)
-            dot_pos = self.quaternions[i - 1].dot_product(q_pos)
-            dot_neg = self.quaternions[i - 1].dot_product(q_neg)
 
-            # Choose the quaternion with higher dot product (smaller angle)
-            if dot_neg > dot_pos:
-                self.quaternions[i] = q_neg
+def _omega_alpha(  # noqa: PLR0913
+    theta: float,
+    theta_dot: float,
+    theta_ddot: float,
+    u: np.ndarray,
+    u_dot: np.ndarray,
+    u_ddot: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Left-Jacobian / dexp expansion of (θ, u, u̇, ü) into physical angular
+    velocity and acceleration. Assumes u is a unit vector and u̇, ü are
+    tangent to the unit sphere; the formula is exact in that case.
+    """
+    sin_t = np.sin(theta)
+    cos_t = np.cos(theta)
+    one_minus_cos = 1.0 - cos_t
+    one_plus_cos = 1.0 + cos_t
 
-    def _transform_to_log_space(self) -> np.ndarray:
-        """
-        Transform quaternions to logarithmic space.
+    cross_u_udot = np.cross(u, u_dot)
+    cross_u_uddot = np.cross(u, u_ddot)
 
-        Returns
-        -------
-        ndarray
-            3D control points (vector parts of log quaternions).
-        """
-        log_vectors = []
-
-        for q in self.quaternions:
-            # Get logarithm of unit quaternion
-            log_q = q.Log()
-            # Extract vector part (scalar part is always 0 for unit quaternions)
-            log_vectors.append(log_q.v())
-
-        return np.array(log_vectors)
-
-    def evaluate(self, t: float) -> Quaternion:
-        """
-        Evaluate the quaternion trajectory at time t.
-
-        Parameters
-        ----------
-        t : float
-            Time value to evaluate at.
-
-        Returns
-        -------
-        Quaternion
-            Interpolated unit quaternion at time t.
-
-        Raises
-        ------
-        ValueError
-            If t is outside the valid time range.
-        """
-        # Validate time range
-        if t < self.t_min - self.EPSILON or t > self.t_max + self.EPSILON:
-            raise ValueError(f"Time {t} outside valid range [{self.t_min}, {self.t_max}]")
-
-        # Clamp to valid range
-        t = np.clip(t, self.t_min, self.t_max)
-
-        # Handle boundary cases exactly
-        if abs(t - self.t_min) <= self.EPSILON:
-            return self.quaternions[0].copy()
-        if abs(t - self.t_max) <= self.EPSILON:
-            return self.quaternions[-1].copy()
-
-        # Evaluate B-spline interpolator directly to get vector part in log space
-        log_vector = self.bspline_interpolator.evaluate(t)
-
-        # Create log quaternion (scalar part is 0)
-        log_quaternion = Quaternion(0.0, log_vector[0], log_vector[1], log_vector[2])
-
-        # Transform back to unit quaternion using exponential map
-        return log_quaternion.exp()
-
-    def evaluate_velocity(self, t: float) -> np.ndarray:
-        """
-        Evaluate the angular velocity at time t.
-
-        The angular velocity is computed as the derivative of the log quaternion
-        in the tangent space.
-
-        Parameters
-        ----------
-        t : float
-            Time value to evaluate at.
-
-        Returns
-        -------
-        ndarray
-            3D angular velocity vector.
-        """
-        # Validate time range
-        if t < self.t_min - self.EPSILON or t > self.t_max + self.EPSILON:
-            raise ValueError(f"Time {t} outside valid range [{self.t_min}, {self.t_max}]")
-
-        # Clamp to valid range
-        t = np.clip(t, self.t_min, self.t_max)
-
-        # Get derivative of B-spline interpolator (first derivative in log space)
-        return self.bspline_interpolator.evaluate_derivative(t, order=1)
-
-    def evaluate_acceleration(self, t: float) -> np.ndarray:
-        """
-        Evaluate the angular acceleration at time t.
-
-        Parameters
-        ----------
-        t : float
-            Time value to evaluate at.
-
-        Returns
-        -------
-        ndarray
-            3D angular acceleration vector.
-        """
-        # Validate time range
-        if t < self.t_min - self.EPSILON or t > self.t_max + self.EPSILON:
-            raise ValueError(f"Time {t} outside valid range [{self.t_min}, {self.t_max}]")
-
-        # Clamp to valid range
-        t = np.clip(t, self.t_min, self.t_max)
-
-        # Get second derivative of B-spline interpolator (second derivative in log space)
-        return self.bspline_interpolator.evaluate_derivative(t, order=2)
-
-    def generate_trajectory(self, num_points: int = 100) -> tuple[np.ndarray, list[Quaternion]]:
-        """
-        Generate a trajectory with evenly spaced time points.
-
-        Parameters
-        ----------
-        num_points : int, optional
-            Number of points to generate (default is 100).
-
-        Returns
-        -------
-        time_values : ndarray
-            Evaluation time points.
-        quaternion_trajectory : list[Quaternion]
-            Corresponding quaternions.
-        """
-        time_values = np.linspace(self.t_min, self.t_max, num_points)
-        quaternion_trajectory = [self.evaluate(t) for t in time_values]
-
-        return time_values, quaternion_trajectory
+    omega = u * theta_dot + u_dot * sin_t + cross_u_udot * one_minus_cos
+    alpha = (
+        u * theta_ddot
+        + u_dot * (theta_dot * one_plus_cos)
+        + u_ddot * sin_t
+        + cross_u_udot * (theta_dot * sin_t)
+        + cross_u_uddot * one_minus_cos
+    )
+    return omega, alpha
 
 
 class LogQuaternionInterpolation:
     """
     Logarithmic Quaternion Interpolation (LQI) using axis-angle representation.
 
-    This class implements the LQI method from Parker et al. (2023) which transforms
-    quaternions to axis-angle space r = θ*n̂ and interpolates using B-splines.
-
-    Key features:
-    - Handles quaternion double-cover and axis-angle discontinuities
-    - Uses Algorithm 1 from the paper for continuous axis-angle recovery
-    - Provides C² continuous quaternion interpolation
+    Transforms quaternions to axis-angle space r = θ*n̂ and interpolates the
+    3D vector with a B-spline (Parker et al. 2023). Algorithm 1 from the
+    paper resolves quaternion double-cover and axis-angle discontinuities so
+    the recovered r(t) is continuous and the interpolation is C².
 
     Parameters
     ----------
@@ -356,43 +130,33 @@ class LogQuaternionInterpolation:
         List of unit quaternions to interpolate between.
     degree : int, optional
         Degree of the B-spline (3, 4, or 5). Default is 3 (cubic).
-    initial_velocity : array_like, optional
-        Initial angular velocity constraint (3D vector). Default is None.
-    final_velocity : array_like, optional
-        Final angular velocity constraint (3D vector). Default is None.
-    initial_acceleration : array_like, optional
-        Initial angular acceleration constraint (3D vector). Default is None.
-    final_acceleration : array_like, optional
-        Final angular acceleration constraint (3D vector). Default is None.
+    initial_velocity, final_velocity : array_like, optional
+        Initial/final angular velocity constraints (3D vectors).
+    initial_acceleration, final_acceleration : array_like, optional
+        Initial/final angular acceleration constraints (3D vectors).
     """
 
-    # Constants
-    EPSILON = 1e-10
-    DEFAULT_DEGREE = 3
+    EPSILON = _EPSILON
+    DEFAULT_DEGREE = _DEFAULT_DEGREE
 
     def __init__(  # noqa: PLR0913
         self,
         time_points: list | np.ndarray,
         quaternions: list[Quaternion],
-        degree: int = DEFAULT_DEGREE,
+        degree: int = _DEFAULT_DEGREE,
         initial_velocity: list | np.ndarray | None = None,
         final_velocity: list | np.ndarray | None = None,
         initial_acceleration: list | np.ndarray | None = None,
         final_acceleration: list | np.ndarray | None = None,
     ) -> None:
-        """Initialize the LQI interpolator."""
-        # Convert time points to numpy array
         self.time_points = np.array(time_points, dtype=np.float64)
-        self.quaternions = list(quaternions)  # Keep original quaternions
+        self.quaternions = list(quaternions)
         self.degree = degree
 
-        # Validate inputs
-        self._validate_inputs()
+        _validate_inputs(self.time_points, self.quaternions, degree)
 
-        # Recover continuous axis-angle representation (Algorithm 1 from paper)
         axis_angle_vectors = self._recover_continuous_axis_angle()
 
-        # Create B-spline interpolator for axis-angle vectors
         self.bspline_interpolator = BSplineInterpolator(
             degree=degree,
             points=axis_angle_vectors,
@@ -403,232 +167,117 @@ class LogQuaternionInterpolation:
             final_acceleration=final_acceleration,
         )
 
-        # Store time range
         self.t_min = self.time_points[0]
         self.t_max = self.time_points[-1]
 
-    def _validate_inputs(self) -> None:
-        """Validate input parameters."""
-        if len(self.time_points) != len(self.quaternions):
-            raise ValueError("Number of time points must match number of quaternions")
-
-        min_quaternions = 2
-        if len(self.quaternions) < min_quaternions:
-            raise ValueError("At least 2 quaternions are required for interpolation")
-
-        # Validate degree
-        if self.degree not in {3, 4, 5}:
-            raise ValueError(f"Degree must be 3, 4, or 5, got {self.degree}")
-
-        # Check minimum points for the degree
-        min_points = self.degree + 1
-        if len(self.quaternions) < min_points:
-            raise ValueError(
-                f"Not enough quaternions for degree {self.degree} B-spline interpolation. "
-                f"Need at least {min_points} quaternions, got {len(self.quaternions)}"
-            )
-
-        # Check time points are strictly increasing
-        if not np.all(np.diff(self.time_points) > 0):
-            raise ValueError("Time points must be strictly increasing")
-
-        # Validate quaternions are unit quaternions
-        for i, q in enumerate(self.quaternions):
-            if not isinstance(q, Quaternion):
-                raise TypeError(f"Element {i} is not a Quaternion instance")
-
-            norm = q.norm()
-            if abs(norm - 1.0) > self.EPSILON:
-                print(f"Warning: Quaternion {i} is not unit (norm={norm:.6f}), normalizing...")
-                self.quaternions[i] = q.unit()
+    def _check_time(self, t: float) -> float:
+        if t < self.t_min - _EPSILON or t > self.t_max + _EPSILON:
+            raise ValueError(f"Time {t} outside valid range [{self.t_min}, {self.t_max}]")
+        return float(np.clip(t, self.t_min, self.t_max))
 
     def _recover_continuous_axis_angle(self) -> np.ndarray:
         """
-        Implement Algorithm 1 from Parker et al. (2023) for recovering continuous axis-angle series.
-
-        This method handles:
-        1. Quaternion double-cover (q and -q represent same rotation)
-        2. Axis-angle discontinuities
-        3. Phase unwrapping around ±2π
-        4. Special cases where θ ≈ 0 (indeterminate axis)
-
-        Returns
-        -------
-        ndarray
-            Array of continuous axis-angle vectors r = θ*n̂ for B-spline interpolation.
+        Algorithm 1 from Parker et al. (2023): produce a continuous
+        axis-angle series by resolving double-cover, flipping axes to keep
+        them continuous, and unwrapping the angle around ±2π.
         """
         n = len(self.quaternions)
-        axis_angle_vectors = []
-
-        # Step 1: Extract initial (θ, n̂) from quaternions
-        axes = []
-        angles = []
-
+        axes: list[np.ndarray] = []
+        angles: list[float] = []
         for q in self.quaternions:
-            axis, angle = q.to_axis_angle()
+            axis, angle = _extract_axis_angle_raw(q)
             axes.append(axis)
             angles.append(angle)
 
-        # Step 2: Handle quaternion double-cover and ensure continuity
         for i in range(1, n):
-            # Check both q and -q to see which provides better continuity
-            q_pos = self.quaternions[i]
             q_neg = -self.quaternions[i]
-
-            # Use dot product to measure similarity (closer to 1 means more similar)
-            dot_pos = self.quaternions[i - 1].dot_product(q_pos)
-            dot_neg = self.quaternions[i - 1].dot_product(q_neg)
-
-            # Choose the quaternion with higher dot product (smaller angle)
-            if dot_neg > dot_pos:
+            if self.quaternions[i - 1].dot_product(q_neg) > self.quaternions[i - 1].dot_product(
+                self.quaternions[i]
+            ):
                 self.quaternions[i] = q_neg
-                # Recalculate axis-angle for the flipped quaternion
-                axis, angle = q_neg.to_axis_angle()
-                axes[i] = axis
-                angles[i] = angle
+                axes[i], angles[i] = _extract_axis_angle_raw(q_neg)
 
-            # Now check if we need to flip the axis to maintain continuity
+            # r = θ*n̂ is invariant under (θ, n̂) → (-θ, -n̂); the flip lets
+            # the subsequent unwrap see a continuous angle sequence.
             if np.linalg.norm(axes[i - 1] - axes[i]) > np.linalg.norm(axes[i - 1] + axes[i]):
                 angles[i] = -angles[i]
                 axes[i] = -axes[i]
 
-        # Step 3: Unwrap phase angles around ±2π
-        angles = np.unwrap(angles).tolist()
-
-        # Step 4: Convert to axis-angle vectors r = θ*n̂
-        for i in range(n):
-            if abs(angles[i]) < self.EPSILON:
-                # For small angles, set axis-angle vector to zero
-                axis_angle_vectors.append(np.array([0.0, 0.0, 0.0]))
-            else:
-                # r = θ * n̂
-                axis_angle_vectors.append(angles[i] * axes[i])
-
-        return np.array(axis_angle_vectors)
+        unwrapped = np.unwrap(angles)
+        axes_arr = np.array(axes)
+        r = unwrapped[:, None] * axes_arr
+        # Zero out vectors whose magnitude collapsed below EPSILON so the
+        # fallback axis [1,0,0] doesn't bleed in as a spurious direction.
+        r[np.abs(unwrapped) < _EPSILON] = 0.0
+        return r
 
     def evaluate(self, t: float) -> Quaternion:
-        """
-        Evaluate the quaternion trajectory at time t.
-
-        Parameters
-        ----------
-        t : float
-            Time value to evaluate at.
-
-        Returns
-        -------
-        Quaternion
-            Interpolated unit quaternion at time t.
-        """
-        # Validate time range
-        if t < self.t_min - self.EPSILON or t > self.t_max + self.EPSILON:
-            raise ValueError(f"Time {t} outside valid range [{self.t_min}, {self.t_max}]")
-
-        # Clamp to valid range
-        t = np.clip(t, self.t_min, self.t_max)
-
-        # Handle boundary cases exactly
-        if abs(t - self.t_min) <= self.EPSILON:
+        """Evaluate the interpolated quaternion at time ``t``."""
+        t = self._check_time(t)
+        if abs(t - self.t_min) <= _EPSILON:
             return self.quaternions[0].copy()
-        if abs(t - self.t_max) <= self.EPSILON:
+        if abs(t - self.t_max) <= _EPSILON:
             return self.quaternions[-1].copy()
 
-        # Evaluate B-spline to get axis-angle vector r = θ*n̂
-        axis_angle_vector = self.bspline_interpolator.evaluate(t)
-
-        # Convert back to quaternion
-        theta = np.linalg.norm(axis_angle_vector)
-
-        if theta < self.EPSILON:
-            # For small angles, return identity quaternion
+        r = self.bspline_interpolator.evaluate(t)
+        theta = float(np.linalg.norm(r))
+        if theta < _EPSILON:
             return Quaternion.identity()
-
-        # Extract axis and create quaternion
-        axis = axis_angle_vector / theta
-        return Quaternion.from_angle_axis(float(theta), axis)
+        return Quaternion.from_angle_axis(theta, r / theta)
 
     def evaluate_velocity(self, t: float) -> np.ndarray:
-        """
-        Evaluate the angular velocity at time t.
-
-        Parameters
-        ----------
-        t : float
-            Time value to evaluate at.
-
-        Returns
-        -------
-        ndarray
-            3D angular velocity vector.
-        """
-        # Validate time range
-        if t < self.t_min - self.EPSILON or t > self.t_max + self.EPSILON:
-            raise ValueError(f"Time {t} outside valid range [{self.t_min}, {self.t_max}]")
-
-        # Clamp to valid range
-        t = np.clip(t, self.t_min, self.t_max)
-
-        # Get derivative of B-spline interpolator (first derivative of axis-angle vector)
+        """Time-derivative of the rotation vector r(t) (3D)."""
+        t = self._check_time(t)
         return self.bspline_interpolator.evaluate_derivative(t, order=1)
 
     def evaluate_acceleration(self, t: float) -> np.ndarray:
-        """
-        Evaluate the angular acceleration at time t.
-
-        Parameters
-        ----------
-        t : float
-            Time value to evaluate at.
-
-        Returns
-        -------
-        ndarray
-            3D angular acceleration vector.
-        """
-        # Validate time range
-        if t < self.t_min - self.EPSILON or t > self.t_max + self.EPSILON:
-            raise ValueError(f"Time {t} outside valid range [{self.t_min}, {self.t_max}]")
-
-        # Clamp to valid range
-        t = np.clip(t, self.t_min, self.t_max)
-
-        # Get second derivative of B-spline interpolator (second derivative of axis-angle vector)
+        """Second time-derivative of the rotation vector r(t) (3D)."""
+        t = self._check_time(t)
         return self.bspline_interpolator.evaluate_derivative(t, order=2)
 
     def generate_trajectory(self, num_points: int = 100) -> tuple[np.ndarray, list[Quaternion]]:
-        """
-        Generate a trajectory with evenly spaced time points.
-
-        Parameters
-        ----------
-        num_points : int, optional
-            Number of points to generate (default is 100).
-
-        Returns
-        -------
-        time_values : ndarray
-            Evaluation time points.
-        quaternion_trajectory : list[Quaternion]
-            Corresponding quaternions.
-        """
+        """Evaluate the trajectory at ``num_points`` evenly spaced times."""
         time_values = np.linspace(self.t_min, self.t_max, num_points)
-        quaternion_trajectory = [self.evaluate(t) for t in time_values]
+        return time_values, [self.evaluate(t) for t in time_values]
 
-        return time_values, quaternion_trajectory
+    def get_physical_kinematics(self, t: float) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Physical 3D angular velocity (omega) and acceleration (alpha) at time ``t``.
+
+        The spline interpolates r(t) = theta(t) * n_hat(t). As r -> 0 the
+        left Jacobian J_l(r) -> I, so omega -> r_dot and alpha -> r_ddot;
+        this limit is used directly when |r| < EPSILON to avoid dividing by
+        a near-zero magnitude.
+        """
+        t = self._check_time(t)
+        r = self.bspline_interpolator.evaluate(t)
+        r_dot = self.bspline_interpolator.evaluate_derivative(t, order=1)
+        r_ddot = self.bspline_interpolator.evaluate_derivative(t, order=2)
+
+        theta = float(np.linalg.norm(r))
+        if theta < _EPSILON:
+            return r_dot.copy(), r_ddot.copy()
+
+        # Decompose r = θ * u; u̇, ü built this way are automatically
+        # tangent to the unit sphere.
+        u = r / theta
+        theta_dot = float(np.dot(r, r_dot)) / theta
+        theta_ddot = (
+            float(np.dot(r_dot, r_dot)) + float(np.dot(r, r_ddot)) - theta_dot * theta_dot
+        ) / theta
+        u_dot = (r_dot - theta_dot * u) / theta
+        u_ddot = (r_ddot - theta_ddot * u) / theta - 2.0 * theta_dot * u_dot / theta
+
+        return _omega_alpha(theta, theta_dot, theta_ddot, u, u_dot, u_ddot)
 
 
 class ModifiedLogQuaternionInterpolation:
     """
     Modified Logarithmic Quaternion Interpolation (mLQI).
 
-    This class implements the modified LQI method from Parker et al. (2023) which
-    interpolates quaternions as (θ, X, Y, Z) where X²+Y²+Z²=1.
-
-    Key features:
-    - Decouples angle θ from unit vector components (X,Y,Z)
-    - Uses separate B-spline interpolators for better numerical stability
-    - Supports both normalized and unnormalized unit vector interpolation
-    - Provides C² continuous quaternion interpolation
+    Interpolates quaternions as (θ, X, Y, Z) with X²+Y²+Z²=1, using separate
+    B-splines for the scalar angle and the unit-axis components for better
+    numerical stability (Parker et al. 2023). Provides C² continuity.
 
     Parameters
     ----------
@@ -639,312 +288,183 @@ class ModifiedLogQuaternionInterpolation:
     degree : int, optional
         Degree of the B-spline (3, 4, or 5). Default is 3 (cubic).
     normalize_axis : bool, optional
-        Whether to normalize (X,Y,Z) components after interpolation. Default is True.
-    initial_velocity : array_like, optional
-        Initial angular velocity constraint (4D vector: [θ̇, Ẋ, Ẏ, Ż]). Default is None.
-    final_velocity : array_like, optional
-        Final angular velocity constraint (4D vector: [θ̇, Ẋ, Ẏ, Ż]). Default is None.
-    initial_acceleration : array_like, optional
-        Initial angular acceleration constraint (4D vector). Default is None.
-    final_acceleration : array_like, optional
-        Final angular acceleration constraint (4D vector). Default is None.
+        If True (default), the spline-evaluated (X, Y, Z) is renormalised
+        before reconstructing the quaternion. Setting this to False is only
+        appropriate when the spline preserves unit norm exactly.
+    initial_velocity, final_velocity : array_like, optional
+        Initial/final boundary constraints as 4D vectors [θ̇, Ẋ, Ẏ, Ż].
+    initial_acceleration, final_acceleration : array_like, optional
+        Initial/final boundary constraints as 4D vectors.
     """
 
-    # Constants
-    EPSILON = 1e-10
-    DEFAULT_DEGREE = 3
+    EPSILON = _EPSILON
+    DEFAULT_DEGREE = _DEFAULT_DEGREE
 
     def __init__(  # noqa: PLR0913
         self,
         time_points: list | np.ndarray,
         quaternions: list[Quaternion],
-        degree: int = DEFAULT_DEGREE,
+        degree: int = _DEFAULT_DEGREE,
         normalize_axis: bool = True,
         initial_velocity: list | np.ndarray | None = None,
         final_velocity: list | np.ndarray | None = None,
         initial_acceleration: list | np.ndarray | None = None,
         final_acceleration: list | np.ndarray | None = None,
     ) -> None:
-        """Initialize the mLQI interpolator."""
-        # Convert time points to numpy array
         self.time_points = np.array(time_points, dtype=np.float64)
-        self.quaternions = list(quaternions)  # Keep original quaternions
+        self.quaternions = list(quaternions)
         self.degree = degree
         self.normalize_axis = normalize_axis
 
-        # Validate inputs
-        self._validate_inputs()
+        _validate_inputs(self.time_points, self.quaternions, degree)
+        _canonicalize_double_cover(self.quaternions)
 
-        # Ensure quaternion continuity by handling the double-cover
-        self._ensure_quaternion_continuity()
-
-        # Transform to (θ, X, Y, Z) representation
         theta_values, xyz_values = self._transform_to_theta_xyz_space()
 
-        # Split velocity/acceleration constraints if provided
-        theta_initial_vel = None
-        xyz_initial_vel = None
-        theta_final_vel = None
-        xyz_final_vel = None
+        theta_iv, xyz_iv = self._split_4d(initial_velocity)
+        theta_fv, xyz_fv = self._split_4d(final_velocity)
+        theta_ia, xyz_ia = self._split_4d(initial_acceleration)
+        theta_fa, xyz_fa = self._split_4d(final_acceleration)
 
-        if initial_velocity is not None:
-            initial_velocity = np.array(initial_velocity)
-            theta_initial_vel = np.array([initial_velocity[0]])  # θ̇
-            xyz_initial_vel = initial_velocity[1:4]  # [Ẋ, Ẏ, Ż]
-
-        if final_velocity is not None:
-            final_velocity = np.array(final_velocity)
-            theta_final_vel = np.array([final_velocity[0]])  # θ̇
-            xyz_final_vel = final_velocity[1:4]  # [Ẋ, Ẏ, Ż]
-
-        # Similar for acceleration
-        theta_initial_acc = None
-        xyz_initial_acc = None
-        theta_final_acc = None
-        xyz_final_acc = None
-
-        if initial_acceleration is not None:
-            initial_acceleration = np.array(initial_acceleration)
-            theta_initial_acc = np.array([initial_acceleration[0]])
-            xyz_initial_acc = initial_acceleration[1:4]
-
-        if final_acceleration is not None:
-            final_acceleration = np.array(final_acceleration)
-            theta_final_acc = np.array([final_acceleration[0]])
-            xyz_final_acc = final_acceleration[1:4]
-
-        # Create separate B-spline interpolators
-        # For θ (1D)
         self.theta_interpolator = BSplineInterpolator(
             degree=degree,
-            points=theta_values.reshape(-1, 1),  # Make it 2D for BSplineInterpolator
+            points=theta_values.reshape(-1, 1),
             times=self.time_points,
-            initial_velocity=theta_initial_vel,
-            final_velocity=theta_final_vel,
-            initial_acceleration=theta_initial_acc,
-            final_acceleration=theta_final_acc,
+            initial_velocity=theta_iv,
+            final_velocity=theta_fv,
+            initial_acceleration=theta_ia,
+            final_acceleration=theta_fa,
         )
 
-        # For (X, Y, Z) (3D)
         self.xyz_interpolator = BSplineInterpolator(
             degree=degree,
             points=xyz_values,
             times=self.time_points,
-            initial_velocity=xyz_initial_vel,
-            final_velocity=xyz_final_vel,
-            initial_acceleration=xyz_initial_acc,
-            final_acceleration=xyz_final_acc,
+            initial_velocity=xyz_iv,
+            final_velocity=xyz_fv,
+            initial_acceleration=xyz_ia,
+            final_acceleration=xyz_fa,
         )
 
-        # Store time range
         self.t_min = self.time_points[0]
         self.t_max = self.time_points[-1]
 
-    def _validate_inputs(self) -> None:
-        """Validate input parameters."""
-        if len(self.time_points) != len(self.quaternions):
-            raise ValueError("Number of time points must match number of quaternions")
+    @staticmethod
+    def _split_4d(
+        constraint: list | np.ndarray | None,
+    ) -> tuple[np.ndarray | None, np.ndarray | None]:
+        if constraint is None:
+            return None, None
+        arr = np.asarray(constraint)
+        return arr[:1], arr[1:4]
 
-        min_quaternions = 2
-        if len(self.quaternions) < min_quaternions:
-            raise ValueError("At least 2 quaternions are required for interpolation")
-
-        # Validate degree
-        if self.degree not in {3, 4, 5}:
-            raise ValueError(f"Degree must be 3, 4, or 5, got {self.degree}")
-
-        # Check minimum points for the degree
-        min_points = self.degree + 1
-        if len(self.quaternions) < min_points:
-            raise ValueError(
-                f"Not enough quaternions for degree {self.degree} B-spline interpolation. "
-                f"Need at least {min_points} quaternions, got {len(self.quaternions)}"
-            )
-
-        # Check time points are strictly increasing
-        if not np.all(np.diff(self.time_points) > 0):
-            raise ValueError("Time points must be strictly increasing")
-
-        # Validate quaternions are unit quaternions
-        for i, q in enumerate(self.quaternions):
-            if not isinstance(q, Quaternion):
-                raise TypeError(f"Element {i} is not a Quaternion instance")
-
-            norm = q.norm()
-            if abs(norm - 1.0) > self.EPSILON:
-                print(f"Warning: Quaternion {i} is not unit (norm={norm:.6f}), normalizing...")
-                self.quaternions[i] = q.unit()
-
-    def _ensure_quaternion_continuity(self) -> None:
-        """
-        Ensure quaternion continuity by handling the double-cover property.
-        Choose the sign of each quaternion to minimize the distance to the previous one.
-        """
-        for i in range(1, len(self.quaternions)):
-            # Check both q and -q to see which is closer to the previous quaternion
-            q_pos = self.quaternions[i]
-            q_neg = -self.quaternions[i]
-
-            # Use dot product to measure similarity (closer to 1 means more similar)
-            dot_pos = self.quaternions[i - 1].dot_product(q_pos)
-            dot_neg = self.quaternions[i - 1].dot_product(q_neg)
-
-            # Choose the quaternion with higher dot product (smaller angle)
-            if dot_neg > dot_pos:
-                self.quaternions[i] = q_neg
+    def _check_time(self, t: float) -> float:
+        if t < self.t_min - _EPSILON or t > self.t_max + _EPSILON:
+            raise ValueError(f"Time {t} outside valid range [{self.t_min}, {self.t_max}]")
+        return float(np.clip(t, self.t_min, self.t_max))
 
     def _transform_to_theta_xyz_space(self) -> tuple[np.ndarray, np.ndarray]:
         """
-        Transform quaternions to (θ, X, Y, Z) representation.
+        Transform quaternions to (θ, X, Y, Z) with axis/angle unrolling so
+        consecutive samples stay on the same branch.
 
-        Returns
-        -------
-        theta_values : ndarray
-            Array of angles θ.
-        xyz_values : ndarray
-            Array of unit vector components (X, Y, Z).
+        The axis is flipped (and the angle replaced by 2π - angle) whenever
+        it would otherwise reverse direction relative to the previous sample;
+        the angle is then unwrapped modulo 2π so it can accumulate beyond a
+        full turn.
         """
-        theta_values = []
-        xyz_values = []
-
+        theta_values: list[float] = []
+        xyz_values: list[np.ndarray] = []
+        prev_axis: np.ndarray | None = None
         for q in self.quaternions:
-            # Extract angle and axis from quaternion
-            axis, angle = q.to_axis_angle()
-
+            axis, angle = _extract_axis_angle_raw(q)
+            if prev_axis is not None and np.dot(axis, prev_axis) < 0:
+                axis = -axis
+                angle = 2.0 * np.pi - angle
             theta_values.append(angle)
             xyz_values.append(axis)
-
-        return np.array(theta_values), np.array(xyz_values)
+            prev_axis = axis
+        return np.unwrap(theta_values), np.array(xyz_values)
 
     def evaluate(self, t: float) -> Quaternion:
-        """
-        Evaluate the quaternion trajectory at time t.
-
-        Parameters
-        ----------
-        t : float
-            Time value to evaluate at.
-
-        Returns
-        -------
-        Quaternion
-            Interpolated unit quaternion at time t.
-        """
-        # Validate time range
-        if t < self.t_min - self.EPSILON or t > self.t_max + self.EPSILON:
-            raise ValueError(f"Time {t} outside valid range [{self.t_min}, {self.t_max}]")
-
-        # Clamp to valid range
-        t = np.clip(t, self.t_min, self.t_max)
-
-        # Handle boundary cases exactly
-        if abs(t - self.t_min) <= self.EPSILON:
+        """Evaluate the interpolated quaternion at time ``t``."""
+        t = self._check_time(t)
+        if abs(t - self.t_min) <= _EPSILON:
             return self.quaternions[0].copy()
-        if abs(t - self.t_max) <= self.EPSILON:
+        if abs(t - self.t_max) <= _EPSILON:
             return self.quaternions[-1].copy()
 
-        # Evaluate B-spline interpolators
-        theta = self.theta_interpolator.evaluate(t)[0]  # Extract scalar from 1D array
-        xyz = self.xyz_interpolator.evaluate(t)  # 3D vector
-
-        # Optionally normalize the axis components
+        theta = self.theta_interpolator.evaluate(t)[0]
+        xyz = self.xyz_interpolator.evaluate(t)
         if self.normalize_axis:
             norm_xyz = np.linalg.norm(xyz)
-            # If axis is zero, use default axis
-            xyz = xyz / norm_xyz if norm_xyz > self.EPSILON else np.array([1.0, 0.0, 0.0])
-
-        # Create quaternion: q = [cos(θ/2), sin(θ/2)*X, sin(θ/2)*Y, sin(θ/2)*Z]
-        if abs(theta) < self.EPSILON:
-            # For small angles, return identity quaternion
+            xyz = xyz / norm_xyz if norm_xyz > _EPSILON else np.array([1.0, 0.0, 0.0])
+        if abs(theta) < _EPSILON:
             return Quaternion.identity()
 
-        cos_half_theta = np.cos(theta / 2.0)
-        sin_half_theta = np.sin(theta / 2.0)
-
-        return Quaternion(
-            cos_half_theta,
-            sin_half_theta * xyz[0],
-            sin_half_theta * xyz[1],
-            sin_half_theta * xyz[2],
-        )
+        cos_half = np.cos(theta / 2.0)
+        sin_half = np.sin(theta / 2.0)
+        return Quaternion(cos_half, sin_half * xyz[0], sin_half * xyz[1], sin_half * xyz[2])
 
     def evaluate_velocity(self, t: float) -> np.ndarray:
-        """
-        Evaluate the angular velocity at time t.
-
-        This returns the derivative of (θ, X, Y, Z) as a 4D vector.
-
-        Parameters
-        ----------
-        t : float
-            Time value to evaluate at.
-
-        Returns
-        -------
-        ndarray
-            4D vector [θ̇, Ẋ, Ẏ, Ż].
-        """
-        # Validate time range
-        if t < self.t_min - self.EPSILON or t > self.t_max + self.EPSILON:
-            raise ValueError(f"Time {t} outside valid range [{self.t_min}, {self.t_max}]")
-
-        # Clamp to valid range
-        t = np.clip(t, self.t_min, self.t_max)
-
-        # Get derivatives from both interpolators
-        theta_dot = self.theta_interpolator.evaluate_derivative(t, order=1)[0]  # Scalar
-        xyz_dot = self.xyz_interpolator.evaluate_derivative(t, order=1)  # 3D vector
-
-        # Combine into 4D vector
+        """Derivative of (θ, X, Y, Z) at time ``t`` (4D vector)."""
+        t = self._check_time(t)
+        theta_dot = self.theta_interpolator.evaluate_derivative(t, order=1)[0]
+        xyz_dot = self.xyz_interpolator.evaluate_derivative(t, order=1)
         return np.array([theta_dot, xyz_dot[0], xyz_dot[1], xyz_dot[2]])
 
     def evaluate_acceleration(self, t: float) -> np.ndarray:
-        """
-        Evaluate the angular acceleration at time t.
-
-        This returns the second derivative of (θ, X, Y, Z) as a 4D vector.
-
-        Parameters
-        ----------
-        t : float
-            Time value to evaluate at.
-
-        Returns
-        -------
-        ndarray
-            4D vector [θ̈, Ẍ, Ÿ, Z̈].
-        """
-        # Validate time range
-        if t < self.t_min - self.EPSILON or t > self.t_max + self.EPSILON:
-            raise ValueError(f"Time {t} outside valid range [{self.t_min}, {self.t_max}]")
-
-        # Clamp to valid range
-        t = np.clip(t, self.t_min, self.t_max)
-
-        # Get second derivatives from both interpolators
-        theta_ddot = self.theta_interpolator.evaluate_derivative(t, order=2)[0]  # Scalar
-        xyz_ddot = self.xyz_interpolator.evaluate_derivative(t, order=2)  # 3D vector
-
-        # Combine into 4D vector
+        """Second derivative of (θ, X, Y, Z) at time ``t`` (4D vector)."""
+        t = self._check_time(t)
+        theta_ddot = self.theta_interpolator.evaluate_derivative(t, order=2)[0]
+        xyz_ddot = self.xyz_interpolator.evaluate_derivative(t, order=2)
         return np.array([theta_ddot, xyz_ddot[0], xyz_ddot[1], xyz_ddot[2]])
 
     def generate_trajectory(self, num_points: int = 100) -> tuple[np.ndarray, list[Quaternion]]:
-        """
-        Generate a trajectory with evenly spaced time points.
-
-        Parameters
-        ----------
-        num_points : int, optional
-            Number of points to generate (default is 100).
-
-        Returns
-        -------
-        time_values : ndarray
-            Evaluation time points.
-        quaternion_trajectory : list[Quaternion]
-            Corresponding quaternions.
-        """
+        """Evaluate the trajectory at ``num_points`` evenly spaced times."""
         time_values = np.linspace(self.t_min, self.t_max, num_points)
-        quaternion_trajectory = [self.evaluate(t) for t in time_values]
+        return time_values, [self.evaluate(t) for t in time_values]
 
-        return time_values, quaternion_trajectory
+    def get_physical_kinematics(self, t: float) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Physical 3D angular velocity (omega) and acceleration (alpha) at time ``t``.
+
+        With ``normalize_axis=True`` the raw xyz-spline derivatives are
+        projected tangent to the unit sphere so radial drift in the spline
+        does not leak into omega/alpha. With ``normalize_axis=False`` the
+        raw derivatives are used as-is and the result is only accurate when
+        the spline already preserves unit norm.
+        """
+        t = self._check_time(t)
+        theta = self.theta_interpolator.evaluate(t)[0]
+        theta_dot = self.theta_interpolator.evaluate_derivative(t, order=1)[0]
+        theta_ddot = self.theta_interpolator.evaluate_derivative(t, order=2)[0]
+
+        u_raw = self.xyz_interpolator.evaluate(t)
+        u_dot_raw = self.xyz_interpolator.evaluate_derivative(t, order=1)
+        u_ddot_raw = self.xyz_interpolator.evaluate_derivative(t, order=2)
+
+        if self.normalize_axis:
+            r = float(np.linalg.norm(u_raw))
+            if r < _EPSILON:
+                u = np.array([1.0, 0.0, 0.0])
+                u_dot = np.zeros(3)
+                u_ddot = np.zeros(3)
+            else:
+                # Map (u_raw, u̇_raw, ü_raw) ∈ R³ to (u, u̇, ü) on the unit
+                # sphere by removing the radial component.
+                u = u_raw / r
+                r_dot = float(np.dot(u, u_dot_raw))
+                r_ddot = (
+                    float(np.dot(u_dot_raw, u_dot_raw))
+                    + float(np.dot(u_raw, u_ddot_raw))
+                    - r_dot * r_dot
+                ) / r
+                u_dot = (u_dot_raw - r_dot * u) / r
+                u_ddot = (u_ddot_raw - 2.0 * r_dot * u_dot - r_ddot * u) / r
+        else:
+            u = u_raw
+            u_dot = u_dot_raw
+            u_ddot = u_ddot_raw
+
+        return _omega_alpha(theta, theta_dot, theta_ddot, u, u_dot, u_ddot)
