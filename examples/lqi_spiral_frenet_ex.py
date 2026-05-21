@@ -131,7 +131,7 @@ def main() -> None:
     n_waypoints = 1000
 
     # Sample waypoints + their Frenet frames.
-    times, quaternions, wp_positions, wp_frames = build_waypoints(
+    times, quaternions, wp_positions, _wp_frames = build_waypoints(
         n_waypoints=n_waypoints,
         u_min=u_min,
         u_max=u_max,
