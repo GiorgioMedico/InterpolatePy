@@ -76,9 +76,12 @@ docs = [
     "mkdocstrings-python>=1.7.3",
     "Pygments>=2.16.1",
 ]
+examples = [
+    "PyQt6>=6.5",
+]
 
 [tool.uv]
-default-groups = ["dev", "test"]
+default-groups = ["dev", "test", "examples"]
 
 [tool.setuptools]
 platforms = ["unix", "linux", "osx", "cygwin", "win32"]
