@@ -520,14 +520,23 @@ class Quaternion:
         return roll, pitch, yaw
 
     def to_axis_angle(self) -> tuple[np.ndarray, float]:
-        """Convert quaternion to axis-angle representation"""
+        """Convert quaternion to axis-angle representation.
+
+        Returns the canonical form with angle in [0, pi]. When the scalar
+        part is negative, the equivalent rotation -q = [|s|, -v] is used so
+        the returned axis points in the direction consistent with the
+        positive-scalar branch.
+        """
         if abs(self.s_) >= 1.0:
             return np.array([1.0, 0.0, 0.0]), 0.0
 
-        angle = 2.0 * np.arccos(abs(self.s_))
-        sin_half_angle = np.sqrt(1.0 - self.s_**2)
+        s = abs(self.s_)
+        v = self.v_ if self.s_ >= 0 else -self.v_
 
-        axis = np.array([1.0, 0.0, 0.0]) if sin_half_angle < self.EPSILON else self.v_ / sin_half_angle
+        angle = 2.0 * np.arccos(s)
+        sin_half_angle = np.sqrt(1.0 - s * s)
+
+        axis = np.array([1.0, 0.0, 0.0]) if sin_half_angle < self.EPSILON else v / sin_half_angle
 
         return axis, angle
 
