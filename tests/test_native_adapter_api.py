@@ -66,7 +66,9 @@ def test_polynomial_parameter_objects_and_smoothing_result() -> None:
         tolerance=0.25,
         config=ip.SplineConfig(max_iterations=40),
     )
-    assert spline.evaluate(t).shape == t.shape
+    evaluated = spline.evaluate(t)
+    assert isinstance(evaluated, np.ndarray)
+    assert evaluated.shape == t.shape
     assert 0.0 < mu <= 1.0
     assert error <= 0.25 + 1e-6
     assert iterations <= 40
