@@ -38,11 +38,6 @@ def _validate_inputs(
         raise ValueError("At least 2 quaternions are required for interpolation")
     if degree not in _VALID_DEGREES:
         raise ValueError(f"Degree must be 3, 4, or 5, got {degree}")
-    if len(quaternions) < degree + 1:
-        raise ValueError(
-            f"Not enough quaternions for degree {degree} B-spline interpolation. "
-            f"Need at least {degree + 1} quaternions, got {len(quaternions)}"
-        )
     if not np.all(np.diff(time_points) > 0):
         raise ValueError("Time points must be strictly increasing")
 

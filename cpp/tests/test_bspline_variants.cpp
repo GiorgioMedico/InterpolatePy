@@ -9,6 +9,7 @@
 #include "test_data.hpp"
 
 #include <cmath>
+#include <string>
 
 using namespace interpolatecpp::bspline;
 using namespace interpolatecpp::test;
@@ -172,10 +173,24 @@ TEST_CASE("BSplineInterpolator degree validation", "[bspline_interpolator]") {
         REQUIRE_THROWS_AS(BSplineInterpolator(2, pts), std::invalid_argument);
     }
 
-    SECTION("Too few points") {
-        Eigen::MatrixXd few_pts(3, 2);
-        few_pts << 0, 0, 1, 1, 2, 4;
-        REQUIRE_THROWS_AS(BSplineInterpolator(5, few_pts), std::invalid_argument);
+    SECTION("Two points suffice for every degree") {
+        Eigen::MatrixXd two_pts(2, 2);
+        two_pts << 0, 0, 1, 2;
+        for (int degree : {3, 4, 5}) {
+            BSplineInterpolator bsi(degree, two_pts);
+            auto p0 = bsi.evaluate(bsi.u_min());
+            auto p1 = bsi.evaluate(bsi.u_max());
+            REQUIRE_THAT(p0(0), WithinAbs(0.0, kNumericalAtol));
+            REQUIRE_THAT(p0(1), WithinAbs(0.0, kNumericalAtol));
+            REQUIRE_THAT(p1(0), WithinAbs(1.0, kNumericalAtol));
+            REQUIRE_THAT(p1(1), WithinAbs(2.0, kNumericalAtol));
+        }
+    }
+
+    SECTION("Fewer than two points") {
+        Eigen::MatrixXd one_pt(1, 2);
+        one_pt << 0, 0;
+        REQUIRE_THROWS_AS(BSplineInterpolator(3, one_pt), std::invalid_argument);
     }
 }
 
@@ -554,5 +569,53 @@ TEST_CASE("BSpline variant inheritance", "[bspline_variants]") {
         const BSpline& base = sbs;
         REQUIRE(base.degree() == 3);
         REQUIRE(base.evaluate(0.5).allFinite());
+    }
+}
+
+// ===== Explicit acceleration constraints =====
+
+// The generated natural boundary rows start at the second derivative, so they
+// must skip whichever endpoint an acceleration already pinned. Reusing one
+// duplicates a row and the QR solve silently returns an inconsistent answer.
+TEST_CASE("BSplineInterpolator honours explicit accelerations", "[bspline_variants]") {
+    const auto pts = make_quadratic_2d(5);
+    Eigen::VectorXd times(5);
+    times << 0, 1, 2, 3, 4;
+
+    Eigen::VectorXd a0(2);
+    a0 << 0.5, -0.5;
+    Eigen::VectorXd an(2);
+    an << -0.5, 0.5;
+    Eigen::VectorXd v0(2);
+    v0 << 1.0, 0.0;
+
+    for (int degree : {3, 4, 5}) {
+        SECTION("degree " + std::to_string(degree)) {
+            SECTION("initial acceleration only") {
+                BSplineInterpolator bsi(degree, pts, times, std::nullopt, std::nullopt, a0);
+                for (int i = 0; i < 5; ++i) {
+                    REQUIRE((bsi.evaluate(times[i]) - pts.row(i).transpose()).norm() < 1e-6);
+                }
+                REQUIRE((bsi.evaluate_derivative(times[0], 2) - a0).norm() < 1e-6);
+            }
+
+            SECTION("final acceleration only") {
+                BSplineInterpolator bsi(degree, pts, times, std::nullopt, std::nullopt,
+                                        std::nullopt, an);
+                REQUIRE((bsi.evaluate_derivative(times[4], 2) - an).norm() < 1e-6);
+            }
+
+            SECTION("both accelerations") {
+                BSplineInterpolator bsi(degree, pts, times, std::nullopt, std::nullopt, a0, an);
+                REQUIRE((bsi.evaluate_derivative(times[0], 2) - a0).norm() < 1e-6);
+                REQUIRE((bsi.evaluate_derivative(times[4], 2) - an).norm() < 1e-6);
+            }
+
+            SECTION("initial velocity and acceleration") {
+                BSplineInterpolator bsi(degree, pts, times, v0, std::nullopt, a0);
+                REQUIRE((bsi.evaluate_derivative(times[0], 1) - v0).norm() < 1e-6);
+                REQUIRE((bsi.evaluate_derivative(times[0], 2) - a0).norm() < 1e-6);
+            }
+        }
     }
 }

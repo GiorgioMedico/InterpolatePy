@@ -24,6 +24,7 @@ from typing import Any
 import numpy as np
 import pytest
 
+import interpolatepy
 from interpolatepy.b_spline_approx import ApproximationBSpline
 from interpolatepy.b_spline_cubic import CubicBSplineInterpolation
 from interpolatepy.b_spline_interpolate import BSplineInterpolator
@@ -479,10 +480,6 @@ class TestBSplineInterpolator:
         # Test invalid degree
         with pytest.raises(ValueError, match="Degree must be 3, 4, or 5"):
             BSplineInterpolator(2, data_points)
-
-        # Test insufficient points for degree 5
-        with pytest.raises(ValueError, match="Not enough points"):
-            BSplineInterpolator(5, data_points)  # Need at least 6 points for degree 5
 
         # Test only degree 3 to avoid complex constraints
         # Use more points to ensure system is well-conditioned
@@ -1121,3 +1118,67 @@ class TestBSplineVariantsPerformance:
 if __name__ == "__main__":
     # Run tests with detailed output
     pytest.main(["-xvs", __file__])
+
+
+@pytest.mark.parametrize("degree", [3, 4, 5])
+@pytest.mark.parametrize("num_points", [2, 3, 6])
+@pytest.mark.parametrize(
+    "constraints",
+    [
+        {},
+        {"initial_velocity": [0.0, 0.0], "final_velocity": [0.0, 0.0]},
+        {"cyclic": True},
+    ],
+)
+def test_public_api_interpolates_from_two_points(
+    degree: int, num_points: int, constraints: dict[str, Any]
+) -> None:
+    """Any degree interpolates down to two points, on whichever backend is active.
+
+    Runs against ``interpolatepy.BSplineInterpolator``, which resolves to the C++
+    implementation when it is compiled in, so the two backends stay in step.
+    """
+    points = np.array([[float(i), float(i * i)] for i in range(num_points)])
+    times = [float(i) for i in range(num_points)]
+
+    spline = interpolatepy.BSplineInterpolator(degree, points, times=times, **constraints)
+
+    for t, expected in zip(times, points, strict=True):
+        assert np.allclose(spline.evaluate(t), expected, atol=1e-6)
+
+
+@pytest.mark.parametrize("degree", [3, 4, 5])
+@pytest.mark.parametrize(
+    "constraints",
+    [
+        {"initial_acceleration": [0.5, -0.5]},
+        {"final_acceleration": [0.5, -0.5]},
+        {"initial_acceleration": [0.5, -0.5], "final_acceleration": [-0.5, 0.5]},
+        {"initial_velocity": [1.0, 0.0], "initial_acceleration": [0.5, -0.5]},
+        {"final_velocity": [1.0, 0.0], "final_acceleration": [0.5, -0.5]},
+    ],
+)
+def test_acceleration_constraints_are_honoured(
+    degree: int, constraints: dict[str, Any]
+) -> None:
+    """Explicit accelerations must not collide with the generated natural rows.
+
+    The fallback boundary rows start at the second derivative, so they have to skip
+    whichever endpoint an acceleration already pinned; otherwise the row is repeated
+    and the system goes rank-deficient (Python) or solves inconsistently (C++).
+    """
+    points = np.array([[float(i), float(i * i)] for i in range(5)])
+    times = [float(i) for i in range(5)]
+
+    spline = interpolatepy.BSplineInterpolator(degree, points, times=times, **constraints)
+
+    for t, expected in zip(times, points, strict=True):
+        assert np.allclose(spline.evaluate(t), expected, atol=1e-6)
+
+    endpoints = {"initial": times[0], "final": times[-1]}
+    orders = {"velocity": 1, "acceleration": 2}
+    for name, value in constraints.items():
+        when, _, what = name.partition("_")
+        assert np.allclose(
+            spline.evaluate_derivative(endpoints[when], orders[what]), value, atol=1e-6
+        ), f"{name} not satisfied for degree {degree}"

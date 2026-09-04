@@ -176,22 +176,32 @@ Eigen::MatrixXd BSplineInterpolator::compute_control_points(
             ++row;
         }
 
-        // Fill remaining rows with natural spline conditions
-        while (row < total_rows) {
-            int deriv_order = std::min(p - 1, 2);
-            double t = (row % 2 == 0) ? times[0] : times[n];
-
-            const int span = temp_spline.find_knot_span(t);
-            const Eigen::MatrixXd ders =
-                temp_spline.basis_function_derivatives(t, span, deriv_order);
-
-            for (int j = 0; j <= p; ++j) {
-                int col = span - p + j;
-                if (col >= 0 && col < num_cp) {
-                    a_matrix(row, col) = ders(deriv_order, j);
+        // Fill remaining rows with natural spline conditions (zero higher
+        // derivatives at the endpoints). Walk the (derivative order, endpoint)
+        // pairs from order 2 up to p-1, skipping any pair an explicit
+        // acceleration already pinned -- reusing one would duplicate a row and
+        // make the system rank-deficient.
+        const bool pinned[2] = {initial_acceleration_.has_value(),
+                                final_acceleration_.has_value()};
+        for (int deriv_order = 2; deriv_order < p && row < total_rows; ++deriv_order) {
+            for (int endpoint = 0; endpoint < 2 && row < total_rows; ++endpoint) {
+                if (deriv_order == 2 && pinned[endpoint]) {
+                    continue;
                 }
+                const double t = (endpoint == 0) ? times[0] : times[n];
+
+                const int span = temp_spline.find_knot_span(t);
+                const Eigen::MatrixXd ders =
+                    temp_spline.basis_function_derivatives(t, span, deriv_order);
+
+                for (int j = 0; j <= p; ++j) {
+                    int col = span - p + j;
+                    if (col >= 0 && col < num_cp) {
+                        a_matrix(row, col) = ders(deriv_order, j);
+                    }
+                }
+                ++row;
             }
-            ++row;
         }
     }
 
@@ -223,7 +233,10 @@ BSplineInterpolator::BSplineInterpolator(
 
     Eigen::MatrixXd pts = points;
     const int num_points = static_cast<int>(pts.rows());
-    const int min_points = degree + 1;
+    // The system has n+1 interpolation rows plus p-1 (odd p) or p (even p)
+    // boundary rows against the same number of control points, so it stays
+    // square and full rank down to two points.
+    const int min_points = 2;
 
     if (num_points < min_points) {
         throw std::invalid_argument(

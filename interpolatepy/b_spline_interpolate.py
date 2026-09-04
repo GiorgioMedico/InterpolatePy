@@ -102,7 +102,10 @@ class BSplineInterpolator(BSpline):
 
         # Validate number of points relative to degree
         num_points = len(points)
-        min_points = degree + 1
+        # The system has n+1 interpolation rows plus p-1 (odd p) or p (even p)
+        # boundary rows against the same number of control points, so it stays
+        # square and full rank down to two points.
+        min_points = 2
         if num_points < min_points:
             raise ValueError(
                 f"Not enough points for degree {degree} B-spline interpolation. "
@@ -342,14 +345,15 @@ class BSplineInterpolator(BSpline):
                 row += 1
 
             # If we still need more constraints, add natural spline conditions
-            # (zero second derivatives at endpoints)
-            while row < n + 1 + num_additional:
-                # For cubic splines, use zero second derivatives
-                # For higher degree, can use higher derivatives
-                deriv_order = min(p - 1, 2)
-
-                # Alternate between initial and final endpoints
-                t = times[0] if row % 2 == 0 else times[-1]
+            # (zero higher derivatives at the endpoints). Walk the
+            # (derivative order, endpoint) pairs from order 2 up to p-1, skipping
+            # any pair an explicit acceleration already pinned -- reusing one
+            # would duplicate a row and make the system rank-deficient.
+            pinned = (self.initial_acceleration is not None, self.final_acceleration is not None)
+            candidates = [(2, endpoint) for endpoint in (0, 1) if not pinned[endpoint]]
+            candidates += [(order, endpoint) for order in range(3, p) for endpoint in (0, 1)]
+            for deriv_order, endpoint in candidates[: n + 1 + num_additional - row]:
+                t = times[0] if endpoint == 0 else times[-1]
 
                 span = self.temp_spline.find_knot_span(t)
                 ders = self.temp_spline.basis_function_derivatives(t, span, deriv_order)

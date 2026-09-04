@@ -12,11 +12,14 @@ robust behavior across different use cases.
 import numpy as np
 import pytest
 
+import interpolatepy
 from interpolatepy.quat_core import Quaternion
 from interpolatepy.log_quat import (
     LogQuaternionInterpolation,
     ModifiedLogQuaternionInterpolation,
 )
+
+_NUMERICAL_ATOL = 1e-6
 
 
 class TestLogQuaternionInterpolation:
@@ -79,10 +82,6 @@ class TestLogQuaternionInterpolation:
         # Invalid degree
         with pytest.raises(ValueError, match="Degree must be 3, 4, or 5"):
             LogQuaternionInterpolation(time_points, quaternions, degree=2)
-
-        # Not enough points for degree
-        with pytest.raises(ValueError, match="Not enough quaternions for degree"):
-            LogQuaternionInterpolation([0.0, 1.0], [Quaternion.identity(), Quaternion.identity()], degree=5)
 
         # Non-increasing time points
         bad_times = [0.0, 2.0, 1.0, 3.0, 4.0]
@@ -283,10 +282,6 @@ class TestModifiedLogQuaternionInterpolation:
         with pytest.raises(ValueError, match="Degree must be 3, 4, or 5"):
             ModifiedLogQuaternionInterpolation(time_points, quaternions, degree=2)
 
-        # Not enough points for degree
-        with pytest.raises(ValueError, match="Not enough quaternions for degree"):
-            ModifiedLogQuaternionInterpolation([0.0, 1.0], [Quaternion.identity(), Quaternion.identity()], degree=5)
-
         # Non-increasing time points
         bad_times = [0.0, 2.0, 1.0, 3.0, 4.0]
         with pytest.raises(ValueError, match="Time points must be strictly increasing"):
@@ -430,6 +425,30 @@ class TestModifiedLogQuaternionInterpolation:
         # Should be close to the middle quaternion
         dot_product = q_interp.dot_product(quaternions[1])
         assert abs(abs(dot_product) - 1.0) < self.NUMERICAL_ATOL
+
+
+@pytest.mark.parametrize(
+    "cls_name", ["LogQuaternionInterpolation", "ModifiedLogQuaternionInterpolation"]
+)
+@pytest.mark.parametrize("degree", [3, 4, 5])
+@pytest.mark.parametrize("num_quats", [2, 3, 5])
+def test_public_api_interpolates_from_two_quaternions(
+    cls_name: str, degree: int, num_quats: int
+) -> None:
+    """Any degree interpolates down to two quaternions, on whichever backend is active.
+
+    Uses the ``interpolatepy`` public names, which resolve to the C++ implementation
+    when it is compiled in, so the two backends stay in step.
+    """
+    cls = getattr(interpolatepy, cls_name)
+    times = [float(i) for i in range(num_quats)]
+    quats = [Quaternion.from_euler_angles(0.3 * i, 0.2 * i, 0.1 * i) for i in range(num_quats)]
+
+    interp = cls(times, quats, degree=degree)
+
+    for t, expected in zip(times, quats, strict=True):
+        # Quaternions double-cover rotations, so compare |dot| against 1.
+        assert abs(abs(interp.evaluate(t).dot_prod(expected)) - 1.0) < _NUMERICAL_ATOL
 
 
 if __name__ == "__main__":
