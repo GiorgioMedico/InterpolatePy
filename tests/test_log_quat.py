@@ -57,7 +57,7 @@ class TestLogQuaternionInterpolation:
         """Test initialization with various parameters."""
         time_points, quaternions = self.setup_test_data()
 
-        # Test with velocity constraints (keep degree 3 to avoid rank issues)
+        # Test with velocity constraints
         initial_velocity = np.array([0.1, 0.2, 0.3])
         final_velocity = np.array([0.4, 0.5, 0.6])
         interpolator = LogQuaternionInterpolation(
@@ -197,7 +197,7 @@ class TestLogQuaternionInterpolation:
 
     def test_small_angle_handling(self) -> None:
         """Test handling of small angles where axis is indeterminate."""
-        # Create quaternions with very small rotations (need 4 points for degree 3)
+        # Create quaternions with very small rotations
         time_points = [0.0, 1.0, 2.0, 3.0]
         quaternions = [
             Quaternion.identity(),
@@ -249,7 +249,7 @@ class TestModifiedLogQuaternionInterpolation:
         """Test initialization with various parameters."""
         time_points, quaternions = self.setup_test_data()
 
-        # Test with normalize_axis parameter (keep degree 3 to avoid rank issues)
+        # Test with normalize_axis parameter
         interpolator = ModifiedLogQuaternionInterpolation(
             time_points, quaternions, normalize_axis=False
         )
@@ -405,7 +405,7 @@ class TestModifiedLogQuaternionInterpolation:
 
     def test_theta_xyz_separation(self) -> None:
         """Test that θ and (X,Y,Z) are properly separated and interpolated."""
-        # Create quaternions with known axis-angle representations (need 4 points for degree 3)
+        # Create quaternions with known axis-angle representations
         time_points = [0.0, 1.0, 2.0, 3.0]
         quaternions = [
             Quaternion.from_angle_axis(np.pi/4, np.array([1.0, 0.0, 0.0])),

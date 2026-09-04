@@ -187,6 +187,30 @@ TEST_CASE("LogQuaternionInterpolation endpoints", "[log_quat]") {
     REQUIRE_THAT(std::abs(rn.dot_product(quats[5])), WithinAbs(1.0, 1e-4));
 }
 
+TEST_CASE("LogQuaternionInterpolation supports two quaternions for every degree",
+          "[log_quat]") {
+    auto times = make_test_times(2);
+    auto quats = make_test_quats(2);
+
+    for (int degree : {3, 4, 5}) {
+        DYNAMIC_SECTION("degree " << degree) {
+            LogQuaternionInterpolation lqi(times, quats, degree);
+
+            auto r0 = lqi.evaluate(times.front());
+            auto rm = lqi.evaluate(0.5 * (times.front() + times.back()));
+            auto rn = lqi.evaluate(times.back());
+
+            REQUIRE_THAT(std::abs(r0.dot_product(quats.front())),
+                         WithinAbs(1.0, kNumericalAtol));
+            REQUIRE_THAT(std::abs(rn.dot_product(quats.back())),
+                         WithinAbs(1.0, kNumericalAtol));
+            REQUIRE_THAT(rm.norm(), WithinAbs(1.0, kNumericalAtol));
+            REQUIRE(lqi.evaluate_velocity(0.5).allFinite());
+            REQUIRE(lqi.evaluate_acceleration(0.5).allFinite());
+        }
+    }
+}
+
 TEST_CASE("LogQuaternionInterpolation velocity", "[log_quat]") {
     auto times = make_test_times(6);
     auto quats = make_test_quats(6);
@@ -245,6 +269,30 @@ TEST_CASE("ModifiedLogQuaternionInterpolation endpoints", "[mod_log_quat]") {
 
     REQUIRE_THAT(std::abs(r0.dot_product(quats[0])), WithinAbs(1.0, 1e-4));
     REQUIRE_THAT(std::abs(rn.dot_product(quats[5])), WithinAbs(1.0, 1e-4));
+}
+
+TEST_CASE("ModifiedLogQuaternionInterpolation supports two quaternions for every degree",
+          "[mod_log_quat]") {
+    auto times = make_test_times(2);
+    auto quats = make_test_quats(2);
+
+    for (int degree : {3, 4, 5}) {
+        DYNAMIC_SECTION("degree " << degree) {
+            ModifiedLogQuaternionInterpolation mlqi(times, quats, degree);
+
+            auto r0 = mlqi.evaluate(times.front());
+            auto rm = mlqi.evaluate(0.5 * (times.front() + times.back()));
+            auto rn = mlqi.evaluate(times.back());
+
+            REQUIRE_THAT(std::abs(r0.dot_product(quats.front())),
+                         WithinAbs(1.0, kNumericalAtol));
+            REQUIRE_THAT(std::abs(rn.dot_product(quats.back())),
+                         WithinAbs(1.0, kNumericalAtol));
+            REQUIRE_THAT(rm.norm(), WithinAbs(1.0, kNumericalAtol));
+            REQUIRE(mlqi.evaluate_velocity(0.5).allFinite());
+            REQUIRE(mlqi.evaluate_acceleration(0.5).allFinite());
+        }
+    }
 }
 
 TEST_CASE("ModifiedLogQuaternionInterpolation velocity returns 4D", "[mod_log_quat]") {
