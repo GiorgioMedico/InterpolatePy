@@ -33,7 +33,7 @@ class SquadC2:
     C²-Continuous, Zero-Clamped, and Time-Optimized Interpolation of Quaternions"
     by Wittmann et al. (ICRA 2023).
 
-    Implementation follows paper specifications:
+    The construction proceeds as follows:
     1. Creates extended quaternion sequence Q = [q₁, q₁ᵛⁱʳᵗ, q₂, ..., qₙ₋₁ᵛⁱʳᵗ, qₙ]
        where q₁ᵛⁱʳᵗ = q₁ and qₙ₋₁ᵛⁱʳᵗ = qₙ (Section III-B.1)
     2. Computes intermediate quaternions using corrected formula (Equation 5):
@@ -87,9 +87,8 @@ class SquadC2:
             ValueError: If input validation fails
 
         Note:
-            The implementation follows the corrected SQUAD formulation from the paper,
-            which properly handles non-uniform time spacing through the corrected
-            intermediate quaternion formula (Equation 5).
+            The intermediate quaternion formula weights adjacent rotations by
+            their non-uniform time intervals.
         """
         self._validate_input(time_points, quaternions)
 
@@ -101,7 +100,7 @@ class SquadC2:
         if normalize_quaternions:
             self.original_quaternions = [q.unit() for q in self.original_quaternions]
 
-        # Add virtual waypoints as specified in the paper
+        # Add duplicate virtual endpoints for clamped boundary behavior.
         self._add_virtual_waypoints()
 
         # Precompute intermediate quaternions and polynomial parameterizations
@@ -127,7 +126,7 @@ class SquadC2:
 
     def _add_virtual_waypoints(self) -> None:
         """
-        Add virtual waypoints as specified in the paper:
+        Add duplicate virtual endpoint waypoints:
         Q = [q₁, q₁ᵛⁱʳᵗ, q₂, ..., qₙ₋₁ᵛⁱʳᵗ, qₙ]
         where q₁ᵛⁱʳᵗ = q₁ and qₙ₋₁ᵛⁱʳᵗ = qₙ
 
@@ -140,7 +139,7 @@ class SquadC2:
         if n_original < min_waypoints:
             raise ValueError("Need at least 2 original waypoints")
 
-        # Create extended quaternion sequence Q as per paper (Section III-B.1)
+        # Create the extended quaternion sequence used for clamped endpoints.
         quaternions_list: list[Quaternion] = []
         time_points_list: list[float] = []
 
@@ -277,7 +276,7 @@ class SquadC2:
         self.polynomial_segments: list[polynomial_func_type] = []
 
         # Create polynomial segments that correspond to interpolation between original waypoints
-        # Each segment uses quintic polynomial parameterization as described in Section III-B.1
+        # Each segment uses a quintic time parameterization.
         n_original = len(self.original_time_points)
         for i in range(n_original - 1):
             t_start = self.original_time_points[i]

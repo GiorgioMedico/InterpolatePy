@@ -2,13 +2,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 
-from interpolatepy.b_spline_cubic import CubicBSplineInterpolation
+from interpolatepy import CubicBSplineInterpolation
 
 
 def example_8_8() -> None:
     """
-    Implementation of Example 8.8 from the document:
-    3D cubic B-spline interpolation through the given points.
+    Interpolate a ten-point 3D path with a cubic B-spline.
     """
     # Define the points to interpolate as given in the matrix
     points = np.array(

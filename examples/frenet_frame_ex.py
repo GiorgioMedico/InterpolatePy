@@ -9,10 +9,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 
-from interpolatepy.frenet_frame import circular_trajectory_with_derivatives
-from interpolatepy.frenet_frame import compute_trajectory_frames
-from interpolatepy.frenet_frame import helicoidal_trajectory_with_derivatives
-from interpolatepy.frenet_frame import plot_frames
+from interpolatepy import circular_trajectory_with_derivatives
+from interpolatepy import compute_trajectory_frames
+from interpolatepy import helicoidal_trajectory_with_derivatives
+from interpolatepy import plot_frames
 
 
 def example_8_5() -> None:

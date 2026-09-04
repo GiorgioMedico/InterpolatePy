@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from interpolatepy.c_s_smoot_search import SplineConfig
-from interpolatepy.c_s_smoot_search import smoothing_spline_with_tolerance
+from interpolatepy import SplineConfig
+from interpolatepy import smoothing_spline_with_tolerance
 from interpolatepy.c_s_smoothing import CubicSmoothingSpline
 
 
@@ -10,11 +10,11 @@ def example_prescribed_tolerance() -> list[CubicSmoothingSpline]:
     """Example of finding a smoothing spline with prescribed tolerance."""
     print("Example: Smoothing spline with prescribed tolerance")
 
-    # Define points from the textbook example
+    # Define a non-uniform waypoint sequence.
     t_points = [0.0, 5.0, 7.0, 8.0, 10.0, 15.0, 18.0]
     q_points = [3.0, -2.0, -5.0, 0.0, 6.0, 12.0, 8.0]
 
-    # Create weights matching the textbook (W^(-1) = diag[0, 1, 1, 1, 1, 1, 0])
+    # Fix both endpoints: W^(-1) = diag[0, 1, 1, 1, 1, 1, 0].
     weights = np.ones(len(t_points))
     weights[0] = weights[-1] = np.inf  # Fixed endpoints (infinite weight)
 

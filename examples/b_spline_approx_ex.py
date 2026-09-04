@@ -3,8 +3,8 @@ from typing import Any
 import matplotlib.pyplot as plt
 import numpy as np
 
-from interpolatepy.b_spline import BSpline
-from interpolatepy.b_spline_approx import ApproximationBSpline
+from interpolatepy import ApproximationBSpline
+from interpolatepy import BSpline
 
 
 def example_approximation(debug: bool = False) -> None:

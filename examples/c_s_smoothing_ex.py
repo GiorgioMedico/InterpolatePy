@@ -1,19 +1,19 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from interpolatepy.c_s_smoothing import CubicSmoothingSpline
+from interpolatepy import CubicSmoothingSpline
 
 
-# Example usage 1: Textbook example
+# Example usage 1: smoothing trade-off
 def textbook_example() -> list[CubicSmoothingSpline]:
-    """Recreate the example from the textbook (Figure 4.10)."""
-    print("Textbook Example: Smoothing splines with different μ values")
+    """Compare smoothing splines with different μ values."""
+    print("Smoothing splines with different μ values")
 
-    # Define points from the textbook
+    # Define a non-uniform waypoint sequence.
     t_points = [0.0, 5.0, 7.0, 8.0, 10.0, 15.0, 18.0]
     q_points = [3.0, -2.0, -5.0, 0.0, 6.0, 12.0, 8.0]
 
-    # Create weights matching the textbook (W^(-1) = diag[0, 1, 1, 1, 1, 1, 0])
+    # Fix both endpoints: W^(-1) = diag[0, 1, 1, 1, 1, 1, 0].
     weights = np.ones(len(t_points))
     weights[0] = weights[-1] = np.inf  # Fixed endpoints (infinite weight)
 

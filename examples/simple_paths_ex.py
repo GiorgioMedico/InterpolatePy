@@ -11,11 +11,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 
-from interpolatepy.polynomials import BoundaryCondition
-from interpolatepy.polynomials import PolynomialTrajectory
-from interpolatepy.polynomials import TimeInterval
-from interpolatepy.simple_paths import CircularPath
-from interpolatepy.simple_paths import LinearPath
+from interpolatepy import BoundaryCondition
+from interpolatepy import CircularPath
+from interpolatepy import LinearPath
+from interpolatepy import PolynomialTrajectory
+from interpolatepy import TimeInterval
 
 
 def plot_3d_path(

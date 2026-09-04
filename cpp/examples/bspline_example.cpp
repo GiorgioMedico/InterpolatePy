@@ -14,7 +14,7 @@
 namespace ex = interpolatecpp::examples;
 using namespace interpolatecpp::bspline;
 
-/// Create the 2D B-spline from the document example.
+/// Create a 2D B-spline with a non-uniform clamped knot vector.
 static BSpline create_example_bspline() {
     const int degree = 3;
 

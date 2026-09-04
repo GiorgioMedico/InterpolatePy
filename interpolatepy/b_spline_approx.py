@@ -16,7 +16,7 @@ class ApproximationBSpline(BSpline):
 
     Inherits from BSpline class.
 
-    The approximation follows the theory described in Section 8.5 of the reference:
+    The endpoint-constrained least-squares approximation has these properties:
     - The end points are exactly interpolated
     - The internal points are approximated in the least squares sense
     - Degree 3 (cubic) is typically used to ensure C2 continuity
@@ -170,7 +170,7 @@ class ApproximationBSpline(BSpline):
 
         elif method == "centripetal":
             # Centripetal distribution
-            mu = 0.5  # As recommended in the document
+            mu = 0.5  # Centripetal parameterization uses square-root chord lengths.
 
             # Calculate total "centripetal" length
             total_length = 0.0
@@ -227,8 +227,7 @@ class ApproximationBSpline(BSpline):
         # Initialize knot vector
         knots = np.zeros(num_knots)
 
-        # Set the first and last knots with multiplicity p+1 to ensure interpolation
-        # of end points as specified in the document
+        # Repeat endpoint knots p+1 times to interpolate the endpoints.
         knots[: degree + 1] = u_bar[0]
         knots[-(degree + 1) :] = u_bar[-1]
 
@@ -236,13 +235,13 @@ class ApproximationBSpline(BSpline):
         n = num_points - 1  # Number of points minus 1
         m = num_control_points - 1  # Number of control points minus 1
 
-        # Formula from the document: d = (n+1)/(m-p+1)
+        # Scale data-parameter indices across the available internal knots.
         d = (n + 1) / (m - degree + 1)
 
         if hasattr(self, "debug") and self.debug:
             print(f"  d = (n+1)/(m-p+1) = ({n + 1})/({m}-{degree}+1) = {d:.6f}")
 
-        # Compute internal knots using the algorithm from the document
+        # Compute internal knots by interpolating neighboring data parameters.
         # For j=1,...,m-p compute:
         # i = floor(j*d)
         # a = j*d - i
@@ -280,7 +279,7 @@ class ApproximationBSpline(BSpline):
     ) -> np.ndarray:
         """Compute control points using least squares approximation.
 
-        Uses the approach described in Section 8.5.
+        Solves the endpoint-constrained least-squares normal equations.
 
         Parameters
         ----------
@@ -385,7 +384,7 @@ class ApproximationBSpline(BSpline):
 
             # Calculate the k-th row of matrix R
             # R_k = q_k - B_0^p(u_k)q_0 - B_m^p(u_k)q_m
-            # This follows directly from the equation after (8.20) in the document
+            # Remove the fixed endpoint-basis contributions from the residual row.
             r_matrix[k - 1] = points[k] - all_basis[0] * points[0] - all_basis[m] * points[n]
 
             if hasattr(self, "debug") and self.debug:

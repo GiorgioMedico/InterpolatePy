@@ -1,11 +1,7 @@
+import matplotlib.pyplot as plt
 import numpy as np
 
 from interpolatepy.tridiagonal_inv import solve_tridiagonal
-
-try:
-    import matplotlib.pyplot as plt
-except ImportError:
-    plt = None
 
 # Constants to replace magic numbers
 MIN_POINTS = 2
@@ -20,9 +16,8 @@ class CubicSplineWithAcceleration1:
     Cubic spline trajectory planning with both velocity and acceleration constraints
     at endpoints.
 
-    Implements the method described in section 4.4.4 of the paper, which adds
-    two extra points in the first and last segments to satisfy the acceleration
-    constraints.
+    This construction adds virtual points in the first and last segments so the
+    resulting cubic pieces satisfy the requested endpoint accelerations.
 
     Parameters
     ----------
@@ -145,8 +140,8 @@ class CubicSplineWithAcceleration1:
         if not np.all(np.diff(t_points) > 0):
             raise ValueError("Time points must be strictly increasing")
 
-        # Following paper's notation: original points are [q₀, q₂, q₃, ..., qₙ₋₂, qₙ]
-        # We will add extra points q₁ and qₙ₋₁
+        # Reserve q₁ and qₙ₋₁ for the two boundary helper points inserted below.
+        # The supplied waypoints therefore occupy [q₀, q₂, ..., qₙ₋₂, qₙ].
         self.t_orig = np.array(t_points, dtype=float)
         self.q_orig = np.array(q_points, dtype=float)
 
@@ -187,7 +182,7 @@ class CubicSplineWithAcceleration1:
         """
         Add two extra points at t₁ and tₙ₋₁ to satisfy acceleration constraints.
 
-        Following the paper, the time points are placed at midpoints:
+        The virtual time points are placed at segment midpoints:
         t₁ = (t₀ + t₂)/2 and tₙ₋₁ = (tₙ₋₂ + tₙ)/2
 
         Returns
@@ -214,7 +209,7 @@ class CubicSplineWithAcceleration1:
         t_new[2:-2] = self.t_orig[1:-1]
         q_new[2:-2] = self.q_orig[1:-1]
 
-        # Add extra points at midpoints as suggested in the paper
+        # Add the two virtual midpoint samples.
         t_new[1] = (self.t_orig[0] + self.t_orig[1]) / 2  # t₁
         t_new[-2] = (self.t_orig[-2] + self.t_orig[-1]) / 2  # tₙ₋₁
 
@@ -229,8 +224,8 @@ class CubicSplineWithAcceleration1:
         """
         Solve for the accelerations by setting up and solving the linear system A ω = c.
 
-        Following the paper, we solve for interior accelerations [ω₁, ω₂, ..., ωₙ₋₁],
-        with ω₀ = a₀ and ωₙ = aₙ known from boundary conditions.
+        Solve for interior accelerations [ω₁, ω₂, ..., ωₙ₋₁], with
+        ω₀ = a₀ and ωₙ = aₙ fixed by the boundary conditions.
 
         Uses the tridiagonal solver for improved efficiency.
 
@@ -241,9 +236,9 @@ class CubicSplineWithAcceleration1:
 
         Notes
         -----
-        This method sets up and solves the tridiagonal system described in equation (4.28)
-        of the paper. It also adjusts the positions of the extra points (q₁ and qₙ₋₁)
-        using equations (4.26) and (4.27) after the accelerations are computed.
+        The tridiagonal system enforces acceleration continuity. After solving
+        it, the method adjusts the virtual positions q₁ and qₙ₋₁ so their
+        adjacent cubics meet the requested endpoint derivatives.
 
         The tridiagonal system has special structure for the first and last rows
         to account for the boundary conditions. The system is of size (n-1) x (n-1)

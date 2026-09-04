@@ -51,9 +51,8 @@ class BSplineParams:
 class SmoothingCubicBSpline(BSpline):
     """A class for creating smoothing cubic B-splines that approximate a set of points.
 
-    This class inherits from BSpline and implements the smoothing algorithm
-    described in Section 8.7 of the document. It creates a cubic B-spline
-    curve that balances between fitting the given points and maintaining smoothness.
+    This class fits a cubic B-spline by minimizing a penalized least-squares
+    objective that balances waypoint residuals against curve roughness.
     """
 
     def __init__(
@@ -174,7 +173,7 @@ class SmoothingCubicBSpline(BSpline):
         dummy_control_points = np.zeros((n_control_points, dimension), dtype=np.float64)
         super().__init__(3, self.knots, dummy_control_points)
 
-        # Calculate the actual control points according to Section 8.7
+        # Calculate control points for the smoothing objective.
         self.control_points = self._calculate_control_points()
 
     def _calculate_parameters(self, method: str) -> np.ndarray:
@@ -229,7 +228,7 @@ class SmoothingCubicBSpline(BSpline):
 
         elif method == "centripetal":
             # Centripetal distribution (equation 8.14)
-            mu = 0.5  # As recommended in the document
+            mu = 0.5  # Centripetal parameterization uses square-root chord lengths.
 
             # Calculate total "centripetal" length
             total_length = 0.0
@@ -257,9 +256,9 @@ class SmoothingCubicBSpline(BSpline):
         return u_bars
 
     def _calculate_knot_vector(self) -> np.ndarray:
-        """Calculate the knot vector based on the parameters ūₖ according to Section 8.7.
+        """Calculate the cubic knot vector from the parameters ūₖ.
 
-        As described in the document:
+        The construction is:
         u0 = ... = u2 = ū0, un+4 = ... = un+6 = ūn, uj+3 = ūj for j = 0, ..., n
 
         Returns
@@ -269,7 +268,7 @@ class SmoothingCubicBSpline(BSpline):
         """
         n = self.n_approximation_points - 1  # Index of the last point
 
-        # Create the knot vector with n+7 elements (as described in Section 8.7)
+        # A cubic curve with this construction requires n+7 knots.
         knots = np.zeros(n + 7, dtype=np.float64)
 
         # Set the first 3 knots to ū₀
@@ -407,7 +406,7 @@ class SmoothingCubicBSpline(BSpline):
     def _calculate_control_points(self) -> np.ndarray:
         """Calculate the control points by minimizing the smoothing functional L.
 
-        Minimizes the smoothing functional as described in Section 8.7 of the document.
+        Minimizes the configured fit-versus-roughness objective.
 
         Returns
         -------
@@ -457,8 +456,7 @@ class SmoothingCubicBSpline(BSpline):
     def _calculate_control_points_with_endpoints(self) -> np.ndarray:
         """Calculate the control points when enforcing interpolation of endpoints.
 
-        Enforces interpolation of endpoints and their tangent directions,
-        as described in Section 8.7.1.
+        Enforces interpolation of endpoints and their tangent directions.
 
         Returns
         -------
@@ -487,8 +485,7 @@ class SmoothingCubicBSpline(BSpline):
         if n <= 0:
             return control_points
 
-        # For more control points, solve the reduced system for p₂, ..., pₙ
-        # as described in Section 8.7.1
+        # For more control points, solve the reduced system for p₂, ..., pₙ.
 
         # Construct the reduced Q vector
         q_reduced = np.zeros((n - 1, self.dimension), dtype=np.float64)

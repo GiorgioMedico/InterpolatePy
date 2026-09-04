@@ -4,16 +4,26 @@ on:
   push:
     branches: [ main, dev ]
     paths:
+      - 'README.md'
+      - 'ALGORITHMS.md'
       - 'docs/**'
       - 'mkdocs.yml'
       - 'interpolatepy/**/*.py'  # Only Python files for API docs
+      - 'scripts/check_doc_snippets.py'
+      - 'pyproject.toml'
+      - 'uv.lock'
       - '.github/workflows/docs.yml'
   pull_request:
     branches: [ main ]
     paths:
+      - 'README.md'
+      - 'ALGORITHMS.md'
       - 'docs/**'
       - 'mkdocs.yml'
       - 'interpolatepy/**/*.py'
+      - 'scripts/check_doc_snippets.py'
+      - 'pyproject.toml'
+      - 'uv.lock'
   workflow_dispatch:  # Allow manual triggering
 
 permissions:
@@ -44,6 +54,12 @@ jobs:
     - name: Sync dependencies
       run: uv sync --locked --no-default-groups --group docs
 
+    - name: Check documentation snippets
+      env:
+        INTERPOLATEPY_NO_CPP: '1'
+        MPLBACKEND: Agg
+      run: uv run python -m scripts.check_doc_snippets
+
     - name: Build documentation
       run: uv run mkdocs build --clean --strict
 
@@ -69,4 +85,3 @@ jobs:
     - name: Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v5
-

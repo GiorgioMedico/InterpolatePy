@@ -24,7 +24,7 @@ using namespace interpolatecpp::spline;
 void smoothing_mu_example() {
     ex::print_header("Part 1: Smoothing Splines with Different mu Values");
 
-    // Define points from the textbook
+    // Define a non-uniform waypoint sequence.
     std::vector<double> t = {0.0, 5.0, 7.0, 8.0, 10.0, 15.0, 18.0};
     std::vector<double> q = {3.0, -2.0, -5.0, 0.0, 6.0, 12.0, 8.0};
 

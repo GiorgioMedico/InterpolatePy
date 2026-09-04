@@ -15,9 +15,9 @@ from typing import TYPE_CHECKING
 import matplotlib.pyplot as plt
 import numpy as np
 
-from interpolatepy.quat_core import Quaternion
-from interpolatepy.quat_spline import QuaternionSpline
-from interpolatepy.squad_c2 import SquadC2
+from interpolatepy import Quaternion
+from interpolatepy import QuaternionSpline
+from interpolatepy import SquadC2
 from interpolatepy.quat_visualization import QuaternionTrajectoryVisualizer
 
 if TYPE_CHECKING:

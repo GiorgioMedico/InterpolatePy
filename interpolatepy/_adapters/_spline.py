@@ -9,6 +9,9 @@ from __future__ import annotations
 
 from typing import Any
 
+import matplotlib.pyplot as plt
+import numpy as np
+
 from interpolatepy._backend import get_cpp_module
 from interpolatepy.cubic_spline import CubicSpline as _PyCubicSpline
 
@@ -18,6 +21,31 @@ _CppCubicSpline = _cpp.CubicSpline
 _CppCubicSmoothingSpline = _cpp.CubicSmoothingSpline
 _CppCubicSplineWithAcc1 = _cpp.CubicSplineWithAcceleration1
 _CppCubicSplineWithAcc2 = _cpp.CubicSplineWithAcceleration2
+
+
+def _plot_spline(spline: Any, num_points: int = 1000) -> None:
+    """Plot a native spline through its common evaluation interface."""
+    t_points = np.asarray(spline.t_points)
+    q_points = np.asarray(spline.q_points)
+    times = np.linspace(t_points[0], t_points[-1], num_points)
+
+    _figure, (position_ax, velocity_ax, acceleration_ax) = plt.subplots(
+        3, 1, figsize=(10, 8), sharex=True
+    )
+    position_ax.plot(times, spline.evaluate(times), "b-", linewidth=2)
+    position_ax.plot(t_points, q_points, "ro", markersize=8)
+    position_ax.set_ylabel("Position")
+    position_ax.grid(True)
+
+    velocity_ax.plot(times, spline.evaluate_velocity(times), "g-", linewidth=2)
+    velocity_ax.set_ylabel("Velocity")
+    velocity_ax.grid(True)
+
+    acceleration_ax.plot(times, spline.evaluate_acceleration(times), "r-", linewidth=2)
+    acceleration_ax.set_ylabel("Acceleration")
+    acceleration_ax.set_xlabel("Time")
+    acceleration_ax.grid(True)
+    plt.tight_layout()
 
 
 class CubicSpline(_CppCubicSpline):  # type: ignore[valid-type, misc]
@@ -33,6 +61,8 @@ class CubicSpline(_CppCubicSpline):  # type: ignore[valid-type, misc]
 
 class CubicSmoothingSpline(_CppCubicSmoothingSpline):  # type: ignore[valid-type, misc]
     """C++-backed CubicSmoothingSpline with Python property aliases."""
+
+    plot = _plot_spline
 
     @property
     def t(self) -> Any:
@@ -53,6 +83,8 @@ class CubicSmoothingSpline(_CppCubicSmoothingSpline):  # type: ignore[valid-type
 class CubicSplineWithAcceleration1(_CppCubicSplineWithAcc1):  # type: ignore[valid-type, misc]
     """C++-backed CubicSplineWithAcceleration1 with property aliases."""
 
+    plot = _plot_spline
+
     @property
     def t(self) -> Any:
         """Alias mapping Python ``t`` to C++ ``t_points``."""
@@ -66,3 +98,5 @@ class CubicSplineWithAcceleration1(_CppCubicSplineWithAcc1):  # type: ignore[val
 
 class CubicSplineWithAcceleration2(_CppCubicSplineWithAcc2):  # type: ignore[valid-type, misc]
     """C++-backed CubicSplineWithAcceleration2 with property aliases."""
+
+    plot = _plot_spline

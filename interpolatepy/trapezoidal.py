@@ -114,9 +114,8 @@ class TrapezoidalTrajectory:
     multi-point interpolation. The trapezoidal profile consists of three phases:
     acceleration, constant velocity (cruise), and deceleration phases.
 
-    The implementation follows the mathematical formulations described in Chapter 3
-    of trajectory planning literature, handling both time-constrained and
-    velocity-constrained trajectory generation.
+    The implementation solves the constant-acceleration kinematic equations for
+    both time-constrained and velocity-constrained motion.
 
     Methods
     -------
@@ -303,7 +302,8 @@ class TrapezoidalTrajectory:
         """
         Generate a trapezoidal trajectory with non-null initial and final velocities.
 
-        Handles both positive and negative displacements according to section 3.4.2.
+        Handles both positive and negative displacements by planning in a
+        positive-displacement coordinate system and transforming the result back.
         Uses absolute values for amax and vmax and includes numerical stability enhancements.
 
         Parameters
@@ -349,7 +349,7 @@ class TrapezoidalTrajectory:
         # Calculate displacement
         h = q1 - q0
 
-        # Handle negative displacement (q1 < q0) according to section 3.4.2
+        # Transform negative displacement into the positive planning direction.
         invert_results = False
         if h < 0:
             invert_results = True

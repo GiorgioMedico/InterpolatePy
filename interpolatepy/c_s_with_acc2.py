@@ -37,9 +37,8 @@ class CubicSplineWithAcceleration2(CubicSpline):
     """
     Cubic spline trajectory planning with initial and final acceleration constraints.
 
-    This class extends CubicSpline to handle initial and final acceleration constraints
-    by using 5th degree polynomials for the first and last segments, as mentioned in
-    section 4.4.4 of the paper.
+    This class extends ``CubicSpline`` with quintic first and last segments when
+    endpoint acceleration constraints are supplied.
 
     The spline consists of cubic polynomial segments for interior segments and
     optional quintic polynomial segments for the first and/or last segment when

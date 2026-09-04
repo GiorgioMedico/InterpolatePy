@@ -24,10 +24,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401  (registers 3D projection)
 
-from interpolatepy.frenet_frame import compute_trajectory_frames
-from interpolatepy.frenet_frame import plot_frames
-from interpolatepy.log_quat import LogQuaternionInterpolation
-from interpolatepy.quat_core import Quaternion
+from interpolatepy import LogQuaternionInterpolation
+from interpolatepy import Quaternion
+from interpolatepy import compute_trajectory_frames
+from interpolatepy import plot_frames
 from interpolatepy.quat_visualization import QuaternionTrajectoryVisualizer
 
 

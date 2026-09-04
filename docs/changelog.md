@@ -3,6 +3,28 @@
 This changelog records released InterpolatePy behavior. Dates and versions match
 the repository tags. The project follows [Semantic Versioning](https://semver.org/).
 
+## 3.2.1 — 2026-09-04
+
+### Added
+
+- CI smoke checks for all Python and C++ examples on the supported backends.
+- Executable validation for standalone Python snippets in the documentation.
+- Native-backend regression tests for public adapter behavior.
+
+### Fixed
+
+- Native adapters now accept the documented Python parameter objects, scalar
+  inputs, parameterization names, and helper return types.
+- Native spline, B-spline, motion-profile, and quaternion adapters now expose
+  the plotting, diagnostic, and compatibility helpers used by the public API.
+- Examples now import exported algorithms through `interpolatepy`, ensuring
+  backend selection is exercised instead of bypassed.
+- Static typing errors and contextless source references were removed.
+
+### Changed
+
+- Documentation tooling now constrains MkDocs to the supported 1.x series.
+
 ## 3.2.0 — 2026-09-04
 
 ### Added

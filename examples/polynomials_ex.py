@@ -15,10 +15,10 @@ import numpy as np
 from interpolatepy.polynomials import ORDER_3
 from interpolatepy.polynomials import ORDER_5
 from interpolatepy.polynomials import ORDER_7
-from interpolatepy.polynomials import BoundaryCondition
-from interpolatepy.polynomials import PolynomialTrajectory
-from interpolatepy.polynomials import TimeInterval
-from interpolatepy.polynomials import TrajectoryParams
+from interpolatepy import BoundaryCondition
+from interpolatepy import PolynomialTrajectory
+from interpolatepy import TimeInterval
+from interpolatepy import TrajectoryParams
 
 
 def plot_trajectory(

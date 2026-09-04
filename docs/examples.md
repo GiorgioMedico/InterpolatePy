@@ -79,13 +79,15 @@ INTERPOLATEPY_NO_CPP=1 uv run python examples/log_quat_new_ex.py
 
 ## Run every Python example headlessly
 
-On a POSIX shell:
+Use the repository checker to run every script in its own process:
 
 ```bash
-for example in examples/*.py; do
-  MPLBACKEND=Agg INTERPOLATEPY_NO_CPP=1 uv run python "$example"
-done
+uv run python -m scripts.check_python_examples --backend python
 ```
+
+After building and copying the native extension into `interpolatepy/`, replace
+`python` with `native` to verify the adapter-backed API. The checker fails if
+native mode is requested but `HAS_CPP` is false.
 
 This can take longer than the unit suite because several scripts construct many
 figures. Matplotlib can warn that many figures are open during a headless run;

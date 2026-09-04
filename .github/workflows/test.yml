@@ -34,3 +34,54 @@ jobs:
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false
+
+  python-examples:
+    runs-on: ubuntu-latest
+    env:
+      UV_PYTHON: '3.12'
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.1.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Sync dependencies
+        run: uv sync --locked --no-default-groups --group test
+      - name: Run Python examples with the fallback backend
+        run: uv run python -m scripts.check_python_examples --backend python
+
+  native:
+    runs-on: ubuntu-latest
+    env:
+      UV_PYTHON: '3.12'
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.1.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Sync dependencies
+        run: uv sync --locked --no-default-groups --group test
+      - name: Configure C++ tests, examples, and Python bindings
+        run: |
+          cmake -S cpp -B build/cpp \
+            -DINTERPOLATECPP_BUILD_TESTS=ON \
+            -DINTERPOLATECPP_BUILD_EXAMPLES=ON \
+            -DINTERPOLATECPP_BUILD_BINDINGS=ON \
+            -DPython_EXECUTABLE=$(uv run python -c 'import sys; print(sys.executable)')
+      - name: Build native targets
+        run: cmake --build build/cpp --parallel 4
+      - name: Run C++ tests and examples
+        run: ctest --test-dir build/cpp --output-on-failure
+      - name: Activate the native Python backend
+        run: cp build/cpp/bindings/interpolatecpp_py*.so interpolatepy/
+      - name: Run native adapter regressions
+        run: uv run pytest tests/test_backend.py tests/test_native_adapter_api.py
+      - name: Run documentation snippets with the native backend
+        env:
+          MPLBACKEND: Agg
+        run: uv run python -m scripts.check_doc_snippets
+      - name: Run Python examples with the native backend
+        run: uv run python -m scripts.check_python_examples --backend native

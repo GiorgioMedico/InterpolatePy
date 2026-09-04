@@ -113,9 +113,9 @@ class LogQuaternionInterpolation:
     Logarithmic Quaternion Interpolation (LQI) using axis-angle representation.
 
     Transforms quaternions to axis-angle space r = θ*n̂ and interpolates the
-    3D vector with a B-spline (Parker et al. 2023). Algorithm 1 from the
-    paper resolves quaternion double-cover and axis-angle discontinuities so
-    the recovered r(t) is continuous and the interpolation is C².
+    3D vector with a B-spline (Parker et al. 2023). Before fitting, the
+    quaternion signs and axis-angle branches are adjusted to keep the recovered
+    r(t) continuous and make the interpolation C².
 
     Parameters
     ----------

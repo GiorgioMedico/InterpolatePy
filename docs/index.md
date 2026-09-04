@@ -5,7 +5,7 @@
 [![Python](https://img.shields.io/badge/python-3.11+-blue)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/GiorgioMedico/InterpolatePy/blob/main/LICENSE)
 
-InterpolatePy 3.2.0 provides trajectory planning and interpolation for scalar
+InterpolatePy 3.2.1 provides trajectory planning and interpolation for scalar
 motion, parametric curves, 3D paths, and rotations. It runs with a NumPy/SciPy
 implementation by default and can transparently use an optional C++20 backend.
 

@@ -248,7 +248,7 @@ class CubicBSplineInterpolation(BSpline):
 
         elif method == "centripetal":
             # Centripetal distribution (equation 8.14)
-            mu = 0.5  # As recommended in the document
+            mu = 0.5  # Centripetal parameterization uses square-root chord lengths.
 
             # Calculate total "centripetal" length
             total_length = 0.0

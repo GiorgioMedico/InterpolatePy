@@ -37,13 +37,14 @@ uv run pre-commit run --all-files
 For documentation changes:
 
 ```bash
+INTERPOLATEPY_NO_CPP=1 MPLBACKEND=Agg uv run python -m scripts.check_doc_snippets
 uv run mkdocs build --clean --strict
 ```
 
 For changes to examples, run the affected scripts. A headless smoke check uses:
 
 ```bash
-MPLBACKEND=Agg INTERPOLATEPY_NO_CPP=1 uv run python examples/your_example.py
+uv run python -m scripts.check_python_examples --backend python
 ```
 
 ## Repository map
@@ -151,7 +152,8 @@ Then run the full suite before opening a pull request.
 The site uses MkDocs Material and mkdocstrings. API pages render NumPy-style
 docstrings from the installed source tree. Every code block presented as a
 complete example should be executable as written; fragments should be clearly
-identified.
+identified. `scripts.check_doc_snippets` executes every standalone Python block
+that imports InterpolatePy.
 
 Keep these sources synchronized:
 

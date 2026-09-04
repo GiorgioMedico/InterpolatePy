@@ -705,7 +705,7 @@ dev = [
     { name = "twine", specifier = ">=4.0.2" },
 ]
 docs = [
-    { name = "mkdocs", specifier = ">=1.5.3" },
+    { name = "mkdocs", specifier = ">=1.5.3,<2" },
     { name = "mkdocs-autorefs", specifier = ">=0.5.0" },
     { name = "mkdocs-material", specifier = ">=9.4.8" },
     { name = "mkdocstrings", specifier = ">=0.23.0" },

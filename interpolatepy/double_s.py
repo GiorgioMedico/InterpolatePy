@@ -423,7 +423,7 @@ class DoubleSTrajectory:
             return q_val, qp_val, qpp_val, qppp_val
 
         # Ensure t is within bounds [0, T]
-        t = np.clip(t, 0, self.T)
+        t_scalar = float(np.clip(t, 0, self.T))
 
         # Handle zero or near-zero duration trajectory
         if self.T < EPSILON:
@@ -434,82 +434,92 @@ class DoubleSTrajectory:
         q_1 = self.q_1_transformed
 
         # ACCELERATION PHASE
-        if t <= self.Tj_1 and self.Tj_1 > 0:
+        if t_scalar <= self.Tj_1 and self.Tj_1 > 0:
             # t in [0, Tj_1]
-            q_val = q_0 + self.v_0_transformed * t + self.j_max * t**3 / 6
-            qp_val = self.v_0_transformed + self.j_max * (t**2) / 2
-            qpp_val = self.j_max * t
+            q_val = q_0 + self.v_0_transformed * t_scalar + self.j_max * t_scalar**3 / 6
+            qp_val = self.v_0_transformed + self.j_max * (t_scalar**2) / 2
+            qpp_val = self.j_max * t_scalar
             qppp_val = self.j_max
 
-        elif t <= (self.Ta - self.Tj_1) and self.Ta > self.Tj_1:
+        elif t_scalar <= (self.Ta - self.Tj_1) and self.Ta > self.Tj_1:
             # t in [Tj_1, Ta - Tj_1]
             q_val = (
                 q_0
-                + self.v_0_transformed * t
-                + self.a_lim_a / 6 * (3 * t**2 - 3 * self.Tj_1 * t + self.Tj_1**2)
+                + self.v_0_transformed * t_scalar
+                + self.a_lim_a
+                / 6
+                * (3 * t_scalar**2 - 3 * self.Tj_1 * t_scalar + self.Tj_1**2)
             )
-            qp_val = self.v_0_transformed + self.a_lim_a * (t - self.Tj_1 / 2)
+            qp_val = self.v_0_transformed + self.a_lim_a * (t_scalar - self.Tj_1 / 2)
             qpp_val = self.a_lim_a
             qppp_val = 0
 
-        elif t <= self.Ta and self.Ta > 0:
+        elif t_scalar <= self.Ta and self.Ta > 0:
             # t in [Ta-Tj_1, Ta]
             q_val = (
                 q_0
                 + (self.v_lim + self.v_0_transformed) * self.Ta / 2
-                - self.v_lim * (self.Ta - t)
-                - self.j_min * (self.Ta - t) ** 3 / 6
+                - self.v_lim * (self.Ta - t_scalar)
+                - self.j_min * (self.Ta - t_scalar) ** 3 / 6
             )
-            qp_val = self.v_lim + self.j_min * (self.Ta - t) ** 2 / 2
-            qpp_val = -self.j_min * (self.Ta - t)
+            qp_val = self.v_lim + self.j_min * (self.Ta - t_scalar) ** 2 / 2
+            qpp_val = -self.j_min * (self.Ta - t_scalar)
             qppp_val = self.j_min
 
         # CONSTANT VELOCITY PHASE
-        elif t <= (self.Ta + self.Tv) and self.Tv > 0:
+        elif t_scalar <= (self.Ta + self.Tv) and self.Tv > 0:
             # t in [Ta, Ta+Tv]
             q_val = (
-                q_0 + (self.v_lim + self.v_0_transformed) * self.Ta / 2 + self.v_lim * (t - self.Ta)
+                q_0
+                + (self.v_lim + self.v_0_transformed) * self.Ta / 2
+                + self.v_lim * (t_scalar - self.Ta)
             )
             qp_val = self.v_lim
             qpp_val = 0
             qppp_val = 0
 
         # DECELERATION PHASE
-        elif t <= (self.Ta + self.Tv + self.Tj_2) and self.Tj_2 > 0:
+        elif t_scalar <= (self.Ta + self.Tv + self.Tj_2) and self.Tj_2 > 0:
             # t in [Ta+Tv, Ta+Tv+Tj_2]
             q_val = (
                 q_1
                 - (self.v_lim + self.v_1_transformed) * self.Td / 2
-                + self.v_lim * (t - self.T + self.Td)
-                - self.j_max * (t - self.T + self.Td) ** 3 / 6
+                + self.v_lim * (t_scalar - self.T + self.Td)
+                - self.j_max * (t_scalar - self.T + self.Td) ** 3 / 6
             )
-            qp_val = self.v_lim - self.j_max * (t - self.T + self.Td) ** 2 / 2
-            qpp_val = -self.j_max * (t - self.T + self.Td)
+            qp_val = self.v_lim - self.j_max * (t_scalar - self.T + self.Td) ** 2 / 2
+            qpp_val = -self.j_max * (t_scalar - self.T + self.Td)
             qppp_val = -self.j_max
 
-        elif t <= (self.Ta + self.Tv + (self.Td - self.Tj_2)) and self.Td > self.Tj_2:
+        elif t_scalar <= (self.Ta + self.Tv + (self.Td - self.Tj_2)) and self.Td > self.Tj_2:
             # t in [Ta+Tv+Tj_2, Ta+Tv+(Td-Tj_2)]
             q_val = (
                 q_1
                 - (self.v_lim + self.v_1_transformed) * self.Td / 2
-                + self.v_lim * (t - self.T + self.Td)
+                + self.v_lim * (t_scalar - self.T + self.Td)
                 + self.a_lim_d
                 / 6
                 * (
-                    3 * (t - self.T + self.Td) ** 2
-                    - 3 * self.Tj_2 * (t - self.T + self.Td)
+                    3 * (t_scalar - self.T + self.Td) ** 2
+                    - 3 * self.Tj_2 * (t_scalar - self.T + self.Td)
                     + self.Tj_2**2
                 )
             )
-            qp_val = self.v_lim + self.a_lim_d * (t - self.T + self.Td - self.Tj_2 / 2)
+            qp_val = self.v_lim + self.a_lim_d * (
+                t_scalar - self.T + self.Td - self.Tj_2 / 2
+            )
             qpp_val = self.a_lim_d
             qppp_val = 0
 
-        elif t <= self.T and self.Td > 0:
+        elif t_scalar <= self.T and self.Td > 0:
             # t in [Ta+Tv+(Td-Tj_2), T]
-            q_val = q_1 - self.v_1_transformed * (self.T - t) - self.j_max * (self.T - t) ** 3 / 6
-            qp_val = self.v_1_transformed + self.j_max * (self.T - t) ** 2 / 2
-            qpp_val = -self.j_max * (self.T - t)
+            q_val = (
+                q_1
+                - self.v_1_transformed * (self.T - t_scalar)
+                - self.j_max * (self.T - t_scalar) ** 3 / 6
+            )
+            qp_val = self.v_1_transformed + self.j_max * (self.T - t_scalar) ** 2 / 2
+            qpp_val = -self.j_max * (self.T - t_scalar)
             qppp_val = self.j_max
 
         else:

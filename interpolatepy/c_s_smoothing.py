@@ -1,9 +1,5 @@
+import matplotlib.pyplot as plt
 import numpy as np
-
-try:
-    import matplotlib.pyplot as plt
-except ImportError:
-    plt = None
 
 
 class CubicSmoothingSpline:
@@ -11,11 +7,9 @@ class CubicSmoothingSpline:
     Cubic smoothing spline trajectory planning with control over the smoothness
     versus waypoint accuracy trade-off.
 
-    This class implements cubic smoothing splines for trajectory generation as
-    described in section 4.4.5 of the textbook. The algorithm minimizes a weighted
-    sum of waypoint error and acceleration magnitude, allowing the user to control
-    the trade-off between path smoothness and waypoint accuracy through the
-    parameter μ.
+    The algorithm minimizes a weighted combination of waypoint residuals and
+    curve roughness. The parameter μ controls the trade-off between smoothness
+    and waypoint accuracy.
 
     Parameters
     ----------
@@ -69,10 +63,8 @@ class CubicSmoothingSpline:
     For μ approaching 0, the spline becomes increasingly smooth.
     Setting weight to infinity for a point forces exact interpolation at that point.
 
-    References
-    ----------
-    The implementation follows section 4.4.5 of the robotics textbook
-    describing cubic smoothing splines for trajectory generation.
+    The implementation solves the banded smoothing-spline system directly,
+    then reconstructs one cubic polynomial per time interval.
     """
 
     # Constants to replace magic numbers
@@ -211,8 +203,8 @@ class CubicSmoothingSpline:
 
         Notes
         -----
-        A matrix is constructed according to equation 4.23 in the textbook.
-        C matrix is constructed according to equation 4.34 for the smoothing spline.
+        ``A`` contains the cubic-spline continuity coefficients. ``C`` maps
+        waypoint residual forces into the corresponding curvature correction.
         """
         n = self.n
         time_intervals = self.time_intervals

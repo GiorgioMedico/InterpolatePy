@@ -1,6 +1,6 @@
 # InterpolatePy algorithm guide
 
-This page is a compact map of the algorithms exposed by InterpolatePy 3.2.0.
+This page is a compact map of the algorithms exposed by InterpolatePy 3.2.1.
 For constructor signatures and complete method documentation, use the
 [API reference](docs/api-reference.md). For worked code, use the
 [tutorials](docs/user-guide.md) and [`examples/`](examples/).

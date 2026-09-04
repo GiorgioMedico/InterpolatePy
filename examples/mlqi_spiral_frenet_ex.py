@@ -18,13 +18,13 @@ from functools import partial
 import matplotlib.pyplot as plt
 import numpy as np
 
-from interpolatepy.frenet_frame import (
+from interpolatepy import (
     compute_trajectory_frames,
     helicoidal_trajectory_with_derivatives,
     plot_frames,
 )
-from interpolatepy.log_quat import ModifiedLogQuaternionInterpolation
-from interpolatepy.quat_core import Quaternion
+from interpolatepy import ModifiedLogQuaternionInterpolation
+from interpolatepy import Quaternion
 from interpolatepy.quat_visualization import QuaternionTrajectoryVisualizer
 
 

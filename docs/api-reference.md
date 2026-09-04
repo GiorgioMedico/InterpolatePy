@@ -1,6 +1,6 @@
 # API reference
 
-This page documents the supported Python API for InterpolatePy 3.2.0. Import
+This page documents the supported Python API for InterpolatePy 3.2.1. Import
 these objects from `interpolatepy` unless a module-qualified exception is shown.
 
 !!! note "Backend-dependent class identity"

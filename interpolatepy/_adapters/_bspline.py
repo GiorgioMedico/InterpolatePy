@@ -21,6 +21,7 @@ _CppBSplineInterpolator = _cpp.bspline.BSplineInterpolator
 _CppApproximationBSpline = _cpp.bspline.ApproximationBSpline
 _CppSmoothingCubicBSpline = _cpp.bspline.SmoothingCubicBSpline
 _CppBSplineParams = _cpp.bspline.BSplineParams
+_PARAM_DIFF_THRESHOLD = 1e-10
 
 
 class BSpline(_CppBSpline):  # type: ignore[valid-type, misc]
@@ -40,6 +41,67 @@ class CubicBSplineInterpolation(_CppCubicBSplineInterpolation):  # type: ignore[
 
     DIM_2 = 2
     DIM_3 = 3
+
+    def __init__(
+        self,
+        points: list | np.ndarray,
+        v0: list | np.ndarray | None = None,
+        vn: list | np.ndarray | None = None,
+        method: str = "chord_length",
+        auto_derivatives: bool = False,
+    ) -> None:
+        """Normalize Python inputs and map the parameterization name."""
+        method_map = {
+            "equally_spaced": _cpp.bspline.Parameterization.EquallySpaced,
+            "chord_length": _cpp.bspline.Parameterization.ChordLength,
+            "centripetal": _cpp.bspline.Parameterization.Centripetal,
+        }
+        if method not in method_map:
+            raise ValueError(f"Unknown parameterization method: {method}")
+
+        point_array = np.asarray(points, dtype=np.float64)
+        if point_array.ndim == 1:
+            point_array = point_array.reshape(-1, 1)
+
+        v0_array = None if v0 is None else np.atleast_1d(np.asarray(v0, dtype=np.float64))
+        vn_array = None if vn is None else np.atleast_1d(np.asarray(vn, dtype=np.float64))
+
+        super().__init__(
+            point_array,
+            v0_array,
+            vn_array,
+            method_map[method],
+            auto_derivatives,
+        )
+
+        dimension = point_array.shape[1]
+        if v0_array is None:
+            self._v0 = np.zeros(dimension)
+            if auto_derivatives and len(point_array) > 1:
+                denominator = self.u_bars[1] - self.u_bars[0]
+                if abs(denominator) > _PARAM_DIFF_THRESHOLD:
+                    self._v0 = (point_array[1] - point_array[0]) / denominator
+        else:
+            self._v0 = v0_array
+
+        if vn_array is None:
+            self._vn = np.zeros(dimension)
+            if auto_derivatives and len(point_array) > 1:
+                denominator = self.u_bars[-1] - self.u_bars[-2]
+                if abs(denominator) > _PARAM_DIFF_THRESHOLD:
+                    self._vn = (point_array[-1] - point_array[-2]) / denominator
+        else:
+            self._vn = vn_array
+
+    @property
+    def v0(self) -> np.ndarray:
+        """Initial endpoint derivative."""
+        return self._v0
+
+    @property
+    def vn(self) -> np.ndarray:
+        """Final endpoint derivative."""
+        return self._vn
 
     plot_2d = _PyBSpline.plot_2d
     plot_3d = _PyBSpline.plot_3d
@@ -153,3 +215,14 @@ class SmoothingCubicBSpline(_CppSmoothingCubicBSpline):  # type: ignore[valid-ty
     plot_2d = _PyBSpline.plot_2d
     plot_3d = _PyBSpline.plot_3d
     __repr__ = _PyBSpline.__repr__
+
+    def calculate_smoothness_measure(self, num_points: int = 100) -> float:
+        """Integrate the squared second-derivative magnitude numerically."""
+        u_values = np.linspace(self.u_min, self.u_max, num_points)
+        du = (self.u_max - self.u_min) / (num_points - 1)
+        return float(
+            sum(
+                np.sum(self.evaluate_derivative(float(u), order=2) ** 2) * du
+                for u in u_values
+            )
+        )

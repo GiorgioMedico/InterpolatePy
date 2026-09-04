@@ -12,13 +12,9 @@ import numpy as np
 from scipy.linalg import solve
 from typing import TYPE_CHECKING
 
-try:
-    import matplotlib.pyplot as plt
-except ImportError:
-    plt = None
-
 if TYPE_CHECKING:
     import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D
 
 from interpolatepy.b_spline import BSpline
 
@@ -40,7 +36,7 @@ class BSplineInterpolator(BSpline):
     required to interpolate given data points at specified times, while maintaining
     desired continuity constraints.
 
-    The implementation follows section 4.5 of the document, supporting:
+    The degree-specific knot and boundary-row construction supports:
     - Cubic splines (degree 3) with C² continuity
     - Quartic splines (degree 4) with C³ continuity (continuous jerk)
     - Quintic splines (degree 5) with C⁴ continuity (continuous snap)
@@ -167,7 +163,7 @@ class BSplineInterpolator(BSpline):
         p = degree
 
         if p % 2 == 1:  # Odd degree (3, 5): knots at points
-            # Using equation 4.42 from the document
+            # Odd degrees place interior knots at sample parameters.
             # u = [t0, ..., t0, t1, ..., tn-1, tn, ..., tn]
             #      p+1 times         p+1 times
 
@@ -182,7 +178,7 @@ class BSplineInterpolator(BSpline):
             # Set last p+1 knots to tn
             knots[p + n :] = times[-1]
         else:  # Even degree (4): knots at midpoints
-            # Using equation 4.43 from the document
+            # Even degrees place interior knots at parameter midpoints.
             # u = [t0, ..., t0, (t0+t1)/2, ..., (tn-1+tn)/2, tn, ..., tn]
             #      p+1 times                  p+1 times
 
@@ -494,8 +490,8 @@ class BSplineInterpolator(BSpline):
         self,
         num_points: int = 100,
         show_control_polygon: bool = True,
-        ax: plt.Axes | None = None,
-    ) -> plt.Axes:
+        ax: Axes3D | None = None,
+    ) -> Axes3D:
         """Plot the 3D B-spline curve along with the interpolation points.
 
         Parameters

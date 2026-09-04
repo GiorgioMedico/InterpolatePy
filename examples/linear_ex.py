@@ -10,7 +10,7 @@ This example shows:
 import matplotlib.pyplot as plt
 import numpy as np
 
-from interpolatepy.linear import linear_traj
+from interpolatepy import linear_traj
 
 
 def scalar_trajectory_example() -> None:

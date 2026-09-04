@@ -1,10 +1,9 @@
-from collections.abc import Callable
 from collections.abc import Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
 
-from interpolatepy.lin_poly_parabolic import ParabolicBlendTrajectory
+from interpolatepy import ParabolicBlendTrajectory
 
 
 def plot_trajectory_with_waypoints(
@@ -101,7 +100,6 @@ if __name__ == "__main__":
 
     # Option 3: Direct usage of the trajectory function
     print("\nDirect usage of trajectory function:")
-    traj_func: Callable[[float], tuple[float, float, float]]
     traj_func, duration = traj.generate()
 
     # Evaluate at specific times

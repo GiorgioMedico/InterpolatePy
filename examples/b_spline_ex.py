@@ -17,7 +17,7 @@ def example_bspline() -> BSpline:
     # Define the control points (2D for this example)
     control_points = np.array([[1, 2], [2, 3], [3, -3], [4, 4], [5, 5], [6, -5], [7, -6]])
 
-    # Create knot vector similar to the example in the document
+    # Use a non-uniform clamped knot vector.
     knots = np.array([0, 0, 0, 0, 1, 2, 4, 7, 7, 7, 7])
 
     # Create and return the B-spline
@@ -25,9 +25,7 @@ def example_bspline() -> BSpline:
 
 
 def demonstration() -> None:
-    """
-    Demonstrate the B-spline implementation with the example from the document.
-    """
+    """Demonstrate B-spline evaluation and basis functions."""
     # Create the example B-spline
     bspline = example_bspline()
 
@@ -37,7 +35,7 @@ def demonstration() -> None:
     # Add title that matches the example
     plt.title("Cubic B-spline and its control polygon")
 
-    # Evaluate the B-spline at the specific value mentioned in the document
+    # Evaluate the curve inside the second non-zero knot interval.
     u_value = 1.5
     point = bspline.evaluate(u_value)
 
@@ -60,9 +58,8 @@ def demonstration() -> None:
 
 def example_b6() -> None:
     """
-    Implements Example B.6 from the document:
-    Calculates the basis functions of degree 3 and their derivatives
-    at u = 4.5 for knot vector [0, 0, 0, 0, 1, 2, 4, 7, 7, 7, 7]
+    Calculate cubic basis functions and their derivatives at u = 4.5 for
+    knot vector [0, 0, 0, 0, 1, 2, 4, 7, 7, 7, 7].
     """
     # Define the degree
     degree = 3

@@ -24,9 +24,10 @@ Mathematical Background:
 import matplotlib.pyplot as plt
 import numpy as np
 
-from interpolatepy.log_quat import LogQuaternionInterpolation, ModifiedLogQuaternionInterpolation
-from interpolatepy.quat_core import Quaternion
-from interpolatepy.quat_spline import QuaternionSpline
+from interpolatepy import LogQuaternionInterpolation
+from interpolatepy import ModifiedLogQuaternionInterpolation
+from interpolatepy import Quaternion
+from interpolatepy import QuaternionSpline
 from interpolatepy.quat_visualization import QuaternionTrajectoryVisualizer
 
 

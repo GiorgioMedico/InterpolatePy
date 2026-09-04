@@ -8,8 +8,7 @@ from interpolatepy import BSplineInterpolator
 # Example 1: Cubic B-spline interpolation with velocity constraints (Fig. 4.18)
 def example_cubic_bspline() -> None:
     """
-    Recreate example 4.16 from the document (page 198).
-    Cubic B-spline curve with velocity constraints.
+    Plot a cubic B-spline trajectory with endpoint velocity constraints.
     """
 
     # Data from Example 4.16
@@ -56,8 +55,7 @@ def example_cubic_bspline() -> None:
 # Example 2: B-spline with jerk continuity (Fig. 4.18)
 def example_jerk_continuous_bspline() -> None:
     """
-    Recreate example from the document (page 198).
-    B-spline of degree 4 with jerk continuity.
+    Plot a degree-four B-spline trajectory with continuous jerk.
     """
 
     # Data from Example 4.16
@@ -116,8 +114,7 @@ def example_jerk_continuous_bspline() -> None:
 # Example 3: Cyclic B-spline (Fig. 4.21)
 def example_cyclic_bspline() -> None:
     """
-    Recreate example 4.17 from the document (page 202).
-    Cyclic B-spline of degree 4.
+    Plot a cyclic degree-four B-spline trajectory.
     """
 
     # Data from Example 4.17

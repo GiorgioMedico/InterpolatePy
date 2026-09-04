@@ -148,8 +148,7 @@ def helicoidal_trajectory_with_derivatives(
     u: float, r: float = 2.0, d: float = 0.5
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
-    Helicoidal trajectory function returning position and derivatives.
-    This implements equation 8.7 from the textbook.
+    Return a circular helix and its first two parameter derivatives.
 
     Parameters
     ----------

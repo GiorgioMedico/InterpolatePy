@@ -1,20 +1,16 @@
+import matplotlib.pyplot as plt
 import numpy as np
 
 from interpolatepy.tridiagonal_inv import solve_tridiagonal
-
-try:
-    import matplotlib.pyplot as plt
-except ImportError:
-    plt = None
 
 
 class CubicSpline:
     """
     Cubic spline trajectory planning implementation.
 
-    This class implements the cubic spline algorithm described in the document.
-    It generates a smooth trajectory passing through specified waypoints with
-    continuous velocity and acceleration profiles.
+    The piecewise-cubic trajectory passes through the supplied waypoints,
+    matches the requested endpoint velocities, and maintains continuous
+    velocity and acceleration at interior knots.
 
     Parameters
     ----------
@@ -123,12 +119,11 @@ class CubicSpline:
 
     def _compute_velocities(self) -> np.ndarray:
         """
-        Compute the velocities at intermediate points by solving
-        the tridiagonal system described in the document.
+        Compute the interior velocities from the C2-continuity equations.
 
-        This method implements the mathematical formulation from pages 4-5 of the document,
-        corresponding to equation (17). It sets up and solves the tridiagonal system A*v = c
-        to find the intermediate velocities, which ensures C2 continuity of the spline.
+        The method assembles and solves the tridiagonal system ``A*v = c``
+        obtained by matching acceleration on both sides of every interior
+        waypoint.
 
         Returns
         -------
@@ -154,7 +149,7 @@ class CubicSpline:
         t_intervals = self.t_intervals
         q = self.q_points
 
-        # Create the tridiagonal matrix A as shown in the document:
+        # Create the tridiagonal C2-continuity matrix A:
         # Matrix A has the following structure:
         # [2(T₀+T₁)    T₁         0         ...        0       ]
         # [T₀        2(T₁+T₂)     T₂        0         ...      ]
@@ -168,7 +163,7 @@ class CubicSpline:
             # We know v0 and vn, so no need to solve system
             return np.array([self.v0, self.vn])
 
-        # Create the right-hand side vector c from equation (17) in the document
+        # Create the right-hand side vector c for the continuity system.
         # cᵢ = 3/(Tᵢ*Tᵢ₊₁) * [Tᵢ²*(qᵢ₊₂-qᵢ₊₁) + Tᵢ₊₁²*(qᵢ₊₁-qᵢ)]
         rhs = np.zeros(n - 1)
 

@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from interpolatepy.c_s_with_acc1 import CubicSplineWithAcceleration1
+from interpolatepy import CubicSplineWithAcceleration1
 
 
 # Example usage 0

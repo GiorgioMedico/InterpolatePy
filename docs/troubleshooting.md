@@ -22,7 +22,7 @@ Check the installed version:
 python -c "import interpolatepy as ip; print(ip.__version__)"
 ```
 
-This documentation targets 3.2.0. Import public algorithms from `interpolatepy`.
+This documentation targets 3.2.1. Import public algorithms from `interpolatepy`.
 The trapezoidal `TrajectoryParams` is the intentional exception:
 
 ```python

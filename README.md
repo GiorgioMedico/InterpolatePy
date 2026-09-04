@@ -20,7 +20,7 @@ at import time.
 python -m pip install InterpolatePy
 ```
 
-InterpolatePy 3.2.0 requires Python 3.11 or newer, NumPy 1.26 or newer,
+InterpolatePy 3.2.1 requires Python 3.11 or newer, NumPy 1.26 or newer,
 SciPy 1.11 or newer, and Matplotlib 3.6 or newer.
 
 ## Quick start

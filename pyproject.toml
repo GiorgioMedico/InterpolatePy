@@ -68,7 +68,7 @@ dev = [
     "twine>=4.0.2",
 ]
 docs = [
-    "mkdocs>=1.5.3",
+    "mkdocs>=1.5.3,<2",
     "mkdocs-material>=9.4.8",
     "pymdown-extensions>=10.3.0",
     "mkdocs-autorefs>=0.5.0",

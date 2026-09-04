@@ -11,8 +11,8 @@ Key differences:
 
 import matplotlib.pyplot as plt
 import numpy as np
-from interpolatepy.quat_core import Quaternion
-from interpolatepy.quat_spline import QuaternionSpline
+from interpolatepy import Quaternion
+from interpolatepy import QuaternionSpline
 from interpolatepy.quat_visualization import QuaternionTrajectoryVisualizer
 
 

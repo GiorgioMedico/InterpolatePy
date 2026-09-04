@@ -2,14 +2,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 
-from interpolatepy.b_spline_smooth import BSplineParams
-from interpolatepy.b_spline_smooth import SmoothingCubicBSpline
+from interpolatepy import BSplineParams
+from interpolatepy import SmoothingCubicBSpline
 
 
 def example_8_12() -> None:
     """
-    Implementation of Example 8.12 from the document:
-    3D cubic B-spline smoothing through given points with different lambda values.
+    Compare 3D cubic B-spline smoothing for several lambda values.
     """
 
     # Define the points to approximate as given in the example

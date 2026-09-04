@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, ClassVar
 
+import matplotlib.pyplot as plt
 import numpy as np
 
 if TYPE_CHECKING:
@@ -128,6 +129,19 @@ class DoubleSTrajectory(_CppDoubleSTrajectory):  # type: ignore[valid-type, misc
 class ParabolicBlendTrajectory(_CppParabolicBlendTrajectory):  # type: ignore[valid-type, misc]
     """C++-backed ParabolicBlendTrajectory with evaluate protocol split."""
 
+    def __init__(
+        self,
+        q: list[float] | np.ndarray,
+        t: list[float] | np.ndarray,
+        dt_blend: list[float] | np.ndarray,
+        dt: float = 0.01,
+    ) -> None:
+        self.q = np.asarray(q, dtype=float)
+        self.t = np.asarray(t, dtype=float)
+        self.dt_blend = np.asarray(dt_blend, dtype=float)
+        self.dt = float(dt)
+        super().__init__(self.q.tolist(), self.t.tolist(), self.dt_blend.tolist())
+
     def evaluate(self, t: float | np.ndarray) -> float | np.ndarray:
         if isinstance(t, np.ndarray):
             out = np.empty_like(t)
@@ -165,6 +179,30 @@ class ParabolicBlendTrajectory(_CppParabolicBlendTrajectory):  # type: ignore[va
             )
 
         return trajectory, self.duration
+
+    def plot(
+        self,
+        times: np.ndarray | None = None,
+        pos: np.ndarray | None = None,
+        vel: np.ndarray | None = None,
+        acc: np.ndarray | None = None,
+    ) -> None:
+        """Plot position, velocity, and acceleration samples."""
+        if times is None or pos is None or vel is None or acc is None:
+            times = np.arange(0.0, self.duration + self.dt, self.dt)
+            pos = np.asarray(self.evaluate(times))
+            vel = np.asarray(self.evaluate_velocity(times))
+            acc = np.asarray(self.evaluate_acceleration(times))
+
+        fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True)
+        ax1.plot(times, pos)
+        ax1.set_ylabel("Position")
+        ax2.plot(times, vel)
+        ax2.set_ylabel("Velocity")
+        ax3.plot(times, acc)
+        ax3.set_ylabel("Acceleration")
+        ax3.set_xlabel("Time")
+        fig.tight_layout()
 
 
 # ---------------------------------------------------------------------------
