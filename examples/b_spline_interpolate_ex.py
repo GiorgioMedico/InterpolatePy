@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
 
-from interpolatepy.b_spline_interpolate import BSplineInterpolator
+from interpolatepy import BSplineInterpolator
 
 
 # Example 1: Cubic B-spline interpolation with velocity constraints (Fig. 4.18)
@@ -234,7 +234,7 @@ def simple_3d_example() -> None:
         print(f"Error: {e}")
 
     try:
-        # Try with degree 4 - this will likely show a warning or fail
+        # Degrees 4 and 5 are supported with this five-point dataset.
         degree = 4
         print(f"\nTrying to create a B-spline with degree {degree} using {len(points)} points...")
         interpolator = BSplineInterpolator(degree=degree, points=points, times=times)
@@ -243,7 +243,6 @@ def simple_3d_example() -> None:
         print(f"Failed with degree {degree}: {e}")
 
     try:
-        # Try with degree 5 - this should fail
         degree = 5
         print(f"\nTrying to create a B-spline with degree {degree} using {len(points)} points...")
         interpolator = BSplineInterpolator(degree=degree, points=points, times=times)
@@ -251,8 +250,8 @@ def simple_3d_example() -> None:
     except ValueError as e:
         print(f"Failed with degree {degree}: {e}")
 
-    # Now try with more points for higher degrees
-    print("\nAdding more points to support higher degree splines...")
+    # Compare the same higher degree with a denser waypoint set.
+    print("\nAdding more points to compare a denser interpolation...")
 
     # Define more points for higher degree interpolation
     times_extended = [0, 1, 2, 3, 4, 5, 6]
@@ -269,7 +268,7 @@ def simple_3d_example() -> None:
     )
 
     try:
-        # Try with degree 5 and more points
+        # Try degree 5 again with more points.
         degree = 5
         print(
             f"\nTrying to create a B-spline with degree {degree} "

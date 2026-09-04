@@ -14,9 +14,9 @@ from collections.abc import Callable
 import matplotlib.pyplot as plt
 import numpy as np
 
-from interpolatepy.trapezoidal import InterpolationParams
+from interpolatepy import InterpolationParams
+from interpolatepy import TrapezoidalTrajectory
 from interpolatepy.trapezoidal import TrajectoryParams
-from interpolatepy.trapezoidal import TrapezoidalTrajectory
 
 
 def plot_trajectory(

@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from interpolatepy.b_spline import BSpline
+from interpolatepy import BSpline
 
 
 def example_bspline() -> BSpline:

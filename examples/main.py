@@ -2,7 +2,7 @@
 This module contains examples of Python code.
 """
 
-from interpolatepy.version import __version__
+from interpolatepy import __version__
 
 
 if __name__ == "__main__":

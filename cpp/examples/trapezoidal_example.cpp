@@ -156,7 +156,9 @@ static void example_time_constrained() {
     const std::vector<double> points = {0.0, 5.0, 10.0, 7.0, 15.0};
     const std::vector<double> times = {0.0, 2.0, 4.0, 7.0, 10.0};
     const double amax = 15.0;
-    const double vmax = 100.0;  // Large vmax to allow time-based planning
+    // For fixed segment times, vmax is used to choose heuristic waypoint
+    // velocities. Keep it compatible with the segment durations and amax.
+    const double vmax = 4.0;
 
     std::cout << "  Waypoints: [";
     for (size_t i = 0; i < points.size(); ++i) {

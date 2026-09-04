@@ -1,376 +1,143 @@
-# Quick Start Guide
+# Quick start
 
-This guide will get you started with InterpolatePy in just a few minutes. We'll cover the most common use cases and show you how to create your first smooth trajectories.
+All examples on this page use the public `interpolatepy` namespace. That keeps
+the code independent of whether the Python or optional C++ backend is active.
 
-## Prerequisites
+## Scalar spline
 
-Make sure you have InterpolatePy installed:
-
-```bash
-pip install InterpolatePy
-```
-
-## Your First Trajectory
-
-Let's start with a simple cubic spline through waypoints:
+`CubicSpline` interpolates scalar waypoints and accepts endpoint velocities:
 
 ```python
 import numpy as np
-import matplotlib.pyplot as plt
+
 from interpolatepy import CubicSpline
 
-# Define waypoints
-t_points = [0.0, 2.0, 4.0, 6.0, 8.0]
-q_points = [0.0, 3.0, -1.0, 2.0, 0.0]
-
-# Create cubic spline with zero initial and final velocities
+t_points = [0.0, 1.0, 2.0, 3.0]
+q_points = [0.0, 1.0, -0.5, 2.0]
 spline = CubicSpline(t_points, q_points, v0=0.0, vn=0.0)
 
-# Evaluate at any time
-position = spline.evaluate(3.0)
-velocity = spline.evaluate_velocity(3.0)
-acceleration = spline.evaluate_acceleration(3.0)
-
-print(f"At t=3.0: pos={position:.2f}, vel={velocity:.2f}, acc={acceleration:.2f}")
-
-# Plot the complete trajectory
-spline.plot()
-plt.show()
-```
-
-**What you get:**
-- Smooth C² continuous trajectory through all waypoints
-- Built-in visualization showing position, velocity, and acceleration
-- Zero velocities at start and end points
-
-## Common Use Cases
-
-### 1. Jerk-Limited Motion (S-Curves)
-
-Perfect for robotics and automation where smooth acceleration is critical:
-
-```python
-from interpolatepy import DoubleSTrajectory, StateParams, TrajectoryBounds
-
-# Define motion parameters
-state = StateParams(
-    q_0=0.0,     # Start position
-    q_1=10.0,    # End position  
-    v_0=0.0,     # Start velocity
-    v_1=0.0      # End velocity
-)
-
-bounds = TrajectoryBounds(
-    v_bound=5.0,   # Max velocity
-    a_bound=10.0,  # Max acceleration
-    j_bound=30.0   # Max jerk
-)
-
-# Generate S-curve trajectory
-trajectory = DoubleSTrajectory(state, bounds)
-
-# Get total duration
-print(f"Duration: {trajectory.get_duration():.2f}s")
-
-# Evaluate at specific times
-t_eval = np.linspace(0, trajectory.get_duration(), 100)
-results = [trajectory.evaluate(t) for t in t_eval]
-positions = [r[0] for r in results]
-velocities = [r[1] for r in results]
-accelerations = [r[2] for r in results]
-jerks = [r[3] for r in results]
-
-# Manual plotting (DoubleSTrajectory doesn't have built-in plot method)
-fig, axes = plt.subplots(4, 1, figsize=(10, 8))
-axes[0].plot(t_eval, positions)
-axes[0].set_ylabel('Position')
-axes[0].set_title('S-Curve Motion Profile')
-axes[1].plot(t_eval, velocities)
-axes[1].set_ylabel('Velocity')
-axes[2].plot(t_eval, accelerations)
-axes[2].set_ylabel('Acceleration')
-axes[3].plot(t_eval, jerks)
-axes[3].set_ylabel('Jerk')
-axes[3].set_xlabel('Time')
-for ax in axes:
-    ax.grid(True)
-plt.show()
-```
-
-### 2. Smooth Rotation Interpolation
-
-For 3D orientation control with quaternions:
-
-```python
-from interpolatepy import Quaternion, SquadC2
-import numpy as np
-
-# Define rotation waypoints
-orientations = [
-    Quaternion.identity(),                                    # No rotation
-    Quaternion.from_angle_axis(np.pi/2, np.array([1, 0, 0])),         # 90° about X
-    Quaternion.from_angle_axis(np.pi, np.array([0, 1, 0])),           # 180° about Y
-    Quaternion.from_angle_axis(np.pi/4, np.array([0, 0, 1]))          # 45° about Z
-]
-
-times = [0.0, 1.0, 2.0, 3.0]
-
-# Create smooth quaternion trajectory
-quat_spline = SquadC2(times, orientations)
-
-# Evaluate smooth rotation
-t = 1.5
-orientation = quat_spline.evaluate(t)
-# Note: SquadC2.evaluate returns a quaternion, not tuple with velocity
-print(f"Orientation at t={t}: {orientation}")
-# For angular velocity, you would need to compute finite differences
-```
-
-### 3. Noise-Robust Curve Fitting
-
-When your data has noise, use smoothing splines:
-
-```python
-from interpolatepy import CubicSmoothingSpline
-import numpy as np
-
-# Noisy data points
-t_noisy = np.linspace(0, 10, 20)
-q_noisy = np.sin(t_noisy) + 0.1 * np.random.randn(20)
-
-# Create smoothing spline with appropriate mu parameter
-spline = CubicSmoothingSpline(list(t_noisy), list(q_noisy), mu=0.1)
-mu = 0.1
-
-print(f"Optimal smoothing parameter: {mu:.6f}")
-
-# Plot original data vs smoothed curve
-spline.plot()
-plt.scatter(t_noisy, q_noisy, color='red', alpha=0.6, label='Noisy data')
-plt.legend()
-plt.show()
-```
-
-### 4. Polynomial Trajectories
-
-For precise boundary condition control using static factory methods:
-
-```python
-from interpolatepy import PolynomialTrajectory, BoundaryCondition, TimeInterval
-import numpy as np
-import matplotlib.pyplot as plt
-
-# Define boundary conditions (position, velocity, acceleration, jerk)
-initial = BoundaryCondition(position=0.0, velocity=0.0, acceleration=0.0, jerk=0.0)
-final = BoundaryCondition(position=5.0, velocity=0.0, acceleration=0.0, jerk=0.0)
-interval = TimeInterval(start=0.0, end=3.0)
-
-# Generate 7th-order polynomial trajectory (returns a callable)
-traj_func = PolynomialTrajectory.order_7_trajectory(initial, final, interval)
-
-# Evaluate complete trajectory
-t_eval = np.linspace(0, 3, 100)
-results = [traj_func(t) for t in t_eval]
-positions = [r[0] for r in results]
-velocities = [r[1] for r in results]
-accelerations = [r[2] for r in results]
-jerks = [r[3] for r in results]
-
-# Plot all derivatives
-fig, axes = plt.subplots(4, 1, figsize=(10, 8))
-axes[0].plot(t_eval, positions, label='Position')
-axes[1].plot(t_eval, velocities, label='Velocity')
-axes[2].plot(t_eval, accelerations, label='Acceleration')
-axes[3].plot(t_eval, jerks, label='Jerk')
-
-for ax in axes:
-    ax.legend()
-    ax.grid(True)
-
-plt.tight_layout()
-plt.show()
-```
-
-## Key Concepts
-
-### 1. Continuity Classes
-
-InterpolatePy algorithms provide different levels of smoothness:
-
-- **C⁰**: Continuous position (basic interpolation)
-- **C¹**: Continuous position and velocity  
-- **C²**: Continuous position, velocity, and acceleration (cubic splines)
-
-### 2. Boundary Conditions
-
-Control trajectory behavior at endpoints:
-
-```python
-from interpolatepy import CubicSpline
-
-# Zero velocity at endpoints (natural spline)
-spline = CubicSpline(t_points, q_points, v0=0.0, vn=0.0)
-
-# Specified velocities
-spline = CubicSpline(t_points, q_points, v0=2.0, vn=-1.5)
-
-# With acceleration constraints
-from interpolatepy import CubicSplineWithAcceleration1
-spline = CubicSplineWithAcceleration1(
-    t_points, q_points,
-    v0=0.0, vn=0.0,
-    a0=0.0, an=0.0
-)
-```
-
-### 3. Evaluation Methods
-
-All trajectory objects provide consistent evaluation methods:
-
-```python
-# Position (assuming spline was created from previous example)
+t = np.linspace(t_points[0], t_points[-1], 200)
 position = spline.evaluate(t)
-
-# First derivative (velocity)
 velocity = spline.evaluate_velocity(t)
-
-# Second derivative (acceleration)  
 acceleration = spline.evaluate_acceleration(t)
 
-# Some algorithms also provide:
-jerk = trajectory.evaluate_jerk(t)  # Third derivative
+assert position.shape == t.shape
+assert np.isclose(position[0], q_points[0])
+assert np.isclose(position[-1], q_points[-1])
 ```
 
-### 4. Vectorized Evaluation
+The zero defaults for `v0` and `vn` clamp endpoint velocity. They are not
+natural (zero-acceleration) boundary conditions.
 
-Evaluate multiple time points efficiently:
-
-```python
-# Single time point
-pos = spline.evaluate(1.5)
-
-# Multiple time points (vectorized)
-t_array = np.linspace(0, 10, 100)
-positions = spline.evaluate(t_array)  # Returns numpy array
-```
-
-## Performance Tips
-
-### 1. Use Vectorized Operations
-
-```python
-# Efficient: vectorized evaluation
-t_eval = np.linspace(0, 10, 1000)
-positions = spline.evaluate(t_eval)
-
-# Inefficient: loop over single evaluations
-positions = [spline.evaluate(t) for t in t_eval]
-```
-
-### 2. Reuse Trajectory Objects
-
-```python
-from interpolatepy import CubicSpline
-
-# Create once, evaluate many times
-spline = CubicSpline(t_points, q_points)
-
-# Efficient: reuse the same spline object
-for t in time_sequence:
-    pos = spline.evaluate(t)
-    # Process position...
-```
-
-### 3. Choose Appropriate Algorithms
-
-| Use Case | Recommended Algorithm | Complexity |
-|----------|----------------------|------------|
-| Smooth waypoint interpolation | `CubicSpline` | <span class="complexity">O(n)</span> |
-| Jerk-limited motion | `DoubleSTrajectory` | <span class="complexity">O(1)</span> |
-| Noisy data fitting | `CubicSmoothingSpline` | <span class="complexity">O(n)</span> |
-| 3D rotation | `SquadC2` | <span class="complexity">O(1)</span> |
-| High-degree control | `BSplineInterpolator` | <span class="complexity">O(n)</span> |
-
-## Common Patterns
-
-### Pattern 1: Trajectory with Via Points
+## Jerk-limited point-to-point motion
 
 ```python
 import numpy as np
-from interpolatepy import CubicSpline
 
-def create_trajectory_with_via_points(waypoints, durations):
-    """Create smooth trajectory through multiple waypoints."""
-    t_points = np.cumsum([0] + durations)
-    return CubicSpline(t_points, waypoints, v0=0.0, vn=0.0)
+from interpolatepy import DoubleSTrajectory
+from interpolatepy import StateParams
+from interpolatepy import TrajectoryBounds
 
-# Usage
-waypoints = [0, 5, -2, 8, 3]
-durations = [2, 3, 2, 4]  # Time between waypoints
-traj = create_trajectory_with_via_points(waypoints, durations)
+state = StateParams(q_0=0.0, q_1=10.0, v_0=0.0, v_1=0.0)
+bounds = TrajectoryBounds(v_bound=4.0, a_bound=3.0, j_bound=8.0)
+trajectory = DoubleSTrajectory(state, bounds)
+
+t = np.linspace(0.0, trajectory.get_duration(), 200)
+position, velocity, acceleration, jerk = trajectory.evaluate_full(t)
+
+assert np.isclose(position[0], state.q_0)
+assert np.isclose(position[-1], state.q_1)
 ```
 
-### Pattern 2: Trajectory Synchronization
+`evaluate()` returns only position. Use `evaluate_full()` when you need all four
+signals.
+
+## B-spline through two or more points
+
+Degrees 3, 4, and 5 can interpolate as few as two samples in version 3.2.0:
 
 ```python
-def synchronize_trajectories(trajectories):
-    """Find common duration for multiple trajectories."""
-    max_duration = max(traj.get_duration() for traj in trajectories)
-    
-    # Evaluate all at synchronized time points
-    t_sync = np.linspace(0, max_duration, 100)
-    sync_data = {}
-    
-    for i, traj in enumerate(trajectories):
-        sync_data[f'traj_{i}'] = [
-            traj.evaluate(min(t, traj.get_duration())) for t in t_sync
-        ]
-    
-    return t_sync, sync_data
+import numpy as np
+
+from interpolatepy import BSplineInterpolator
+
+points = np.array([[0.0, 0.0], [2.0, 1.0]])
+times = np.array([0.0, 2.0])
+curve = BSplineInterpolator(degree=5, points=points, times=times)
+
+midpoint = curve.evaluate(1.0)
+tangent = curve.evaluate_derivative(1.0, order=1)
+
+assert midpoint.shape == (2,)
+assert tangent.shape == (2,)
+assert np.allclose(curve.evaluate(times[0]), points[0])
+assert np.allclose(curve.evaluate(times[-1]), points[-1])
 ```
 
-### Pattern 3: Trajectory Blending
+B-spline evaluators accept one parameter value at a time. Use a comprehension
+to sample a curve:
 
 ```python
-def blend_trajectories(traj1, traj2, blend_time, total_time):
-    """Smoothly blend between two trajectories."""
-    def blended_traj(t):
-        if t <= blend_time:
-            return traj1.evaluate(t)
-        elif t >= total_time - blend_time:
-            return traj2.evaluate(t - (total_time - traj2.get_duration()))
-        else:
-            # Linear blend in middle region
-            alpha = (t - blend_time) / (total_time - 2*blend_time)
-            return (1-alpha) * traj1.evaluate(t) + alpha * traj2.evaluate(t)
-    
-    return blended_traj
+import numpy as np
+
+from interpolatepy import BSplineInterpolator
+
+points = np.array([[0.0, 0.0], [1.0, 2.0], [3.0, 1.0]])
+curve = BSplineInterpolator(degree=3, points=points)
+u = np.linspace(curve.u_min, curve.u_max, 100)
+samples = np.array([curve.evaluate(value) for value in u])
 ```
 
-## Next Steps
+## Quaternion keyframes
 
-Now that you've mastered the basics:
+```python
+import numpy as np
 
-1. **[User Guide](user-guide.md)** - Dive deeper into specific algorithms
-2. **[Tutorials](tutorials/spline-interpolation.md)** - Step-by-step guides for each category
-3. **[API Reference](api-reference.md)** - Complete function documentation
-4. **[Examples](examples.md)** - Real-world applications and advanced usage
-5. **[Algorithms](algorithms.md)** - Mathematical foundations and theory
+from interpolatepy import Quaternion
+from interpolatepy import QuaternionSpline
 
-## Troubleshooting
+times = [0.0, 1.0, 2.0]
+orientations = [
+    Quaternion.identity(),
+    Quaternion.from_angle_axis(np.pi / 3.0, np.array([0.0, 0.0, 1.0])),
+    Quaternion.from_euler_angles(0.2, 0.4, 0.8),
+]
+rotation = QuaternionSpline(times, orientations, interpolation_method="auto")
 
-### Common Issues
+q = rotation.evaluate(0.5)
+angular_velocity = rotation.evaluate_velocity(0.5)
+matrix = q.to_rotation_matrix()
 
-**Q: My spline has unwanted oscillations**
-A: Try using `CubicSmoothingSpline` with a small smoothing parameter, or reduce the number of waypoints.
+assert matrix.shape == (3, 3)
+assert angular_velocity.shape == (3,)
+```
 
-**Q: Trajectory violates velocity/acceleration limits**  
-A: Use motion profiles like `DoubleSTrajectory` or `TrapezoidalTrajectory` that enforce constraints.
+## Geometric path plus a time law
 
-**Q: Quaternion interpolation flips unexpectedly**
-A: Use `SquadC2` which handles quaternion double-cover automatically.
+A path uses arc length `s`; a motion law maps time to `s`:
 
-**Q: Performance is slower than expected**
-A: Ensure you're using vectorized evaluation and consider algorithm complexity for your use case.
+```python
+import numpy as np
 
-Ready to create some smooth trajectories! 🚀
+from interpolatepy import DoubleSTrajectory
+from interpolatepy import LinearPath
+from interpolatepy import StateParams
+from interpolatepy import TrajectoryBounds
+
+path = LinearPath(np.array([0.0, 0.0, 0.0]), np.array([3.0, 4.0, 0.0]))
+law = DoubleSTrajectory(
+    StateParams(q_0=0.0, q_1=path.length, v_0=0.0, v_1=0.0),
+    TrajectoryBounds(v_bound=2.0, a_bound=2.0, j_bound=4.0),
+)
+
+t = np.linspace(0.0, law.get_duration(), 100)
+s = law.evaluate(t)
+positions = np.array([path.position(value) for value in s])
+
+assert np.allclose(positions[0], path.pi)
+assert np.allclose(positions[-1], path.pf)
+```
+
+Continue with the [User guide](user-guide.md), choose a focused
+[tutorial](user-guide.md#tutorials), or browse the checked
+[example programs](examples.md).

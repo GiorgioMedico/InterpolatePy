@@ -98,6 +98,27 @@ class DoubleSTrajectory(_CppDoubleSTrajectory):  # type: ignore[valid-type, misc
         r = super().evaluate(t)
         return r.position, r.velocity, r.acceleration, r.jerk
 
+    def get_duration(self) -> float:
+        """Return the total trajectory duration."""
+        return self.duration
+
+    def get_phase_durations(self) -> dict[str, float]:
+        """Return the duration of each trajectory phase."""
+        return dict(self.phase_durations())
+
+    @staticmethod
+    def create_trajectory(
+        state_params: object,
+        bounds: object,
+    ) -> tuple[Callable[[float | np.ndarray], tuple[float | np.ndarray, ...]], float]:
+        """Create a trajectory callable and return it with its duration."""
+        planner = DoubleSTrajectory(state_params, bounds)
+
+        def trajectory(t: float | np.ndarray) -> tuple[float | np.ndarray, ...]:
+            return planner.evaluate_full(t)
+
+        return trajectory, planner.get_duration()
+
     @property
     def T(self) -> float:  # noqa: N802
         """Total trajectory duration."""
@@ -130,6 +151,20 @@ class ParabolicBlendTrajectory(_CppParabolicBlendTrajectory):  # type: ignore[va
                 out.flat[i] = super().evaluate(float(ti)).acceleration
             return out
         return super().evaluate(t).acceleration
+
+    def generate(
+        self,
+    ) -> tuple[Callable[[float | np.ndarray], tuple[float | np.ndarray, ...]], float]:
+        """Return a Python-style trajectory callable and total duration."""
+
+        def trajectory(t: float | np.ndarray) -> tuple[float | np.ndarray, ...]:
+            return (
+                self.evaluate(t),
+                self.evaluate_velocity(t),
+                self.evaluate_acceleration(t),
+            )
+
+        return trajectory, self.duration
 
 
 # ---------------------------------------------------------------------------

@@ -15,9 +15,9 @@ and variable naming conventions.
 import matplotlib.pyplot as plt
 import numpy as np
 
-from interpolatepy.double_s import DoubleSTrajectory
-from interpolatepy.double_s import StateParams
-from interpolatepy.double_s import TrajectoryBounds
+from interpolatepy import DoubleSTrajectory
+from interpolatepy import StateParams
+from interpolatepy import TrajectoryBounds
 
 
 def example_standard_trajectory() -> None:

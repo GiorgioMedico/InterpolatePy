@@ -1,704 +1,205 @@
-# Contributing to InterpolatePy
+# Contributing
 
-Thank you for your interest in contributing to InterpolatePy! This guide will help you get set up and explain our development processes.
+Contributions to Python code, C++ code, tests, examples, and documentation are
+welcome. For a large API or algorithm change, open an issue first so numerical
+requirements and backend parity can be agreed before implementation.
 
-## Ways to Contribute
+## Development setup
 
-- 🐛 **Report bugs** and issues
-- ✨ **Suggest new features** or algorithms
-- 📝 **Improve documentation**
-- 🧪 **Add tests** and examples
-- 🔧 **Fix bugs** and implement features
-- 📊 **Performance optimizations**
-- 🎨 **Code quality improvements**
-
-## Getting Started
-
-### Development Setup
-
-1. **Fork and clone the repository**:
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/InterpolatePy.git
-   cd InterpolatePy
-   ```
-
-2. **Install [uv](https://docs.astral.sh/uv/)** (project uses uv for environment management).
-
-3. **Install development dependencies**:
-   ```bash
-   uv sync  # creates .venv with the default dev + test groups
-   ```
-
-4. **Install pre-commit hooks**:
-   ```bash
-   uv run pre-commit install
-   ```
-
-5. **Verify installation**:
-   ```bash
-   uv run python -c "import interpolatepy; print(interpolatepy.__version__)"
-   uv run pytest tests/ -v
-   ```
-
-### Project Structure
-
-```
-InterpolatePy/
-├── interpolatepy/              # Main Python package
-│   ├── __init__.py             # Public API exports
-│   ├── _api.py                 # Backend-aware import router
-│   ├── _backend.py             # C++ extension detection
-│   ├── _adapters/              # C++-backed class adapters
-│   │   ├── _spline.py          # Spline adapters
-│   │   ├── _bspline.py         # B-spline adapters
-│   │   ├── _motion.py          # Motion profile adapters
-│   │   ├── _paths.py           # Path adapters
-│   │   ├── _quaternion.py      # Quaternion adapters
-│   │   └── _direct.py          # Direct C++ re-exports
-│   ├── protocols.py            # PEP 544 protocol definitions
-│   ├── cubic_spline.py         # Pure-Python algorithms
-│   ├── double_s.py             # S-curve motion profiles
-│   ├── quat_core.py            # Quaternion class
-│   └── ...                     # Other algorithm modules
-├── cpp/                        # C++ backend (optional)
-│   ├── include/interpolatecpp/ # Header-only public interface
-│   ├── src/                    # Implementation files (23 .cpp)
-│   ├── bindings/               # pybind11 binding definitions
-│   ├── tests/                  # Catch2 unit tests
-│   ├── examples/               # C++ usage examples
-│   └── CMakeLists.txt          # CMake build configuration
-├── tests/                      # Python test suite
-├── examples/                   # Python usage examples (23 scripts)
-├── docs/                       # MkDocs documentation source
-├── pyproject.toml              # Build configuration
-├── mkdocs.yml                  # Documentation site config
-└── README.md                   # Project overview
-```
-
-See the [Architecture Guide](architecture.md) for details on the dual-backend design.
-
-## Development Workflow
-
-### 1. Create a Branch
+Install [uv](https://docs.astral.sh/uv/), then clone and synchronize the locked
+environment:
 
 ```bash
-git checkout -b feature/your-feature-name
-# or
-git checkout -b fix/issue-description
+git clone https://github.com/GiorgioMedico/InterpolatePy.git
+cd InterpolatePy
+uv sync
+uv run pre-commit install
 ```
 
-### 2. Make Changes
-
-Follow our [coding standards](#coding-standards) and ensure your changes:
-
-- ✅ Include appropriate tests
-- ✅ Follow existing code style
-- ✅ Add documentation for new features
-- ✅ Don't break existing functionality
-
-### 3. Test Your Changes
+The default dependency groups are `dev`, `test`, and `examples`. Add the docs
+group for documentation work:
 
 ```bash
-# Run all tests
-uv run pytest tests/
-
-# Run specific test file
-uv run pytest tests/test_cubic_spline.py -v
-
-# Run with coverage
-uv run pytest tests/ --cov=interpolatepy --cov-report=html --cov-report=term
-
-# Run benchmarks
-uv run pytest tests/ -k "benchmark" --benchmark-only
+uv sync --group docs
 ```
 
-### 4. Check Code Quality
+## Before submitting a change
+
+Run checks in proportion to the affected area. The complete Python-side set is:
 
 ```bash
-# Format code
-uv run ruff format interpolatepy/
-
-# Check linting
-uv run ruff check interpolatepy/
-
-# Type checking
-uv run mypy interpolatepy/
-
-# Run pre-commit checks
+uv run pytest
+uv run ruff check .
+uv run mypy interpolatepy
 uv run pre-commit run --all-files
 ```
 
-### 5. Commit Changes
-
-We use conventional commits for clear history:
+For documentation changes:
 
 ```bash
-git add .
-git commit -m "feat: add new smoothing spline algorithm"
-# or
-git commit -m "fix: resolve numerical instability in cubic splines"
-# or
-git commit -m "docs: improve quickstart examples"
+uv run mkdocs build --clean --strict
 ```
 
-**Commit Types**:
-- `feat`: New features
-- `fix`: Bug fixes
-- `docs`: Documentation changes
-- `test`: Test additions/changes
-- `refactor`: Code refactoring
-- `perf`: Performance improvements
-- `style`: Formatting changes
-- `chore`: Maintenance tasks
-
-### 6. Push and Create PR
+For changes to examples, run the affected scripts. A headless smoke check uses:
 
 ```bash
-git push origin feature/your-feature-name
+MPLBACKEND=Agg INTERPOLATEPY_NO_CPP=1 uv run python examples/your_example.py
 ```
 
-Then create a Pull Request on GitHub with:
-- Clear description of changes
-- References to related issues
-- Screenshots/examples if applicable
-- Checklist of completed items
+## Repository map
 
-## Coding Standards
-
-### Python Style
-
-We follow PEP 8 with some modifications configured in `pyproject.toml`:
-
-```python
-# Good: Clear function names
-def evaluate_cubic_spline(coefficients: np.ndarray, t: float) -> float:
-    """Evaluate cubic spline at time t."""
-    return np.polyval(coefficients, t)
-
-# Good: Type hints
-def create_spline(
-    t_points: list[float], 
-    q_points: list[float],
-    v0: float = 0.0
-) -> CubicSpline:
-    """Create cubic spline with boundary conditions."""
-    return CubicSpline(t_points, q_points, v0=v0)
-
-# Good: Docstrings (NumPy style)
-def smooth_trajectory(data: np.ndarray, smoothing: float = 0.1) -> np.ndarray:
-    """
-    Apply smoothing to trajectory data.
-    
-    Parameters
-    ----------
-    data : np.ndarray
-        Input trajectory data
-    smoothing : float, optional
-        Smoothing parameter, by default 0.1
-        
-    Returns
-    -------
-    np.ndarray
-        Smoothed trajectory
-        
-    Raises
-    ------
-    ValueError
-        If smoothing parameter is negative
-    """
-    if smoothing < 0:
-        raise ValueError("Smoothing parameter must be non-negative")
-    
-    # Implementation here
-    return smoothed_data
+```text
+interpolatepy/            Python package
+  _api.py                 backend routing
+  _backend.py             native extension detection
+  _adapters/              C++-backed Python API adapters
+tests/                    pytest suite
+examples/                 executable Python demonstrations
+cpp/
+  include/interpolatecpp/ public C++ headers
+  src/                    C++ implementation
+  bindings/               pybind11 bindings
+  tests/                  Catch2 tests
+  examples/               C++ programs
+docs/                     MkDocs source
 ```
 
-### Algorithm Implementation Guidelines
+## Python changes
 
-#### 1. Class Structure
+Use modern type annotations supported by Python 3.11. Public functions and
+classes should have NumPy-style docstrings describing shapes, units, valid
+ranges, return semantics, and errors. Keep implementation details private when
+they are not part of the compatibility contract.
 
-```python
-class NewAlgorithm:
-    """
-    Brief description of the algorithm.
-    
-    Longer description with mathematical background,
-    use cases, and key properties.
-    
-    Parameters
-    ----------
-    param1 : type
-        Description
-    param2 : type, optional
-        Description, by default value
-        
-    Examples
-    --------
-    >>> algorithm = NewAlgorithm(param1, param2)
-    >>> result = algorithm.evaluate(t)
-    """
-    
-    def __init__(self, param1: Type1, param2: Type2 = default_value):
-        # Input validation
-        self._validate_inputs(param1, param2)
-        
-        # Store parameters
-        self.param1 = param1
-        self.param2 = param2
-        
-        # Compute derived quantities
-        self._setup_algorithm()
-    
-    def evaluate(self, t: float | np.ndarray) -> float | np.ndarray:
-        """Evaluate algorithm at time(s) t."""
-        # Handle both scalar and array inputs
-        return self._evaluate_implementation(t)
-    
-    def evaluate_velocity(self, t: float | np.ndarray) -> float | np.ndarray:
-        """Evaluate first derivative at time(s) t."""
-        return self._evaluate_derivative_implementation(t, order=1)
-        
-    def plot(self, num_points: int = 1000) -> None:
-        """Plot algorithm results."""
-        # Implementation
-        pass
-    
-    def _validate_inputs(self, param1: Type1, param2: Type2) -> None:
-        """Validate input parameters."""
-        # Validation logic
-        pass
-    
-    def _setup_algorithm(self) -> None:
-        """Setup internal algorithm state."""
-        # Setup logic
-        pass
-```
+When adding or changing an algorithm:
 
-#### 2. Numerical Robustness
+1. validate lengths, finite values, and monotonicity at the boundary;
+2. test endpoints, interior waypoints, vectorized input where supported, reverse
+   motion, degenerate cases, and invalid input;
+3. test derivative continuity or bounds numerically;
+4. update a runnable example and the relevant tutorial;
+5. update both backend routes if a native implementation exists.
 
-```python
-# Good: Handle edge cases
-def safe_division(a: float, b: float, epsilon: float = 1e-12) -> float:
-    """Safely divide a by b, handling near-zero denominators."""
-    if abs(b) < epsilon:
-        return 0.0 if abs(a) < epsilon else np.sign(a) * np.inf
-    return a / b
+Use the package-root API in end-user examples. Direct implementation imports are
+appropriate only for backend-specific tests or diagnostics.
 
-# Good: Vectorized operations
-def evaluate_polynomial(coeffs: np.ndarray, t: np.ndarray) -> np.ndarray:
-    """Evaluate polynomial using Horner's method."""
-    t = np.atleast_1d(t)
-    result = np.full_like(t, coeffs[0])
-    for coeff in coeffs[1:]:
-        result = result * t + coeff
-    return result if t.ndim > 0 else result.item()
+## Backend parity
 
-# Good: Input validation
-def validate_time_sequence(t_points: list[float]) -> None:
-    """Validate that time points are strictly increasing."""
-    if len(t_points) < 2:
-        raise ValueError("Need at least 2 time points")
-    
-    if not all(t_points[i] < t_points[i+1] for i in range(len(t_points)-1)):
-        raise ValueError("Time points must be strictly increasing")
-    
-    if not all(np.isfinite(t) for t in t_points):
-        raise ValueError("All time points must be finite")
-```
+A native algorithm is not complete when only the C++ class exists. Update:
 
-### Testing Guidelines
+- a public header under `cpp/include/interpolatecpp/`;
+- a source file and `INTERPOLATECPP_SOURCES` in `cpp/CMakeLists.txt`;
+- Catch2 tests and, when useful, a C++ example;
+- a pybind11 binding under `cpp/bindings/`;
+- the matching adapter in `interpolatepy/_adapters/`;
+- both branches of `interpolatepy/_api.py`;
+- package exports and public-API tests.
 
-#### 1. Test Structure
+Adapters should normalize container types, return types, vectorized behavior,
+and public parameter names. Tests should call the package-root name so the same
+assertions exercise whichever backend is active.
 
-```python
-import pytest
-import numpy as np
-from interpolatepy import YourAlgorithm
+## C++ build and tests
 
-class TestYourAlgorithm:
-    """Test suite for YourAlgorithm."""
-    
-    def test_basic_functionality(self):
-        """Test basic algorithm functionality."""
-        # Arrange
-        t_points = [0, 1, 2]
-        q_points = [0, 1, 0]
-        
-        # Act
-        algorithm = YourAlgorithm(t_points, q_points)
-        result = algorithm.evaluate(0.5)
-        
-        # Assert
-        assert isinstance(result, float)
-        assert 0 <= result <= 1  # Expected range
-    
-    def test_boundary_conditions(self):
-        """Test boundary condition handling."""
-        algorithm = YourAlgorithm([0, 1, 2], [0, 1, 0])
-        
-        # Test endpoints
-        assert algorithm.evaluate(0) == 0
-        assert algorithm.evaluate(2) == 0
-    
-    def test_continuity_properties(self):
-        """Test continuity properties."""
-        algorithm = YourAlgorithm([0, 1, 2], [0, 1, 0])
-        
-        # Test C1 continuity at waypoint
-        t_test = 1.0
-        eps = 1e-8
-        
-        pos_left = algorithm.evaluate(t_test - eps)
-        pos_right = algorithm.evaluate(t_test + eps)
-        
-        assert abs(pos_left - pos_right) < 1e-6
-    
-    def test_vectorized_evaluation(self):
-        """Test vectorized evaluation."""
-        algorithm = YourAlgorithm([0, 1, 2], [0, 1, 0])
-        
-        t_array = np.linspace(0, 2, 10)
-        results = algorithm.evaluate(t_array)
-        
-        assert isinstance(results, np.ndarray)
-        assert results.shape == t_array.shape
-    
-    def test_edge_cases(self):
-        """Test edge cases and error handling."""
-        with pytest.raises(ValueError):
-            YourAlgorithm([0, 0, 1], [0, 1, 0])  # Non-monotonic times
-            
-        with pytest.raises(ValueError):
-            YourAlgorithm([0, 1], [0, 1, 0])  # Mismatched lengths
-    
-    @pytest.mark.parametrize("smoothing", [0.0, 0.1, 1.0])
-    def test_parameter_variations(self, smoothing):
-        """Test algorithm with different parameters."""
-        algorithm = YourAlgorithm([0, 1, 2], [0, 1, 0], smoothing=smoothing)
-        result = algorithm.evaluate(1.0)
-        assert np.isfinite(result)
-```
-
-#### 2. Performance Tests
-
-```python
-import pytest
-import numpy as np
-from interpolatepy import YourAlgorithm
-
-class TestYourAlgorithmPerformance:
-    """Performance tests for YourAlgorithm."""
-    
-    def test_large_dataset_performance(self, benchmark):
-        """Benchmark with large dataset."""
-        n_points = 1000
-        t_points = np.linspace(0, 10, n_points)
-        q_points = np.sin(t_points)
-        
-        def setup_and_evaluate():
-            algorithm = YourAlgorithm(t_points.tolist(), q_points.tolist())
-            t_eval = np.linspace(0, 10, 10000)
-            return algorithm.evaluate(t_eval)
-        
-        result = benchmark(setup_and_evaluate)
-        assert len(result) == 10000
-    
-    def test_memory_usage(self):
-        """Test memory usage with large datasets."""
-        import psutil
-        import os
-        
-        process = psutil.Process(os.getpid())
-        memory_before = process.memory_info().rss
-        
-        # Create large algorithm
-        n_points = 10000
-        t_points = np.linspace(0, 100, n_points)
-        q_points = np.random.randn(n_points)
-        algorithm = YourAlgorithm(t_points.tolist(), q_points.tolist())
-        
-        memory_after = process.memory_info().rss
-        memory_used = (memory_after - memory_before) / 1024 / 1024  # MB
-        
-        # Should use reasonable memory (adjust threshold as needed)
-        assert memory_used < 100  # Less than 100 MB
-```
-
-### Documentation Guidelines
-
-#### 1. Docstring Format
-
-We use NumPy-style docstrings:
-
-```python
-def complex_function(
-    param1: np.ndarray,
-    param2: float = 1.0,
-    param3: str | None = None
-) -> tuple[np.ndarray, float]:
-    """
-    One-line summary of function purpose.
-    
-    Longer description explaining the algorithm, mathematical
-    background, and usage context. Can include equations using
-    LaTeX notation: $x = \\frac{a}{b}$.
-    
-    Parameters
-    ----------
-    param1 : np.ndarray
-        Description of param1, including shape requirements
-        and expected value ranges.
-    param2 : float, optional
-        Description of param2, by default 1.0
-    param3 : str or None, optional
-        Description of param3, by default None
-        
-    Returns
-    -------
-    result : np.ndarray
-        Description of first return value
-    metric : float
-        Description of second return value
-        
-    Raises
-    ------
-    ValueError
-        If param1 has wrong shape
-    RuntimeError
-        If algorithm fails to converge
-        
-    Notes
-    -----
-    Additional notes about algorithm complexity, numerical
-    stability, or usage recommendations.
-    
-    References
-    ----------
-    .. [1] Author, A. (2023). "Paper Title." Journal Name.
-    
-    Examples
-    --------
-    >>> import numpy as np
-    >>> data = np.array([1, 2, 3, 4])
-    >>> result, metric = complex_function(data, param2=2.0)
-    >>> print(f"Result shape: {result.shape}")
-    Result shape: (4,)
-    """
-    # Implementation
-    pass
-```
-
-#### 2. Code Examples
-
-Include practical examples in docstrings and documentation:
-
-```python
-def create_robot_trajectory():
-    """
-    Example: Multi-axis robot trajectory.
-    
-    This example shows how to create synchronized trajectories
-    for a 3-DOF robot arm.
-    """
-    from interpolatepy import CubicSpline
-    import numpy as np
-    
-    # Joint waypoints (degrees)
-    waypoints = {
-        'joint1': [0, 45, 90, 45, 0],
-        'joint2': [0, -30, 60, -30, 0], 
-        'joint3': [0, 20, -45, 20, 0]
-    }
-    
-    time_points = [0, 2, 4, 6, 8]
-    trajectories = {}
-    
-    for joint, angles in waypoints.items():
-        trajectories[joint] = CubicSpline(
-            time_points,
-            np.radians(angles),  # Convert to radians
-            v0=0.0, vn=0.0      # Zero velocity at endpoints
-        )
-    
-    return trajectories
-```
-
-## C++ Development
-
-### Building and Testing C++
+From the repository root:
 
 ```bash
-cd cpp
-mkdir build && cd build
-cmake .. -DINTERPOLATECPP_BUILD_TESTS=ON -DINTERPOLATECPP_BUILD_BINDINGS=ON
-make -j$(nproc)
-
-# Run C++ unit tests
-./tests/interpolatecpp_tests
-
-# Run specific test
-./tests/interpolatecpp_tests "[cubic_spline]"
+cmake -S cpp -B build/cpp-tests \
+  -DINTERPOLATECPP_BUILD_TESTS=ON \
+  -DINTERPOLATECPP_BUILD_BINDINGS=OFF
+cmake --build build/cpp-tests --parallel
+ctest --test-dir build/cpp-tests --output-on-failure
 ```
 
-### Adding a New C++ Algorithm
+To build the extension for parity tests:
 
-1. **Header**: Create `include/interpolatecpp/<category>/new_algo.hpp`
-2. **Source**: Create `src/new_algo.cpp`
-3. **Binding**: Add to `bindings/bind_<category>.cpp`
-4. **Adapter**: Create or update `interpolatepy/_adapters/_<category>.py` to subclass the C++ class and add `plot()`, `__repr__`
-5. **Wire up**: Add to `_adapters/__init__.py` and `_api.py` (both the `HAS_CPP` and fallback branches)
-6. **Tests**: Add Catch2 tests in `tests/` and Python tests in the main `tests/` directory
-
-### C++ Code Style
-
-- C++20 with concepts for type safety
-- Eigen 3.4 for linear algebra
-- `snake_case` for functions, `PascalCase` for classes
-- Header-only public interface with separate `.cpp` compilation units
-
-## Algorithm Contributions
-
-### Adding New Algorithms
-
-When contributing new interpolation algorithms:
-
-1. **Research Background**: Include references to papers/books
-2. **Mathematical Foundation**: Document the theory clearly
-3. **Implementation**: Follow our class structure guidelines (Python and optionally C++)
-4. **Testing**: Comprehensive test coverage
-5. **Documentation**: Examples and usage guidelines
-6. **Performance**: Benchmarks and complexity analysis
-
-### Algorithm Checklist
-
-- [ ] Clear mathematical documentation
-- [ ] Robust input validation
-- [ ] Vectorized evaluation support
-- [ ] Boundary condition handling
-- [ ] Error handling and edge cases
-- [ ] Comprehensive tests (>90% coverage)
-- [ ] Performance benchmarks
-- [ ] Usage examples
-- [ ] API consistency with existing algorithms
-
-## Performance Considerations
-
-### Optimization Guidelines
-
-1. **Use NumPy**: Vectorized operations over pure Python loops
-2. **Memory Layout**: Prefer C-contiguous arrays
-3. **Algorithm Complexity**: Document and optimize time/space complexity
-4. **Numerical Stability**: Handle edge cases and ill-conditioned problems
-5. **Caching**: Cache expensive computations when appropriate
-
-### Benchmarking
-
-```python
-# Add benchmarks for new algorithms
-def test_algorithm_performance(benchmark):
-    """Benchmark algorithm performance."""
-    # Setup
-    n_points = 1000
-    t_points = np.linspace(0, 10, n_points)
-    q_points = np.sin(t_points)
-    
-    # Benchmark setup + evaluation
-    def run_algorithm():
-        algorithm = YourAlgorithm(t_points.tolist(), q_points.tolist())
-        t_eval = np.linspace(0, 10, 10000)
-        return algorithm.evaluate(t_eval)
-    
-    result = benchmark(run_algorithm)
-    
-    # Verify correctness
-    assert len(result) == 10000
-    assert np.all(np.isfinite(result))
+```bash
+cmake -S cpp -B build/cpp-bindings \
+  -DINTERPOLATECPP_BUILD_TESTS=OFF \
+  -DINTERPOLATECPP_BUILD_BINDINGS=ON
+cmake --build build/cpp-bindings --parallel
+cp build/cpp-bindings/bindings/interpolatecpp_py*.so interpolatepy/
+python -c "import interpolatepy as ip; assert ip.HAS_CPP"
+uv run pytest
 ```
 
-## Issue Guidelines
+The copy command shown is for Linux/macOS. See [Installation](installation.md)
+for Windows and ABI details.
 
-### Reporting Bugs
+## Tests
 
-When reporting bugs, include:
+Prefer focused tests with explicit numerical tolerances. A useful algorithm test
+usually checks:
 
-1. **Minimal example** that reproduces the issue
-2. **Expected vs actual behavior**
-3. **System information**: OS, Python version, InterpolatePy version
-4. **Full error traceback**
-5. **Steps to reproduce**
+- exact or near-exact endpoint values;
+- interpolation at all required waypoints;
+- continuity from both sides of an interior knot;
+- derivative limits over a dense sample, when limits are promised;
+- scalar and array return shape, where vectorization is supported;
+- the active public API rather than private coefficients.
 
-### Feature Requests
+Run a focused file while iterating:
 
-For new features, provide:
+```bash
+uv run pytest tests/test_cubic_spline.py -q
+```
 
-1. **Use case description**: Why is this needed?
-2. **Mathematical background**: References if applicable  
-3. **API design ideas**: How should it work?
-4. **Examples**: Show intended usage
-5. **Alternative solutions**: What exists currently?
+Then run the full suite before opening a pull request.
 
-## Review Process
+## Documentation
 
-### Pull Request Review
+The site uses MkDocs Material and mkdocstrings. API pages render NumPy-style
+docstrings from the installed source tree. Every code block presented as a
+complete example should be executable as written; fragments should be clearly
+identified.
 
-All PRs are reviewed for:
+Keep these sources synchronized:
 
-- ✅ **Correctness**: Does it work as intended?
-- ✅ **Code Quality**: Follows style guidelines?
-- ✅ **Testing**: Adequate test coverage?
-- ✅ **Documentation**: Clear docs and examples?
-- ✅ **Performance**: No significant regressions?
-- ✅ **API Design**: Consistent with existing code?
+- `README.md` for installation and the shortest introduction;
+- `ALGORITHMS.md` for the repository-level selection guide;
+- `docs/` for the published site;
+- public Python docstrings and C++ header comments;
+- `docs/changelog.md` for released behavior.
 
-### Merge Requirements
+Do not publish unmeasured performance numbers, unsupported platform claims, or
+continuity/bound guarantees that tests do not verify.
 
-Before merging, PRs must:
+Preview locally with:
 
-- [ ] Pass all CI checks
-- [ ] Have at least one approving review
-- [ ] Include tests for new functionality
-- [ ] Update documentation as needed
-- [ ] Maintain backward compatibility (unless breaking change is justified)
+```bash
+uv run mkdocs serve
+```
 
-## Release Process
+The documentation workflow uses `mkdocs build --clean --strict`, so broken
+links and mkdocstrings warnings fail CI.
 
-InterpolatePy follows semantic versioning (MAJOR.MINOR.PATCH):
+## Example programs
 
-- **MAJOR**: Breaking API changes
-- **MINOR**: New features, backward compatible
-- **PATCH**: Bug fixes, backward compatible
+New Python examples should:
 
-### Version Updates
+- have deterministic inputs;
+- place execution under `if __name__ == "__main__"`;
+- complete under `MPLBACKEND=Agg`;
+- use public imports unless backend internals are the topic;
+- avoid requiring an interactive prompt;
+- document units and the distinction between time and curve parameters.
 
-1. Update version in `interpolatepy/version.py`
-2. Update `CHANGELOG.md` with new features/fixes
-3. Create GitHub release with release notes
-4. Automated CI publishes to PyPI
+Add the script to [Example programs](examples.md). C++ examples must be added to
+`cpp/examples/CMakeLists.txt`.
 
-## Community
+## Pull requests
 
-### Getting Help
+Keep a pull request focused and describe:
 
-- **GitHub Issues**: Bug reports and feature requests
-- **GitHub Discussions**: Questions and general discussion
-- **Documentation**: Comprehensive guides and examples
+- the problem and numerical behavior being changed;
+- compatibility or backend implications;
+- tests performed;
+- documentation and example updates;
+- any intentionally unsupported edge case.
 
-### Code of Conduct
+Do not commit generated `site/`, local native extension binaries, build trees,
+coverage output, or virtual environments.
 
-We follow the [Contributor Covenant](https://www.contributor-covenant.org/):
-
-- Be respectful and inclusive
-- Focus on constructive feedback
-- Help create a welcoming environment for all contributors
-
-### Recognition
-
-Contributors are recognized in:
-
-- GitHub contributors list
-- Release notes for significant contributions
-- Documentation acknowledgments
-
----
-
-Thank you for contributing to InterpolatePy! Your contributions help make trajectory planning more accessible for the robotics and scientific computing communities. 🚀
+InterpolatePy follows semantic versioning. Breaking public API changes require a
+major release; backward-compatible features use a minor release; compatible
+fixes use a patch release.

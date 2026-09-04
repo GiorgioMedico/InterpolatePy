@@ -1,9 +1,9 @@
-"""C++ backed classes with Python-only convenience methods.
+"""C++-backed classes with Python-facing compatibility helpers.
 
 This package is only imported when ``_backend.HAS_CPP`` is ``True``.  Each
-sub-module subclasses the pybind11-exposed C++ class and bolts on any
-Python-only methods (``plot()``, ``__repr__``, etc.) so the public API stays
-identical regardless of the active backend.
+submodule normalizes the native constructors, results, and common convenience
+methods used by the public API. Implementation-level diagnostics can still be
+backend-specific.
 """
 
 from __future__ import annotations

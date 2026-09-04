@@ -1,5 +1,6 @@
-from interpolatepy.cubic_spline import CubicSpline
 import matplotlib.pyplot as plt
+
+from interpolatepy import CubicSpline
 
 
 # Example usage

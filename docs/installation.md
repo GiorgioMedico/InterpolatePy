@@ -1,433 +1,176 @@
-# Installation Guide
-
-InterpolatePy is available on PyPI and can be installed with pip. We support Python 3.11+ on Windows, macOS, and Linux.
+# Installation
 
 ## Requirements
 
-- **Python**: ≥3.11
-- **NumPy**: ≥2.3.0
-- **SciPy**: ≥1.16.0
-- **Matplotlib**: ≥3.10.5
+The Python package declares these runtime requirements in `pyproject.toml`:
 
-## Installation
+| Dependency | Minimum version |
+| --- | --- |
+| Python | 3.11 |
+| NumPy | 1.26 |
+| SciPy | 1.11 |
+| Matplotlib | 3.6 |
 
-### Standard Installation
+The normal installation uses the pure-Python implementation and does not need a
+C++ compiler.
 
-**Step 1: Verify Python Version**
+## Install from PyPI
+
+Create a virtual environment and install the package with the interpreter that
+will run your code:
+
+=== "Linux and macOS"
+
+    ```bash
+    python3 -m venv .venv
+    source .venv/bin/activate
+    python -m pip install --upgrade pip
+    python -m pip install InterpolatePy
+    ```
+
+=== "Windows PowerShell"
+
+    ```powershell
+    py -3.11 -m venv .venv
+    .venv\Scripts\Activate.ps1
+    python -m pip install --upgrade pip
+    python -m pip install InterpolatePy
+    ```
+
+Verify the interpreter, package version, and active backend:
+
 ```bash
-python --version
-# Should show Python 3.11 or higher
+python -c "import interpolatepy as ip; print(ip.__version__, ip.HAS_CPP)"
 ```
 
-**Step 2: Install InterpolatePy**
-```bash
-pip install InterpolatePy
-```
+`HAS_CPP=False` is normal for a standard Python installation.
 
-**Step 3: Verify Installation**
-```python
-import interpolatepy
-print(f"InterpolatePy version: {interpolatepy.__version__}")
-```
+## Development checkout
 
-This installs the core library with all required dependencies (NumPy, SciPy, Matplotlib).
-
-### Virtual Environment Installation (Recommended)
-
-Using a virtual environment prevents dependency conflicts and is considered best practice:
-
-**Step 1: Create Virtual Environment**
-```bash
-# Create a new virtual environment
-python -m venv interpolate_env
-
-# Activate the environment
-# On Windows:
-interpolate_env\Scripts\activate
-# On macOS/Linux:
-source interpolate_env/bin/activate
-```
-
-**Step 2: Install InterpolatePy**
-```bash
-pip install --upgrade pip  # Ensure latest pip
-pip install InterpolatePy
-```
-
-**Step 3: Verify Installation**
-```python
-python -c "import interpolatepy; print('Installation successful!')"
-```
-
-
-## Development Installation
-
-For contributing to InterpolatePy or accessing the latest features:
-
-### Clone and Install
-
-InterpolatePy uses [uv](https://docs.astral.sh/uv/) for development. Install uv first, then:
+InterpolatePy uses [uv](https://docs.astral.sh/uv/) and locks its development
+environment in `uv.lock`:
 
 ```bash
 git clone https://github.com/GiorgioMedico/InterpolatePy.git
 cd InterpolatePy
-uv sync  # creates .venv with the default dev + test groups
-```
-
-### Selecting Dependency Groups
-
-```bash
-# Default: dev + test groups
 uv sync
+```
 
-# Include the docs group as well
-uv sync --all-groups
+The default groups are `dev`, `test`, and `examples`. Select additional or
+isolated groups as needed:
 
-# Or pick a specific group
-uv sync --group test
+```bash
+# Add the documentation toolchain.
 uv sync --group docs
+
+# Reproduce the documentation CI environment only.
+uv sync --locked --no-default-groups --group docs
+
+# Install every dependency group.
+uv sync --all-groups
 ```
 
-### Development Tools Setup
+Useful verification commands are:
 
 ```bash
-# Install pre-commit hooks
-uv run pre-commit install
-
-# Run code quality checks
-uv run ruff format interpolatepy/
-uv run ruff check interpolatepy/
-uv run mypy interpolatepy/
-
-# Run tests
-uv run pytest tests/
-
-# Run tests with coverage
-uv run pytest tests/ --cov=interpolatepy --cov-report=html --cov-report=term
+uv run pytest
+uv run ruff check .
+uv run mypy interpolatepy
+uv run mkdocs build --clean --strict
 ```
 
-## C++ Backend (Optional)
+## Optional C++ backend
 
-InterpolatePy includes an optional C++ extension that accelerates computation-heavy algorithms. The pure-Python install works out of the box without it.
+The source tree contains two related native targets:
 
-### Check Backend Status
+- `interpolatecpp`, a standalone C++20 library;
+- `interpolatecpp_py`, a pybind11 extension loaded by the Python package.
 
-```python
-import interpolatepy
-print(f"C++ backend active: {interpolatepy.HAS_CPP}")
-```
+Both are built with CMake. CMake fetches Eigen 3.4 and, depending on the build
+options, Catch2 and pybind11, so the first configure requires network access.
 
-### Building from Source
+### Build and activate the Python extension
 
-**Requirements:**
-
-- CMake >= 3.21
-- C++20 compatible compiler (GCC >= 10, Clang >= 13, MSVC >= 19.29)
-- Python development headers
-
-Dependencies (Eigen, pybind11, Catch2) are fetched automatically via CMake FetchContent.
-
-**Build steps:**
+You need CMake 3.21 or newer, a C++20 compiler, Python development headers, and
+a source checkout. From the repository root:
 
 ```bash
-git clone https://github.com/GiorgioMedico/InterpolatePy.git
-cd InterpolatePy/cpp
-mkdir build && cd build
-cmake .. -DINTERPOLATECPP_BUILD_BINDINGS=ON
-make -j$(nproc)
+cmake -S cpp -B build/cpp \
+  -DINTERPOLATECPP_BUILD_BINDINGS=ON \
+  -DINTERPOLATECPP_BUILD_TESTS=OFF
+cmake --build build/cpp --parallel
 ```
 
-Copy the compiled extension into the package directory:
+On Linux or macOS, copy the produced extension beside `_backend.py`:
+
 ```bash
-cp bindings/interpolatecpp_py*.so ../../interpolatepy/
+cp build/cpp/bindings/interpolatecpp_py*.so interpolatepy/
+python -c "import interpolatepy as ip; print(ip.HAS_CPP)"
 ```
 
-**Verify:**
+On Windows, copy the generated `interpolatecpp_py*.pyd` from the selected CMake
+configuration into `interpolatepy/`. Multi-configuration generators usually
+place it under a `Debug` or `Release` subdirectory.
+
+The extension filename must retain its Python ABI suffix. `_backend.py` imports
+it as `interpolatepy.interpolatecpp_py`; copying only the standalone
+`interpolatecpp` library does not activate Python acceleration.
+
+### Build and test the C++ library
+
 ```bash
-python -c "import interpolatepy; print(interpolatepy.HAS_CPP)"
-# Expected: True
+cmake -S cpp -B build/cpp-tests \
+  -DINTERPOLATECPP_BUILD_TESTS=ON \
+  -DINTERPOLATECPP_BUILD_BINDINGS=OFF \
+  -DINTERPOLATECPP_BUILD_EXAMPLES=ON
+cmake --build build/cpp-tests --parallel
+ctest --test-dir build/cpp-tests --output-on-failure
 ```
 
-### Disabling C++ Backend
+The CMake options and their defaults are:
 
-To force pure-Python mode even when the extension is installed:
+| Option | Default | Effect |
+| --- | --- | --- |
+| `INTERPOLATECPP_BUILD_TESTS` | `ON` | Fetch Catch2 and build C++ tests |
+| `INTERPOLATECPP_BUILD_BINDINGS` | `OFF` | Fetch pybind11 and build the Python extension |
+| `INTERPOLATECPP_BUILD_EXAMPLES` | `OFF` | Build programs under `cpp/examples/` |
+
+### Force the Python backend
+
+Set the variable before the first import:
+
+=== "Linux and macOS"
+
+    ```bash
+    INTERPOLATEPY_NO_CPP=1 python your_program.py
+    ```
+
+=== "Windows PowerShell"
+
+    ```powershell
+    $env:INTERPOLATEPY_NO_CPP = "1"
+    python your_program.py
+    ```
+
+Backend selection is process-wide. Changing the variable after importing
+`interpolatepy` does not reroute already imported classes.
+
+## Installation troubleshooting
+
+If an import fails, verify that `python` and `pip` refer to the same environment:
+
 ```bash
-export INTERPOLATEPY_NO_CPP=1
+python -m pip show InterpolatePy
+python -c "import sys; print(sys.executable)"
 ```
 
-### C++ Build Troubleshooting
+If the native configure fails:
 
-**CMake not found or too old:**
-```bash
-pip install cmake  # or: sudo apt install cmake
-cmake --version    # Must be >= 3.21
-```
+- confirm `cmake --version` reports 3.21 or newer;
+- confirm the selected compiler supports C++20;
+- remove only the affected `build/cpp*` directory and configure again after a
+  dependency-fetch interruption;
+- build with `INTERPOLATECPP_BUILD_TESTS=OFF` when only the Python extension is
+  needed.
 
-**Missing C++20 support:**
-```bash
-g++ --version  # Must be >= 10 for C++20
-# On Ubuntu: sudo apt install g++-12
-```
-
-**Eigen fetch fails (network issues):**
-```bash
-# Pre-install Eigen system-wide
-sudo apt install libeigen3-dev  # Ubuntu/Debian
-brew install eigen               # macOS
-```
-
-For more details on the dual-backend architecture, see the [Architecture Guide](architecture.md).
-
-## Optional Dependencies
-
-### Testing Dependencies
-- `pytest>=8.4.0` - Test framework
-- `pytest-cov>=4.1.0` - Coverage reporting
-- `pytest-benchmark>=4.0.0` - Performance benchmarking
-- `codecov>=2.1.13` - Coverage upload
-- `pre-commit>=4.2.0` - Git hooks
-
-### Development Dependencies
-- `ruff>=0.12.8` - Linting and formatting
-- `mypy>=1.17.0` - Type checking
-- `pre-commit>=4.2.0` - Git hooks
-- `pyright>=1.1.400` - Additional type checking
-- `build>=1.0.3` - Package building
-- `twine>=4.0.2` - Package publishing
-
-## Verification
-
-Verify your installation by running:
-
-```python
-import interpolatepy
-print(f"InterpolatePy version: {interpolatepy.__version__}")
-
-# Quick test
-from interpolatepy import CubicSpline
-spline = CubicSpline([0, 1, 2], [0, 1, 0])
-print(f"Test evaluation: {spline.evaluate(0.5)}")
-```
-
-Expected output:
-```
-InterpolatePy version: 2.0.0
-Test evaluation: 0.75
-```
-
-## Troubleshooting
-
-### Common Issues
-
-#### Slow installation or timeout errors
-
-**Solution**: Use faster mirrors or increase timeout:
-```bash
-# Use PyPI mirrors
-pip install -i https://pypi.org/simple/ InterpolatePy
-
-# Increase timeout
-pip install --timeout 300 InterpolatePy
-
-# Use --no-cache-dir to avoid cache issues
-pip install --no-cache-dir InterpolatePy
-```
-
-#### SSL certificate errors
-
-**Solution**: Upgrade certificates or use trusted hosts:
-```bash
-# Upgrade certificates (macOS)
-/Applications/Python\ 3.x/Install\ Certificates.command
-
-# Use trusted host (temporary solution)
-pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org InterpolatePy
-```
-
-#### ImportError: No module named 'interpolatepy'
-
-**Solution 1**: Verify installation:
-```bash
-pip list | grep -i interpolate
-# Should show: InterpolatePy x.x.x
-```
-
-**Solution 2**: Reinstall the package:
-```bash
-pip uninstall InterpolatePy
-pip install InterpolatePy
-```
-
-**Solution 3**: Check Python environment:
-```bash
-which python
-pip show InterpolatePy
-```
-
-#### ModuleNotFoundError: No module named 'numpy' or other dependencies
-
-**Solution 1**: Upgrade pip and try again:
-```bash
-pip install --upgrade pip setuptools wheel
-pip install InterpolatePy
-```
-
-**Solution 2**: Install dependencies manually:
-```bash
-pip install numpy>=2.3.0 scipy>=1.16.0 matplotlib>=3.10.5
-pip install InterpolatePy
-```
-
-**Solution 3**: Use explicit dependency installation:
-```bash
-pip install InterpolatePy --force-reinstall --no-deps
-pip install numpy scipy matplotlib
-```
-
-#### Permission denied during installation
-
-**Solution**: Use user installation:
-```bash
-pip install --user InterpolatePy
-```
-
-Or create a clean virtual environment:
-```bash
-# Create new environment
-python -m venv fresh_env
-
-# Activate environment
-# On Windows:
-fresh_env\Scripts\activate
-# On macOS/Linux: 
-source fresh_env/bin/activate
-
-# Install InterpolatePy
-pip install --upgrade pip
-pip install InterpolatePy
-```
-
-#### Version conflicts with existing packages
-
-See the clean virtual environment solution above.
-
-### Platform-Specific Notes
-
-#### Windows
-- Use `python` instead of `python3` if Python 2 is not installed
-- Activate virtual environments with `venv\Scripts\activate`
-- Install Microsoft C++ Build Tools if compilation issues occur:
-  - Download from: https://visualstudio.microsoft.com/visual-cpp-build-tools/
-  - Or install via: `winget install Microsoft.VisualStudio.2022.BuildTools`
-- Use PowerShell or Command Prompt for installation commands
-
-#### macOS
-- May require Xcode command line tools for dependency compilation:
-  ```bash
-  xcode-select --install
-  ```
-- Use `python3` and `pip3` if system Python 2 is present
-- Install Homebrew for better Python management:
-  ```bash
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  brew install python@3.11  # or latest version
-  ```
-- Consider using pyenv for multiple Python versions:
-  ```bash
-  brew install pyenv
-  pyenv install 3.11.0
-  pyenv global 3.11.0
-  ```
-
-#### Linux
-- Install development headers and build tools if needed:
-  ```bash
-  # Ubuntu/Debian
-  sudo apt update
-  sudo apt install python3-dev python3-pip python3-venv build-essential
-  
-  # CentOS/RHEL/Fedora
-  sudo yum install python3-devel python3-pip gcc gcc-c++ make
-  
-  # Arch Linux
-  sudo pacman -S python python-pip base-devel
-  
-  # Alpine Linux
-  apk add python3 python3-dev py3-pip gcc musl-dev
-  ```
-- Use package manager Python when possible:
-  ```bash
-  # Ubuntu/Debian
-  sudo apt install python3-numpy python3-scipy python3-matplotlib
-  pip3 install --user InterpolatePy
-  ```
-
-## Docker Installation
-
-For containerized environments:
-
-```dockerfile
-FROM python:3.11-slim
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    gcc \
-    g++ \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install InterpolatePy
-RUN pip install InterpolatePy
-
-# Your application code
-COPY . /app
-WORKDIR /app
-```
-
-## Performance Considerations
-
-### NumPy Optimization
-
-For best performance, ensure NumPy is compiled with optimized BLAS:
-
-```python
-import numpy as np
-print(np.show_config())  # Check BLAS/LAPACK configuration
-```
-
-Consider installing optimized NumPy builds:
-```bash
-# Intel MKL (recommended for Intel CPUs)
-pip install mkl-service mkl numpy
-
-# OpenBLAS (good general performance)  
-pip install numpy[openblas]
-```
-
-### Memory Usage
-
-InterpolatePy is memory-efficient, but for large trajectories consider:
-
-- Use `float32` instead of `float64` for reduced precision requirements
-- Process trajectories in chunks for very large datasets
-- Enable vectorized operations when possible
-
-## Next Steps
-
-Once installed, check out:
-
-1. **[Quick Start Guide](quickstart.md)** - Your first trajectories
-2. **[User Guide](user-guide.md)** - Comprehensive tutorials  
-3. **[API Reference](api-reference.md)** - Complete documentation
-4. **[Examples](examples.md)** - Real-world use cases
-
-## Getting Help
-
-If you encounter issues:
-
-1. Check the [troubleshooting section](#troubleshooting) above
-2. Search [GitHub Issues](https://github.com/GiorgioMedico/InterpolatePy/issues)
-3. Create a new issue with:
-   - Python version (`python --version`)
-   - InterpolatePy version (`import interpolatepy; print(interpolatepy.__version__)`)
-   - Complete error traceback
-   - Minimal code example reproducing the issue
+See [Troubleshooting](troubleshooting.md) for API and numerical issues.

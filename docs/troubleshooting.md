@@ -1,452 +1,249 @@
-# Troubleshooting Guide
+# Troubleshooting
 
-This guide helps you solve common issues when using InterpolatePy. Each problem includes the error message, likely cause, and solution with code examples.
+## Import and environment issues
 
-## Common Issues
+### `ModuleNotFoundError: No module named 'interpolatepy'`
 
-### Import Errors
+Check the package with the same interpreter used to run the program:
 
-#### Problem: Module Not Found
-```
-ModuleNotFoundError: No module named 'interpolatepy'
-```
-
-**Cause**: InterpolatePy is not installed or not in the Python path.
-
-**Solution**:
 ```bash
-# Install from PyPI
-pip install interpolatepy
-
-# Or install from source for development (uses uv)
-uv sync
+python -m pip show InterpolatePy
+python -c "import sys; print(sys.executable)"
 ```
 
-#### Problem: Specific Class Import Failed
-```
-ImportError: cannot import name 'SomeClass' from 'interpolatepy'
+Install into that environment with `python -m pip install InterpolatePy`, or run
+`uv sync` from a source checkout.
+
+### A documented top-level name cannot be imported
+
+Check the installed version:
+
+```bash
+python -c "import interpolatepy as ip; print(ip.__version__)"
 ```
 
-**Cause**: Using an outdated version or importing a class that doesn't exist.
+This documentation targets 3.2.0. Import public algorithms from `interpolatepy`.
+The trapezoidal `TrajectoryParams` is the intentional exception:
 
-**Solution**: Check the [API Reference](api-reference.md) for correct class names and use the public API:
 ```python
-# ✅ Correct - use public API
-from interpolatepy import CubicSpline, DoubleSTrajectory
-
-# ❌ Incorrect - don't import from internal modules  
-from interpolatepy.cubic_spline import CubicSpline  # Works but not recommended
+from interpolatepy import TrapezoidalTrajectory
+from interpolatepy.trapezoidal import TrajectoryParams
 ```
 
-### Data Input Errors
+The top-level `TrajectoryParams` configures multipoint polynomial motion.
 
-#### Problem: Non-Monotonic Time Points
+## Backend issues
+
+### The C++ backend is not active
+
+```bash
+python -c "import interpolatepy as ip; print(ip.HAS_CPP)"
 ```
-ValueError: Time points must be strictly increasing
+
+`False` is not an error; all core algorithms have a Python implementation. To
+activate the extension from a checkout, follow
+[Optional C++ backend](installation.md#optional-c-backend). The built extension
+must be copied into `interpolatepy/`, not merely left in the CMake build tree.
+
+If a copied extension still fails to load, inspect the original import error:
+
+```bash
+python -c "import interpolatepy.interpolatecpp_py"
 ```
 
-**Cause**: Time points are not in ascending order.
+Typical causes are a Python ABI mismatch, a missing shared library, or building
+for a different architecture.
 
-**Solution**: Sort your data before creating trajectories:
+### Force fallback behavior
+
+```bash
+INTERPOLATEPY_NO_CPP=1 python your_program.py
+```
+
+The environment variable is tested for nonemptiness, so do not use
+`INTERPOLATEPY_NO_CPP=0` to mean false.
+
+### A helper exists only on the Python backend
+
+The portable API is the common constructor/evaluation surface. Some diagnostic,
+refinement, and logarithmic-quaternion helpers are currently Python-only. See
+[Adapter layer](architecture.md#adapter-layer) and force the fallback when code
+needs them.
+
+## Time and sample validation
+
+### Time points must be strictly increasing
+
+Sort paired data together and decide how duplicate timestamps should be
+resolved; do not add arbitrary epsilon offsets without understanding the data:
+
 ```python
 import numpy as np
-from interpolatepy import CubicSpline
 
-# ❌ Unsorted data
-t_bad = [0, 2, 1, 3, 4]
-q_bad = [0, 1, 2, 3, 4]
+t = np.array([0.0, 2.0, 1.0])
+q = np.array([0.0, 4.0, 1.0])
+order = np.argsort(t)
+t = t[order]
+q = q[order]
 
-# ✅ Sort the data
-sorted_indices = np.argsort(t_bad)
-t_sorted = [t_bad[i] for i in sorted_indices]
-q_sorted = [q_bad[i] for i in sorted_indices]
-
-spline = CubicSpline(t_sorted, q_sorted)
+if np.any(np.diff(t) <= 0.0):
+    raise ValueError("duplicate timestamps require aggregation")
 ```
 
-#### Problem: Mismatched Array Lengths
-```
-ValueError: t_points and q_points must have the same length
-```
+### Time and position lengths differ
 
-**Cause**: Time and position arrays have different sizes.
+Do not silently truncate either sequence. Fix the source data and assert the
+relationship before construction:
 
-**Solution**: Ensure arrays are the same length:
 ```python
-import numpy as np
-from interpolatepy import CubicSpline
-
-# Sample data with length mismatch
-t_points = [0.0, 1.0, 2.0, 3.0]
-q_points = [0.0, 1.0, 4.0]  # One less point
-
-# Check lengths before creating spline
 if len(t_points) != len(q_points):
-    print(f"Length mismatch: t_points={len(t_points)}, q_points={len(q_points)}")
-    # Fix by truncating to minimum length
-    min_len = min(len(t_points), len(q_points))
-    t_points = t_points[:min_len]
-    q_points = q_points[:min_len]
-
-spline = CubicSpline(t_points, q_points)
+    raise ValueError("each timestamp needs one position")
 ```
 
-#### Problem: Duplicate Time Points
-```
-ValueError: Duplicate time points found
-```
+### Evaluation is outside the domain
 
-**Cause**: Multiple data points at the same time value.
+Behavior depends on the family:
 
-**Solution**: Remove duplicates or add small offsets:
-```python
-import numpy as np
-from interpolatepy import CubicSpline
+- scalar cubic splines and Double-S trajectories clamp to their endpoints;
+- `LinearPath.position()` clamps arc length to the finite line segment;
+- `CircularPath` is periodic and accepts arc length around the circle;
+- B-spline evaluation outside `[u_min, u_max]` raises.
 
-def remove_duplicates(t_points, q_points, min_spacing=1e-6):
-    """Remove duplicate time points."""
-    t_clean, q_clean = [], []
-    
-    for i, (t, q) in enumerate(zip(t_points, q_points)):
-        if i == 0 or t > t_clean[-1] + min_spacing:
-            t_clean.append(t)
-            q_clean.append(q)
-        else:
-            # Add small offset to avoid duplicate
-            t_clean.append(t_clean[-1] + min_spacing)
-            q_clean.append(q)
-    
-    return t_clean, q_clean
+Clamp explicitly in application code when that behavior is part of the control
+policy, rather than relying on implementation details.
 
-# Clean the data
-t_clean, q_clean = remove_duplicates(t_points, q_points)
-spline = CubicSpline(t_clean, q_clean)
-```
+## Spline questions
 
-### Motion Profile Errors
+### The endpoint slope is zero unexpectedly
 
-#### Problem: Invalid Trajectory Bounds
-```
-ValueError: Bounds must be positive values
-```
+`CubicSpline` defaults to `v0=0.0` and `vn=0.0`. Supply the desired endpoint
+velocities. This is a clamped spline, not a natural spline.
 
-**Cause**: Negative or zero values for velocity, acceleration, or jerk bounds.
+### Smoothing does the opposite of what was expected
 
-**Solution**: Use positive values for all bounds:
-```python
-from interpolatepy import TrajectoryBounds
+For `CubicSmoothingSpline`, `mu=1` gives exact interpolation and values closer
+to zero give more smoothing. Zero itself is invalid. Infinite point weights pin
+selected samples exactly.
 
-# ❌ Invalid bounds
-bounds = TrajectoryBounds(v_bound=-1.0, a_bound=2.0, j_bound=1.0)
+### Method 2 rejects direct acceleration keywords
 
-# ✅ Valid bounds  
-bounds = TrajectoryBounds(v_bound=1.0, a_bound=2.0, j_bound=1.0)
-```
-
-#### Problem: Impossible Motion Profile
-```
-ValueError: Cannot achieve target state with given bounds
-```
-
-**Cause**: The trajectory constraints are too restrictive for the desired motion.
-
-**Solution**: Relax the constraints or adjust the target state:
-```python
-from interpolatepy import DoubleSTrajectory, StateParams, TrajectoryBounds
-
-# If this fails, try increasing the bounds
-state = StateParams(q_0=0, q_1=100, v_0=0, v_1=0)
-bounds = TrajectoryBounds(v_bound=1.0, a_bound=0.5, j_bound=0.1)
-
-try:
-    traj = DoubleSTrajectory(state, bounds)
-except ValueError as e:
-    print(f"Failed with tight bounds: {e}")
-    # Increase bounds and try again
-    bounds = TrajectoryBounds(v_bound=5.0, a_bound=2.0, j_bound=1.0)
-    traj = DoubleSTrajectory(state, bounds)
-    print(f"Success with relaxed bounds: {traj.get_duration():.2f}s")
-```
-
-### Smoothing Spline Errors
-
-#### Problem: Incorrect Smoothing Function Usage
-```python
-TypeError: smoothing_spline_with_tolerance() missing required argument 'config'
-```
-
-**Cause**: Using the old API signature. The function now requires a `SplineConfig` object.
-
-**Solution**: Use the correct API:
-```python
-from interpolatepy import smoothing_spline_with_tolerance, SplineConfig
-import numpy as np
-
-# ✅ Correct usage with config
-t_points = np.array([0, 1, 2, 3])
-q_points = np.array([0, 1.1, 1.9, 3.0])
-config = SplineConfig(max_iterations=50)
-
-spline, mu, error, iterations = smoothing_spline_with_tolerance(
-    t_points, q_points, tolerance=0.1, config=config
-)
-print(f"Found spline with μ={mu:.6f}")
-```
-
-#### Problem: Smoothing Parameter Out of Range
-```
-ValueError: Smoothing parameter μ must be in (0, 1]
-```
-
-**Cause**: Invalid smoothing parameter value.
-
-**Solution**: Use values between 0 and 1:
-```python
-from interpolatepy import CubicSmoothingSpline
-
-# ❌ Invalid μ values
-# mu = 0.0    # Too small
-# mu = 1.5    # Too large
-
-# ✅ Valid μ values
-mu = 0.01     # Light smoothing
-# mu = 0.1    # Medium smoothing  
-# mu = 1.0    # No smoothing (exact interpolation)
-
-spline = CubicSmoothingSpline(t_points, q_points, mu=mu)
-```
-
-### Quaternion Errors
-
-#### Problem: Invalid Quaternion Values
-```
-ValueError: Quaternion magnitude is zero or invalid
-```
-
-**Cause**: Quaternion with zero magnitude or NaN values.
-
-**Solution**: Normalize quaternions and check for valid values:
-```python
-from interpolatepy import Quaternion
-import numpy as np
-
-def safe_quaternion(s, v1, v2, v3):
-    """Create a safe normalized quaternion."""
-    q = Quaternion(s, v1, v2, v3)
-    
-    # Check for NaN or infinite values
-    if not np.isfinite([q.s_, *q.v_]).all():
-        print("Warning: Invalid quaternion values, using identity")
-        return Quaternion.identity()
-    
-    # Check magnitude
-    magnitude = q.norm()
-    if magnitude < 1e-10:
-        print("Warning: Near-zero quaternion magnitude, using identity")
-        return Quaternion.identity()
-    
-    return q.unit()  # Return normalized quaternion
-
-# Use safe creation
-q = safe_quaternion(0.0, 0.0, 0.0, 0.0)  # Will return identity
-```
-
-### Evaluation Errors
-
-#### Problem: Time Outside Trajectory Range
-```
-ValueError: Evaluation time outside trajectory domain
-```
-
-**Cause**: Trying to evaluate trajectory at times outside the defined range.
-
-**Solution**: Check time bounds before evaluation:
-```python
-from interpolatepy import CubicSpline
-
-spline = CubicSpline([0, 1, 2, 3], [0, 1, 4, 2])
-
-def safe_evaluate(spline, t):
-    """Safely evaluate spline with bounds checking."""
-    if hasattr(spline, 't_points'):
-        t_min, t_max = spline.t_points[0], spline.t_points[-1]
-    else:
-        # For motion profiles
-        t_min, t_max = 0.0, spline.get_duration()
-    
-    if t < t_min:
-        print(f"Warning: t={t} < t_min={t_min}, clamping")
-        t = t_min
-    elif t > t_max:
-        print(f"Warning: t={t} > t_max={t_max}, clamping")
-        t = t_max
-    
-    return spline.evaluate(t)
-
-# Safe evaluation
-result = safe_evaluate(spline, 5.0)  # Outside range, will be clamped
-```
-
-## Performance Issues
-
-### Problem: Slow Evaluation for Large Arrays
-```python
-# Slow scalar evaluation
-result = [spline.evaluate(t) for t in t_array]  # ❌ Slow
-```
-
-**Solution**: Use vectorized evaluation:
-```python
-import numpy as np
-
-# ✅ Fast vectorized evaluation
-t_array = np.linspace(0, 10, 1000)
-result = spline.evaluate(t_array)  # Much faster
-```
-
-### Problem: Memory Issues with Large Datasets
-**Cause**: Processing very large datasets without chunking.
-
-**Solution**: Process data in chunks:
-```python
-def evaluate_large_dataset(spline, t_array, chunk_size=10000):
-    """Evaluate spline over large time array in chunks."""
-    results = []
-    
-    for i in range(0, len(t_array), chunk_size):
-        chunk = t_array[i:i + chunk_size]
-        results.append(spline.evaluate(chunk))
-    
-    return np.concatenate(results)
-
-# Use chunked evaluation for very large arrays
-large_t_array = np.linspace(0, 100, 1000000)
-results = evaluate_large_dataset(spline, large_t_array)
-```
-
-## Debugging Tips
-
-### Enable Debug Output
-Many InterpolatePy classes support debug output:
+`CubicSplineWithAcceleration2` takes a parameter object:
 
 ```python
-# Enable debug output in splines
-spline = CubicSpline(t_points, q_points, debug=True)
+from interpolatepy import CubicSplineWithAcceleration2
+from interpolatepy import SplineParameters
 
-# Enable debug in smoothing search
-config = SplineConfig(debug=True)
-spline, mu, error, iterations = smoothing_spline_with_tolerance(
-    t_points, q_points, tolerance=0.1, config=config
+params = SplineParameters(v0=0.0, vn=0.0, a0=0.5, an=-0.5)
+spline = CubicSplineWithAcceleration2(
+    [0.0, 1.0, 2.0], [0.0, 1.0, 0.0], params
 )
 ```
 
-### Validate Your Data
-Create a helper function to validate input data:
+Method 1 accepts `a0` and `an` directly.
+
+## B-spline questions
+
+### Knot/control count is invalid
+
+For a base B-spline of degree `p`, provide
+`len(knots) == len(control_points) + p + 1`. A clamped knot vector repeats both
+end knots `p + 1` times.
+
+### Evaluation says the parameter is outside the valid range
+
+Use the object's computed domain:
 
 ```python
-def validate_trajectory_data(t_points, q_points):
-    """Validate trajectory input data."""
-    issues = []
-    
-    # Check lengths
-    if len(t_points) != len(q_points):
-        issues.append(f"Length mismatch: t={len(t_points)}, q={len(q_points)}")
-    
-    # Check monotonicity  
-    if not all(t_points[i] < t_points[i+1] for i in range(len(t_points)-1)):
-        issues.append("Time points not strictly increasing")
-    
-    # Check for NaN/inf
-    if not np.isfinite(t_points).all():
-        issues.append("Invalid values in t_points")
-    
-    if not np.isfinite(q_points).all():
-        issues.append("Invalid values in q_points")
-    
-    # Check minimum data points
-    if len(t_points) < 2:
-        issues.append("Need at least 2 data points")
-    
-    if issues:
-        raise ValueError("Data validation failed: " + "; ".join(issues))
-    
-    return True
+import numpy as np
 
-# Use validation
-try:
-    validate_trajectory_data(t_points, q_points)
-    spline = CubicSpline(t_points, q_points)
-except ValueError as e:
-    print(f"Data validation error: {e}")
+u = np.linspace(curve.u_min, curve.u_max, 100)
+points = np.array([curve.evaluate(value) for value in u])
 ```
 
-## C++ Backend Issues
+### Fewer samples than `degree + 1`
 
-### Problem: C++ Extension Not Found
+`BSplineInterpolator` supports two or more samples for degrees 3, 4, and 5 as
+of 3.2.0. Upgrade if an older release reports insufficient samples.
 
-The C++ backend is optional. If it is not available, the library falls back to pure Python automatically.
+### A constrained interpolation system is ill-conditioned
 
-**Check backend status:**
+Check for coincident points, repeated times, inconsistent cyclic endpoints, and
+conflicting endpoint derivative constraints. Rescale very large or small time
+domains. Do not add redundant constraints merely to increase the row count.
+
+## Motion-profile questions
+
+### `DoubleSTrajectory.evaluate()` cannot be unpacked
+
+It returns position only:
+
 ```python
-import interpolatepy
-print(f"C++ backend: {interpolatepy.HAS_CPP}")
+q, qd, qdd, qddd = trajectory.evaluate_full(t)
 ```
 
-If `HAS_CPP` is `False` and you want the C++ backend, see the [Installation Guide](installation.md#c-backend-optional) for build instructions.
+Use the individual `evaluate_*` methods when only one derivative is needed.
 
-### Problem: Force Pure-Python Mode
+### Bounds are invalid or the move is infeasible
+
+Velocity, acceleration, and jerk bounds are positive magnitudes. Initial and
+final speeds must be compatible with the velocity bound and the requested
+motion. For trapezoidal trajectories, a requested duration also has to leave
+enough time to satisfy boundary speeds and acceleration.
+
+### The trapezoidal parameter class looks wrong
+
+There are two classes named `TrajectoryParams`. Import the trapezoidal one from
+`interpolatepy.trapezoidal`; the top-level class is for polynomial multipoint
+interpolation.
+
+## Quaternion questions
+
+### Equivalent orientations have opposite components
+
+`q` and `-q` encode the same rotation. Compare rotation matrices or the absolute
+dot product:
+
+```python
+same_rotation = abs(q1.dot_prod(q2)) > 1.0 - 1e-9
+```
+
+### Axis and angle appear swapped
+
+`Quaternion.to_axis_angle()` returns `(axis, angle)`, while
+`Quaternion.from_angle_axis(angle, axis)` accepts angle first.
+
+### Logarithmic interpolation has too few keyframes
+
+LQI and mLQI support two or more quaternions for degree 3, 4, or 5 in 3.2.0.
+The time list must still match the quaternion list and be strictly increasing.
+
+### Derivatives do not match expected angular velocity
+
+Logarithmic interpolators differentiate their internal coordinate state.
+On the Python backend, call `get_physical_kinematics()` for physical angular
+velocity and acceleration.
+
+## Plotting and examples
+
+In a server, CI job, or SSH session without a display, select a noninteractive
+backend:
+
 ```bash
-export INTERPOLATEPY_NO_CPP=1
-python your_script.py
+MPLBACKEND=Agg python examples/cubic_spline_ex.py
 ```
 
-### Problem: C++ Build Fails
+A warning about many open figures can occur when every example is run in one
+batch. Run scripts in separate processes, as shown on the
+[Examples](examples.md) page.
 
-Common causes:
-- **CMake too old** -- need >= 3.21
-- **Compiler lacks C++20** -- need GCC >= 10, Clang >= 13, or MSVC >= 19.29
-- **Network issues** -- Eigen/pybind11 fetched via CMake FetchContent; install system packages as fallback
+## Reporting a bug
 
-See [C++ Build Troubleshooting](installation.md#c-build-troubleshooting) for detailed solutions.
+Include:
 
-## Getting Help
+- InterpolatePy, Python, NumPy, and SciPy versions;
+- `interpolatepy.HAS_CPP` and whether fallback mode changes the result;
+- operating system and architecture;
+- a minimal reproducible input;
+- the complete exception and expected behavior.
 
-If you encounter issues not covered here:
-
-1. **Check the [API Reference](api-reference.md)** for correct usage
-2. **Review the [Examples](examples.md)** for working code patterns  
-3. **Enable debug output** to see detailed algorithm information
-4. **Create minimal reproducible examples** when reporting bugs
-5. **Check your InterpolatePy version**: `python -c "import interpolatepy; print(interpolatepy.__version__)"`
-
-### Reporting Bugs
-
-When reporting issues, please include:
-
-- InterpolatePy version
-- Python version and platform
-- Minimal code example that reproduces the issue
-- Complete error message and traceback
-- Expected vs actual behavior
-
-Example bug report template:
-```python
-# InterpolatePy version: 2.0.0
-# Python version: 3.11.0
-# Platform: Ubuntu 22.04
-
-from interpolatepy import CubicSpline
-
-# Minimal example that fails
-t_points = [0, 1, 2]
-q_points = [0, 1, 0]
-
-try:
-    spline = CubicSpline(t_points, q_points)
-    result = spline.evaluate(1.5)
-    print(f"Expected: ~0.5, Got: {result}")
-except Exception as e:
-    print(f"Error: {e}")
-```
-
-This systematic approach helps identify and resolve issues quickly while improving your understanding of InterpolatePy's behavior.
+Open an issue at <https://github.com/GiorgioMedico/InterpolatePy/issues>.

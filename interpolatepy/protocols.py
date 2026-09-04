@@ -109,8 +109,9 @@ class TrajectoryFunction(Protocol):
 
     Conforming Classes
     ------------------
-    Output callables from TrapezoidalTrajectory, ParabolicBlendTrajectory,
-    PolynomialTrajectory factories
+    Output callables from TrapezoidalTrajectory and ParabolicBlendTrajectory
+    factories. PolynomialTrajectory callables return four values (including
+    jerk) and therefore do not conform to this three-value protocol.
     """
 
     def __call__(self, t: float) -> tuple[float, float, float]: ...

@@ -1,122 +1,134 @@
 # Architecture
 
-InterpolatePy uses a **dual-backend architecture**: a compiled C++ extension for performance-critical workloads, with an automatic pure-Python fallback when the extension is unavailable.
-
 ## Overview
 
+InterpolatePy contains three layers:
+
 ```mermaid
-graph TD
-    User["User Code"] --> Init["interpolatepy/__init__.py"]
-    Init --> API["_api.py<br/>(backend router)"]
-    API --> Check{"HAS_CPP?"}
-    Check -->|Yes| Adapters["_adapters/<br/>(C++ wrappers)"]
-    Check -->|No| Python["Pure-Python modules<br/>(cubic_spline.py, etc.)"]
-    Adapters --> CPP["interpolatecpp_py.so<br/>(pybind11 extension)"]
-    Init --> PureOnly["Always pure-Python:<br/>Quaternion, protocols,<br/>TrajectoryParams, etc."]
+flowchart TD
+    User[User code] --> Public[interpolatepy package exports]
+    Public --> Router[_api.py]
+    Router -->|HAS_CPP is false| Python[Python implementations]
+    Router -->|HAS_CPP is true| Adapters[_adapters]
+    Adapters --> Extension[interpolatecpp_py extension]
+    Extension --> Library[interpolatecpp C++20 library]
 ```
 
-## Backend Detection
+Application code should normally depend only on the package exports. The
+implementation modules remain importable for development and debugging, but a
+direct implementation import bypasses backend selection.
 
-The module `_backend.py` handles backend detection at import time:
+## Backend detection
 
-1. Checks for the `INTERPOLATEPY_NO_CPP` environment variable
-2. If not set, attempts to import the compiled extension `interpolatecpp_py`
-3. Sets `HAS_CPP = True` on success, `False` on `ImportError`
+`interpolatepy/_backend.py` runs once during package import:
 
-```python
-import interpolatepy
-print(f"C++ backend active: {interpolatepy.HAS_CPP}")
-```
+1. if `INTERPOLATEPY_NO_CPP` is nonempty, native loading is skipped;
+2. otherwise it imports `.interpolatecpp_py` relative to the package;
+3. `HAS_CPP` becomes `True` only if that import succeeds;
+4. an extension `ImportError` leaves the Python fallback active.
 
-To force pure-Python mode:
+Any nonempty value disables the extension, including the string `"0"`. Set the
+variable before Python starts:
+
 ```bash
-export INTERPOLATEPY_NO_CPP=1
+INTERPOLATEPY_NO_CPP=1 python your_program.py
 ```
 
-## Import Routing
+An unavailable optional extension is intentionally silent. Call
+`get_cpp_module()` only in backend internals; it raises when the extension was
+not loaded.
 
-`_api.py` uses `HAS_CPP` to decide where each symbol comes from:
+## Public import routing
 
-| `HAS_CPP` | Import source | Example |
-|-----------|--------------|---------|
-| `True` | `_adapters._spline.CubicSpline` | C++ core + Python `plot()` |
-| `False` | `cubic_spline.CubicSpline` | Pure Python implementation |
+`interpolatepy/__init__.py` exposes version and backend information, imports the
+backend-routed algorithms from `_api.py`, and exports the always-Python
+`Quaternion`, plotting helper, configuration classes, and runtime-checkable
+protocols.
 
-The user-facing API (`__init__.py`) is identical regardless of backend. Code that imports from `interpolatepy` works the same either way.
+`_api.py` has two explicit branches. This makes the resolved class stable for
+the life of the process and avoids conditional checks in every evaluation.
 
-## Adapter Pattern
+The top-level export list in `interpolatepy.__all__` is the compatibility
+boundary. New public APIs must be wired through:
 
-Each adapter in `_adapters/` subclasses the pybind11-exposed C++ class and adds Python-only convenience methods:
+1. the Python implementation;
+2. the C++ binding and adapter when a native equivalent exists;
+3. both branches of `_api.py`;
+4. `interpolatepy/__init__.py` and its `__all__` list;
+5. tests and the API reference.
 
-```
-_adapters/
-  _spline.py       CubicSpline, CubicSmoothingSpline, ...
-  _bspline.py      BSpline, BSplineInterpolator, ...
-  _motion.py       DoubleSTrajectory, TrapezoidalTrajectory, ...
-  _paths.py        LinearPath, CircularPath
-  _quaternion.py   SquadC2, QuaternionSpline, ...
-  _direct.py       Direct re-exports (StateParams, TrajectoryBounds, ...)
-```
+## Adapter layer
 
-**What adapters add:**
+The pybind11 classes are fast but do not always present Python-native input and
+output behavior. Files under `interpolatepy/_adapters/` handle differences such
+as:
 
-- `plot()` methods (matplotlib visualization)
-- `__repr__` for readable string representation
-- API normalization (e.g., C++ returns `FullTrajectoryResult` structs, adapters unpack to tuples)
+- accepting lists and NumPy arrays consistently;
+- vectorizing scalar C++ evaluators over NumPy arrays;
+- converting native quaternions back to the Python `Quaternion` class;
+- preserving Python parameter data classes;
+- adding plotting and batch path helpers;
+- providing aliases for differently named native properties.
 
-**What stays pure-Python:**
+Use the package root for the backend-neutral workflows shown in the quick
+start. Some implementation-specific helpers are Python-only. In particular,
+the current native logarithmic-quaternion bindings do not expose
+`generate_trajectory()`, `get_physical_kinematics()`, or acceleration boundary
+arguments, and some B-spline refinement/diagnostic helpers exist only in the
+Python implementation. Use `INTERPOLATEPY_NO_CPP=1` if an application depends
+on those helpers.
 
-- `Quaternion` class (`quat_core.py`) -- core quaternion math
-- Protocol definitions (`protocols.py`) -- structural typing interfaces
-- Parameter dataclasses (`TrajectoryParams`, `CalculationParams`, `InterpolationParams`)
+## Source layout
 
-## C++ Library Structure
+```text
+interpolatepy/
+  __init__.py             public namespace
+  _backend.py             extension detection
+  _api.py                 backend routing
+  _adapters/              Python-facing native wrappers
+  *.py                    Python algorithms and utilities
 
-The C++ implementation lives in the `cpp/` directory:
-
-```
 cpp/
-  include/interpolatecpp/    Header-only public interface
-    spline/                  Cubic spline family (5 headers)
-    bspline/                 B-spline family (6 headers)
-    motion/                  Motion profiles (5 headers)
-    path/                    Path primitives (4 headers)
-    quat/                    Quaternion interpolation (5 headers)
-    concepts.hpp             C++20 concepts for type safety
-    tridiagonal.hpp          Shared tridiagonal solver
-  src/                       Implementation files (23 .cpp files)
-  bindings/                  pybind11 binding definitions
-  tests/                     Catch2 unit tests (142 tests)
-  examples/                  C++ usage examples (16 programs)
-  CMakeLists.txt             Build configuration
+  include/interpolatecpp/ public C++ headers
+  src/                    C++ implementations
+  bindings/               pybind11 module
+  tests/                  Catch2 tests
+  examples/               C++ example programs
+
+tests/                    Python tests
+examples/                 Python example programs
+docs/                     MkDocs sources
 ```
 
-**Key design choices:**
+## C++ targets
 
-- **C++20** with concepts for compile-time type checking
-- **Eigen 3.4** for linear algebra (fetched automatically via CMake FetchContent)
-- **pybind11** for Python bindings (also fetched via FetchContent)
-- **Catch2** for C++ unit testing
-- **Header-only public interface** with separate compilation units
+The CMake project requires C++20 and creates the `interpolatecpp` library. The
+optional `interpolatecpp_py` module links that library and is copied beside the
+Python package modules for local use.
 
-## Building the C++ Extension
+| CMake option | Default |
+| --- | --- |
+| `INTERPOLATECPP_BUILD_TESTS` | `ON` |
+| `INTERPOLATECPP_BUILD_BINDINGS` | `OFF` |
+| `INTERPOLATECPP_BUILD_EXAMPLES` | `OFF` |
 
-See the [Installation Guide](installation.md#c-backend-optional) for build instructions.
+CMake FetchContent pins Eigen 3.4.0, Catch2 3.7.1, and pybind11 2.13.6 for the
+targets that need them. See [Installation](installation.md#optional-c-backend)
+for build commands.
 
-### CMake Options
+## Testing the two implementations
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `INTERPOLATECPP_BUILD_TESTS` | `ON` | Build Catch2 unit tests |
-| `INTERPOLATECPP_BUILD_BINDINGS` | `OFF` | Build pybind11 Python bindings |
-| `INTERPOLATECPP_BUILD_EXAMPLES` | `OFF` | Build C++ example programs |
+The main Python suite exercises the selected public backend and also imports
+some implementation modules directly for focused unit coverage. To guarantee a
+fallback-only run:
 
-## Performance Characteristics
+```bash
+INTERPOLATEPY_NO_CPP=1 uv run pytest
+```
 
-The C++ backend provides the most benefit for:
+After copying a built extension into `interpolatepy/`, start a new process and
+run the same suite without the variable. C++ implementation tests are discovered
+by CTest from `cpp/tests/`.
 
-- **Spline construction** -- solving tridiagonal systems, computing coefficients
-- **Batch evaluation** -- evaluating trajectories at many time points
-- **Motion profile planning** -- iterative phase calculations in DoubleSTrajectory
-
-The pure-Python backend uses vectorized NumPy operations and remains fast for most use cases. The C++ backend is an optimization, not a requirement.
+Backend parity tests should compare observable results and documented errors,
+not private coefficients or implementation-specific object identity.
