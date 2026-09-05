@@ -57,6 +57,8 @@ from .motion import PolynomialTrajectoryParams as TrajectoryParams
 from .motion import TrapezoidalTrajectoryParams
 from .paths import plot_frames
 from .quaternion import Quaternion
+from .quaternion import SpringConfig
+from .quaternion import SpringQuaternionInterpolation
 
 # Protocols
 from .protocols import CurveEvaluator
@@ -96,6 +98,8 @@ __all__ = [
     "SmoothingCubicBSpline",
     "SplineConfig",
     "SplineParameters",
+    "SpringConfig",
+    "SpringQuaternionInterpolation",
     "SquadC2",
     "StateParams",
     "TimeInterval",

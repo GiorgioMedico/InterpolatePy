@@ -187,6 +187,54 @@ assert coordinate_rate.shape == (4,)
 Keep `normalize_axis=True` unless the interpolated axis is already known to
 stay unit length.
 
+## SPRING minimum-curvature interpolation
+
+`SpringQuaternionInterpolation` implements SPRING (*Spherical Interpolation
+using Numerical Gradient descent*) from Dam, Koch, and Lillholm's 1998 report
+*Quaternions, Interpolation and Animation*. It starts with piecewise SLERP and
+numerically relaxes the in-between frames to minimize tangential curvature on
+the unit-quaternion sphere. Keyframes remain fixed.
+
+```python
+import numpy as np
+
+from interpolatepy import Quaternion
+from interpolatepy import SpringConfig
+from interpolatepy import SpringQuaternionInterpolation
+
+times = [0.0, 1.0, 2.0, 3.0]
+orientations = [
+    Quaternion.identity(),
+    Quaternion.from_angle_axis(0.8, np.array([1.0, 0.0, 0.0])),
+    Quaternion.from_angle_axis(1.0, np.array([0.0, 1.0, 0.0])),
+    Quaternion.from_angle_axis(1.2, np.array([0.0, 0.0, 1.0])),
+]
+spring = SpringQuaternionInterpolation(
+    times,
+    orientations,
+    SpringConfig(num_samples=81, iterations=300),
+)
+
+q = spring.evaluate(1.5)
+omega = spring.evaluate_velocity(1.5)
+alpha = spring.evaluate_acceleration(1.5)
+assert np.isclose(q.norm(), 1.0)
+assert spring.final_energy <= spring.initial_energy
+```
+
+SPRING is a global, iterative method: changing one keyframe can affect the
+whole curve, and increasing `num_samples` or `iterations` increases setup
+cost. Intermediate values are SLERP evaluations of the optimized discrete
+frames; angular derivatives are numerical estimates. The default three-level
+solver refines a coarse curve approximately fivefold at each level. Every
+optimized coarse frame is held fixed at the next level, following the report's
+multi-step procedure. Set `refinement_levels=1` for a one-stage solve.
+
+`refinement_sample_counts` and `stage_energy_history` are immutable tuples for
+inspecting convergence. `energy_history` is the final-stage history, while
+`initial_energy` and `final_energy` compare the original piecewise-SLERP curve
+and the final optimized curve on the same final grid.
+
 ## Compare orientations correctly
 
 Component equality rejects the equivalent pair `q` and `-q`. For unit
@@ -208,6 +256,7 @@ assert same_orientation
 | One segment | `Quaternion.slerp()` |
 | Simple keyframe API | `QuaternionSpline` |
 | Zero-clamped smooth SQUAD construction | `SquadC2` |
+| Global numerical minimum-curvature curve | `SpringQuaternionInterpolation` |
 | Continuous rotation-vector representation | LQI |
 | Separate angle/axis state | mLQI |
 

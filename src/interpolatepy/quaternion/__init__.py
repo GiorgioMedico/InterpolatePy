@@ -10,6 +10,8 @@ if TYPE_CHECKING:
     from .logarithmic import LogQuaternionInterpolation
     from .logarithmic import ModifiedLogQuaternionInterpolation
     from .spline import QuaternionSpline
+    from .spring import SpringConfig
+    from .spring import SpringQuaternionInterpolation
     from .squad import SquadC2
     from .squad import SquadC2Config
 
@@ -21,6 +23,11 @@ _ROUTED = {
 }
 _LOCAL = {
     "Quaternion": ("interpolatepy.quaternion.core", "Quaternion"),
+    "SpringConfig": ("interpolatepy.quaternion.spring", "SpringConfig"),
+    "SpringQuaternionInterpolation": (
+        "interpolatepy.quaternion.spring",
+        "SpringQuaternionInterpolation",
+    ),
     "SquadC2Config": ("interpolatepy.quaternion.squad", "SquadC2Config"),
 }
 __all__ = [
@@ -28,6 +35,8 @@ __all__ = [
     "ModifiedLogQuaternionInterpolation",
     "Quaternion",
     "QuaternionSpline",
+    "SpringConfig",
+    "SpringQuaternionInterpolation",
     "SquadC2",
     "SquadC2Config",
 ]

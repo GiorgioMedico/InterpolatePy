@@ -172,6 +172,12 @@ The trapezoidal configuration type is module-qualified because the package-root
 
 ::: interpolatepy.SquadC2
 
+### SpringQuaternionInterpolation
+
+::: interpolatepy.SpringQuaternionInterpolation
+
+::: interpolatepy.SpringConfig
+
 ### LogQuaternionInterpolation
 
 ::: interpolatepy.LogQuaternionInterpolation
