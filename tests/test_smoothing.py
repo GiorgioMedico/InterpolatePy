@@ -25,12 +25,13 @@ from typing import Any
 import numpy as np
 import pytest
 
-from interpolatepy.c_s_smoot_search import SplineConfig
-from interpolatepy.c_s_smoot_search import smoothing_spline_with_tolerance
-from interpolatepy.c_s_smoothing import CubicSmoothingSpline
-from interpolatepy.c_s_with_acc1 import CubicSplineWithAcceleration1
-from interpolatepy.c_s_with_acc2 import CubicSplineWithAcceleration2
-from interpolatepy.c_s_with_acc2 import SplineParameters
+from interpolatepy.splines.acceleration1 import CubicSplineWithAcceleration1
+from interpolatepy.splines.acceleration2 import CubicSplineWithAcceleration2
+from interpolatepy.splines.acceleration2 import SplineParameters
+from interpolatepy.splines.cubic import CubicSpline
+from interpolatepy.splines.search import SplineConfig
+from interpolatepy.splines.search import smoothing_spline_with_tolerance
+from interpolatepy.splines.smoothing import CubicSmoothingSpline
 
 
 # Type alias for pytest benchmark fixture
@@ -505,7 +506,7 @@ class TestCubicSmoothingSpline:
         # Evaluate at endpoints
         y_weighted = spline_weighted.evaluate(x_data)
         y_equal = spline_equal.evaluate(x_data)
-        
+
         # Ensure we got arrays back
         assert isinstance(y_weighted, np.ndarray)
         assert isinstance(y_equal, np.ndarray)
@@ -694,7 +695,7 @@ class TestCubicSmoothingSpline:
         pos_array = spline.evaluate(test_points)
         vel_array = spline.evaluate_velocity(test_points)
         acc_array = spline.evaluate_acceleration(test_points)
-        
+
         assert isinstance(pos_array, np.ndarray)
         assert isinstance(vel_array, np.ndarray)
         assert isinstance(acc_array, np.ndarray)
@@ -1031,8 +1032,6 @@ class TestCubicSplineWithAcceleration2:
 
     def test_inheritance_from_cubic_spline(self) -> None:
         """Test that CubicSplineWithAcceleration2 inherits from CubicSpline."""
-        from interpolatepy.cubic_spline import CubicSpline
-
         assert issubclass(CubicSplineWithAcceleration2, CubicSpline)
 
     def test_acceleration_constraint_integration(self) -> None:

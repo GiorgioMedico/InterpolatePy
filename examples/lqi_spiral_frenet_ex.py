@@ -28,7 +28,7 @@ from interpolatepy import LogQuaternionInterpolation
 from interpolatepy import Quaternion
 from interpolatepy import compute_trajectory_frames
 from interpolatepy import plot_frames
-from interpolatepy.quat_visualization import QuaternionTrajectoryVisualizer
+from interpolatepy.visualization.quaternion import QuaternionTrajectoryVisualizer
 
 
 def cylindrical_helix_with_derivatives(

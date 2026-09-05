@@ -13,8 +13,8 @@ import numpy as np
 import pytest
 
 import interpolatepy
-from interpolatepy.quat_core import Quaternion
-from interpolatepy.log_quat import (
+from interpolatepy.quaternion.core import Quaternion
+from interpolatepy.quaternion.logarithmic import (
     LogQuaternionInterpolation,
     ModifiedLogQuaternionInterpolation,
 )

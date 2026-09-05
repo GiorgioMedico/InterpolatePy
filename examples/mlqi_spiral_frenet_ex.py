@@ -25,7 +25,7 @@ from interpolatepy import (
 )
 from interpolatepy import ModifiedLogQuaternionInterpolation
 from interpolatepy import Quaternion
-from interpolatepy.quat_visualization import QuaternionTrajectoryVisualizer
+from interpolatepy.visualization.quaternion import QuaternionTrajectoryVisualizer
 
 
 def angular_error_deg(frame_truth: np.ndarray, frame_est: np.ndarray) -> float:

@@ -19,7 +19,7 @@ from typing import Any
 import numpy as np
 import pytest
 
-from interpolatepy.cubic_spline import CubicSpline
+from interpolatepy.splines.cubic import CubicSpline
 
 
 # Type alias for pytest benchmark fixture

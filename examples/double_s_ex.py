@@ -102,7 +102,7 @@ def example_standard_trajectory() -> None:
     # Handle index access with proper type checking to satisfy mypy
     if isinstance(positions, np.ndarray) and len(positions) > 0:
         final_pos = positions[-1]
-        final_vel = velocities[-1]  # type: ignore
+        final_vel = velocities[-1]
         print(f"Final position: {final_pos:.3f}, Final velocity: {final_vel:.3f}")
     else:
         print("Trajectory evaluation returned empty result")
@@ -169,7 +169,7 @@ def example_velocity_matching() -> None:
     # Handle index access with proper type checking
     if isinstance(positions, np.ndarray) and len(positions) > 0:
         final_pos = positions[-1]
-        final_vel = velocities[-1]  # type: ignore
+        final_vel = velocities[-1]
         print(f"Final position: {final_pos:.3f}, Final velocity: {final_vel:.3f}")
     else:
         print("Trajectory evaluation returned empty result")
@@ -257,7 +257,7 @@ def example_negative_displacement() -> None:
     # Handle index access with proper type checking
     if isinstance(positions, np.ndarray) and len(positions) > 0:
         final_pos = positions[-1]
-        final_vel = velocities[-1]  # type: ignore
+        final_vel = velocities[-1]
         print(f"Final position: {final_pos:.3f}, Final velocity: {final_vel:.3f}")
     else:
         print("Trajectory evaluation returned empty result")
@@ -345,7 +345,7 @@ def example_asymmetric_velocities() -> None:
     # Handle index access with proper type checking
     if isinstance(positions, np.ndarray) and len(positions) > 0:
         final_pos = positions[-1]
-        final_vel = velocities[-1]  # type: ignore
+        final_vel = velocities[-1]
         print(f"Final position: {final_pos:.3f}, Final velocity: {final_vel:.3f}")
     else:
         print("Trajectory evaluation returned empty result")
@@ -409,7 +409,7 @@ def example_factory_method() -> None:
     # Handle index access with proper type checking
     if isinstance(positions, np.ndarray) and len(positions) > 0:
         final_pos = positions[-1]
-        final_vel = velocities[-1]  # type: ignore
+        final_vel = velocities[-1]
         print(f"Final position: {final_pos:.3f}, Final velocity: {final_vel:.3f}")
     else:
         print("Trajectory evaluation returned empty result")

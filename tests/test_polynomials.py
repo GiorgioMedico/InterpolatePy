@@ -26,13 +26,13 @@ from typing import Any
 import numpy as np
 import pytest
 
-from interpolatepy.polynomials import ORDER_3
-from interpolatepy.polynomials import ORDER_5
-from interpolatepy.polynomials import ORDER_7
-from interpolatepy.polynomials import BoundaryCondition
-from interpolatepy.polynomials import PolynomialTrajectory
-from interpolatepy.polynomials import TimeInterval
-from interpolatepy.polynomials import TrajectoryParams
+from interpolatepy.motion.polynomial import ORDER_3
+from interpolatepy.motion.polynomial import ORDER_5
+from interpolatepy.motion.polynomial import ORDER_7
+from interpolatepy.motion.polynomial import BoundaryCondition
+from interpolatepy.motion.polynomial import PolynomialTrajectory
+from interpolatepy.motion.polynomial import TimeInterval
+from interpolatepy.motion.polynomial import TrajectoryParams
 
 
 # Type alias for pytest benchmark fixture

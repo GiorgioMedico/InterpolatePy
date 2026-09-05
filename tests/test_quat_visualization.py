@@ -23,10 +23,10 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 
-from interpolatepy.quat_core import Quaternion
-from interpolatepy.quat_spline import QuaternionSpline
-from interpolatepy.quat_visualization import PlotStyle
-from interpolatepy.quat_visualization import QuaternionTrajectoryVisualizer
+from interpolatepy.quaternion.core import Quaternion
+from interpolatepy.quaternion.spline import QuaternionSpline
+from interpolatepy.visualization.quaternion import PlotStyle
+from interpolatepy.visualization.quaternion import QuaternionTrajectoryVisualizer
 
 
 # Type alias for pytest benchmark fixture
@@ -34,7 +34,7 @@ try:
     from pytest import FixtureFunction
 except (ImportError, AttributeError):
     # Fallback for pytest versions without FixtureFunction
-    from typing import Callable
+    from collections.abc import Callable
     FixtureFunction = Callable[..., Any]
 
 
@@ -394,7 +394,7 @@ class TestVelocityAnalysis:
         q1 = Quaternion.identity()
         q2 = Quaternion.from_angle_axis(np.pi/2, np.array([1.0, 0.0, 0.0]))
 
-        distance = self.visualizer._quaternion_distance(q1, q2)  # noqa: SLF001
+        distance = self.visualizer._quaternion_distance(q1, q2)
 
         assert distance >= 0
         assert np.isfinite(distance)
@@ -403,7 +403,7 @@ class TestVelocityAnalysis:
         """Test quaternion distance with identical quaternions."""
         q = Quaternion.from_angle_axis(np.pi/4, np.array([1.0, 0.0, 0.0]))
 
-        distance = self.visualizer._quaternion_distance(q, q)  # noqa: SLF001
+        distance = self.visualizer._quaternion_distance(q, q)
 
         assert abs(distance) < self.NUMERICAL_ATOL
 

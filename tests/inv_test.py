@@ -20,7 +20,7 @@ import numpy as np
 import pytest
 from numpy.typing import NDArray
 
-from interpolatepy.tridiagonal_inv import solve_tridiagonal
+from interpolatepy.linalg import solve_tridiagonal
 
 
 # Type alias for pytest benchmark fixture

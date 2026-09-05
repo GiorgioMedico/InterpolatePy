@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 
-from interpolatepy.b_spline import BSpline
+from interpolatepy.bsplines.core import BSpline
 
 
 # Type alias for pytest benchmark fixture

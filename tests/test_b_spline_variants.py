@@ -25,11 +25,12 @@ import numpy as np
 import pytest
 
 import interpolatepy
-from interpolatepy.b_spline_approx import ApproximationBSpline
-from interpolatepy.b_spline_cubic import CubicBSplineInterpolation
-from interpolatepy.b_spline_interpolate import BSplineInterpolator
-from interpolatepy.b_spline_smooth import BSplineParams
-from interpolatepy.b_spline_smooth import SmoothingCubicBSpline
+from interpolatepy.bsplines.approximation import ApproximationBSpline
+from interpolatepy.bsplines.core import BSpline
+from interpolatepy.bsplines.cubic import CubicBSplineInterpolation
+from interpolatepy.bsplines.interpolation import BSplineInterpolator
+from interpolatepy.bsplines.smoothing import BSplineParams
+from interpolatepy.bsplines.smoothing import SmoothingCubicBSpline
 
 
 # Type alias for pytest benchmark fixture
@@ -505,9 +506,6 @@ class TestBSplineInterpolator:
 
     def test_even_degree_knots(self) -> None:
         """Test even degree (4) knot vector generation by checking the knot computation path."""
-        # Create a simple manual test to trigger the even degree path
-        from interpolatepy.b_spline_interpolate import BSplineInterpolator
-
         # Create a temporary instance to access the method
         data_points = [[0, 0], [1, 1], [2, 0], [3, 1]]
         temp_spline = BSplineInterpolator(3, data_points)
@@ -1019,8 +1017,6 @@ class TestBSplineVariantsComparison:
 
     def test_variant_inheritance(self) -> None:
         """Test that all variants inherit from BSpline."""
-        from interpolatepy.b_spline import BSpline
-
         # All variants should inherit from BSpline
         assert issubclass(SmoothingCubicBSpline, BSpline)
         assert issubclass(CubicBSplineInterpolation, BSpline)

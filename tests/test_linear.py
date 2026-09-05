@@ -17,7 +17,7 @@ from typing import Any
 import numpy as np
 import pytest
 
-from interpolatepy.linear import linear_traj
+from interpolatepy.paths.linear import linear_traj
 
 
 # Type alias for pytest benchmark fixture

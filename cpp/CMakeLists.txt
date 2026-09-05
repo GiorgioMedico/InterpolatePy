@@ -1,6 +1,13 @@
 cmake_minimum_required(VERSION 3.21)
+
+if(DEFINED SKBUILD_PROJECT_VERSION)
+    set(INTERPOLATECPP_VERSION "${SKBUILD_PROJECT_VERSION}")
+else()
+    set(INTERPOLATECPP_VERSION "3.2.1")
+endif()
+
 project(InterpolateCpp
-    VERSION 0.1.0
+    VERSION "${INTERPOLATECPP_VERSION}"
     LANGUAGES CXX
     DESCRIPTION "C++ port of InterpolatePy trajectory planning library"
 )
@@ -9,6 +16,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(PYBIND11_FINDPYTHON ON)
+
+include(GNUInstallDirs)
 
 # Options
 option(INTERPOLATECPP_BUILD_TESTS "Build tests" ON)
@@ -24,13 +34,17 @@ configure_file(
 # Dependencies via FetchContent
 include(FetchContent)
 
-FetchContent_Declare(
-    Eigen
-    GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
-    GIT_TAG 3.4.0
-    GIT_SHALLOW TRUE
-    SYSTEM
-)
+find_package(Eigen3 3.4 CONFIG QUIET)
+
+if(NOT Eigen3_FOUND)
+    FetchContent_Declare(
+        Eigen
+        GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+        GIT_TAG 3.4.0
+        GIT_SHALLOW TRUE
+        SYSTEM
+    )
+endif()
 
 if(INTERPOLATECPP_BUILD_TESTS)
     FetchContent_Declare(
@@ -41,7 +55,7 @@ if(INTERPOLATECPP_BUILD_TESTS)
     )
 endif()
 
-if(INTERPOLATECPP_BUILD_BINDINGS)
+if(INTERPOLATECPP_BUILD_BINDINGS AND NOT SKBUILD)
     FetchContent_Declare(
         pybind11
         GIT_REPOSITORY https://github.com/pybind/pybind11.git
@@ -50,12 +64,14 @@ if(INTERPOLATECPP_BUILD_BINDINGS)
     )
 endif()
 
-# Make Eigen available (suppress its tests and docs)
-set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
-set(EIGEN_BUILD_TESTING OFF CACHE BOOL "" FORCE)
-set(EIGEN_BUILD_DOC OFF CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(Eigen)
-set(BUILD_TESTING ON CACHE BOOL "" FORCE)
+# Make the fallback Eigen dependency available without building its tests or docs.
+if(NOT Eigen3_FOUND)
+    set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+    set(EIGEN_BUILD_TESTING OFF CACHE BOOL "" FORCE)
+    set(EIGEN_BUILD_DOC OFF CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(Eigen)
+    set(BUILD_TESTING ON CACHE BOOL "" FORCE)
+endif()
 
 # Library sources
 set(INTERPOLATECPP_SOURCES
@@ -124,7 +140,10 @@ endif()
 
 # Bindings
 if(INTERPOLATECPP_BUILD_BINDINGS)
-    FetchContent_MakeAvailable(pybind11)
+    find_package(pybind11 CONFIG QUIET)
+    if(NOT pybind11_FOUND)
+        FetchContent_MakeAvailable(pybind11)
+    endif()
     add_subdirectory(bindings)
 endif()
 
@@ -134,8 +153,6 @@ if(INTERPOLATECPP_BUILD_EXAMPLES)
 endif()
 
 # Install rules
-include(GNUInstallDirs)
-
 install(TARGETS interpolatecpp
     EXPORT InterpolateCppTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

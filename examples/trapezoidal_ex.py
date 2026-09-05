@@ -16,7 +16,7 @@ import numpy as np
 
 from interpolatepy import InterpolationParams
 from interpolatepy import TrapezoidalTrajectory
-from interpolatepy.trapezoidal import TrajectoryParams
+from interpolatepy.motion.trapezoidal import TrajectoryParams
 
 
 def plot_trajectory(

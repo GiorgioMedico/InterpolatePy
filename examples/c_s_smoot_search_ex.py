@@ -3,7 +3,7 @@ import numpy as np
 
 from interpolatepy import SplineConfig
 from interpolatepy import smoothing_spline_with_tolerance
-from interpolatepy.c_s_smoothing import CubicSmoothingSpline
+from interpolatepy.splines.smoothing import CubicSmoothingSpline
 
 
 def example_prescribed_tolerance() -> list[CubicSmoothingSpline]:

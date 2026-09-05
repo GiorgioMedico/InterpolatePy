@@ -28,7 +28,7 @@ from interpolatepy import LogQuaternionInterpolation
 from interpolatepy import ModifiedLogQuaternionInterpolation
 from interpolatepy import Quaternion
 from interpolatepy import QuaternionSpline
-from interpolatepy.quat_visualization import QuaternionTrajectoryVisualizer
+from interpolatepy.visualization.quaternion import QuaternionTrajectoryVisualizer
 
 
 def create_basic_trajectory() -> tuple[list[float], list[Quaternion]]:

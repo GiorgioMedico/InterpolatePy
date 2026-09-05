@@ -25,9 +25,9 @@ from typing import Any
 import numpy as np
 import pytest
 
-from interpolatepy.frenet_frame import compute_trajectory_frames
-from interpolatepy.simple_paths import CircularPath
-from interpolatepy.simple_paths import LinearPath
+from interpolatepy.paths.frenet import compute_trajectory_frames
+from interpolatepy.paths.geometric import CircularPath
+from interpolatepy.paths.geometric import LinearPath
 
 
 # Type alias for pytest benchmark fixture

@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=80.9.0", "setuptools-scm>=8.0.0", "wheel>=0.45.0"]
-build-backend = "setuptools.build_meta"
+requires = ["scikit-build-core>=1.0,<2", "pybind11>=2.13"]
+build-backend = "scikit_build_core.build"
 
 [project]
 name = "InterpolatePy"
@@ -10,6 +10,7 @@ maintainers = [
 ]
 description = "A comprehensive Python library for generating smooth trajectories and curves with precise control over position, velocity, acceleration, and jerk profiles"
 readme = "README.md"
+version = "3.2.1"
 license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.11"
@@ -44,8 +45,10 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Programming Language :: C++",
 ]
-dependencies = ["numpy>=1.26", "matplotlib>=3.6", "scipy>=1.11"]
-dynamic = ["version"]
+dependencies = ["numpy>=1.26", "scipy>=1.11"]
+
+[project.optional-dependencies]
+plot = ["matplotlib>=3.6"]
 
 [project.urls]
 "Homepage" = "https://github.com/GiorgioMedico/InterpolatePy"
@@ -53,6 +56,7 @@ dynamic = ["version"]
 
 [dependency-groups]
 test = [
+    "matplotlib>=3.6",
     "pytest>=8.4.0",
     "pytest-cov>=4.1.0",
     "codecov>=2.1.13",
@@ -68,6 +72,7 @@ dev = [
     "twine>=4.0.2",
 ]
 docs = [
+    "matplotlib>=3.6",
     "mkdocs>=1.5.3,<2",
     "mkdocs-material>=9.4.8",
     "pymdown-extensions>=10.3.0",
@@ -77,31 +82,58 @@ docs = [
     "Pygments>=2.16.1",
 ]
 examples = [
+    "matplotlib>=3.6",
     "PyQt6>=6.5",
 ]
 
 [tool.uv]
 default-groups = ["dev", "test", "examples"]
 
-[tool.setuptools]
-platforms = ["unix", "linux", "osx", "cygwin", "win32"]
+[tool.scikit-build]
+cmake.source-dir = "cpp"
+cmake.build-type = "Release"
+cmake.args = [
+    "-DINTERPOLATECPP_BUILD_BINDINGS=ON",
+    "-DINTERPOLATECPP_BUILD_EXAMPLES=OFF",
+    "-DINTERPOLATECPP_BUILD_TESTS=OFF",
+]
+install.components = ["python"]
+sdist.include = [
+    "cpp/CMakeLists.txt",
+    "cpp/bindings",
+    "cpp/cmake",
+    "cpp/examples",
+    "cpp/include",
+    "cpp/src",
+    "cpp/tests",
+    "src/interpolatepy/**/*.py",
+    "src/interpolatepy/py.typed",
+]
+sdist.exclude = [
+    "cpp/build",
+    "src/interpolatepy/**/__pycache__/**",
+    "src/interpolatepy/**/*.pyc",
+    "src/interpolatepy/**/*.pyo",
+]
+wheel.packages = ["src/interpolatepy"]
+wheel.reproducible = true
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["interpolatepy*"]
-
-[tool.setuptools.dynamic]
-version = { attr = "interpolatepy.version.__version__" }
+[tool.cibuildwheel]
+build = ["cp311-*", "cp312-*", "cp313-*"]
+build-frontend = "build"
+test-command = "pytest {project}/tests/test_backend.py {project}/tests/test_native_adapter_api.py"
+test-requires = ["pytest>=8.4", "matplotlib>=3.6"]
 
 [tool.pytest.ini_options]
 minversion = "8.4"
-testpaths = "tests"
+addopts = ["--import-mode=importlib", "--strict-config", "--strict-markers"]
+testpaths = ["tests"]
 
 [tool.ruff]
-target-version = "py312"
+target-version = "py311"
 line-length = 120
 preview = true
-extend-exclude = ["docs", "test", "tests"]
+extend-exclude = ["docs"]
 
 [tool.ruff.lint]
 select = ["F", "E"]
@@ -236,6 +268,36 @@ convention = "numpy"
 allow-star-arg-any = false
 ignore-fully-untyped = false
 
+[tool.ruff.lint.per-file-ignores]
+"src/interpolatepy/**/__init__.py" = ["RUF067"]
+"tests/**/*.py" = [
+    "ANN202",
+    "ARG001",
+    "BLE001",
+    "E226",
+    "F401",
+    "F841",
+    "N806",
+    "PLC0415",
+    "PLC2701",
+    "PLR2004",
+    "PLR6201",
+    "PLR6301",
+    "PLW0127",
+    "PLW0128",
+    "PT001",
+    "PT012",
+    "PT013",
+    "PT019",
+    "PT031",
+    "RUF043",
+    "RUF059",
+    "RUF069",
+    "RET504",
+    "SIM108",
+    "SLF001",
+]
+
 # Ruff formatter (replaces black)
 [tool.ruff.format]
 quote-style = "double"
@@ -279,8 +341,18 @@ show_column_numbers = false
 show_error_codes = true
 exclude = ["docs"]
 
+[tool.coverage.run]
+branch = true
+source = ["interpolatepy"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+
 [tool.pyright]
 pythonVersion = "3.12"
+venvPath = "."
+venv = ".venv"
 typeCheckingMode = "basic"
 reportDuplicateImport = true
 reportInvalidStubStatement = true

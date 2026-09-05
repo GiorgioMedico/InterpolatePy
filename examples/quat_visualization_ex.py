@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from interpolatepy import Quaternion
 from interpolatepy import QuaternionSpline
-from interpolatepy.quat_visualization import QuaternionTrajectoryVisualizer
+from interpolatepy.visualization.quaternion import QuaternionTrajectoryVisualizer
 
 
 def create_waypoint_trajectory() -> tuple[list[float], list[Quaternion]]:

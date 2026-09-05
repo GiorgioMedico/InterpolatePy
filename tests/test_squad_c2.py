@@ -17,8 +17,9 @@ The tests verify:
 import numpy as np
 import pytest
 
-from interpolatepy.squad_c2 import SquadC2, SquadC2Config
-from interpolatepy.quat_core import Quaternion
+from interpolatepy.quaternion.core import Quaternion
+from interpolatepy.quaternion.squad import SquadC2
+from interpolatepy.quaternion.squad import SquadC2Config
 
 
 class TestSquadC2BasicFunctionality:
@@ -655,4 +656,3 @@ class TestSquadC2Utilities:
 if __name__ == "__main__":
     # Run tests with detailed output
     pytest.main(["-xvs", __file__])
-

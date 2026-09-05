@@ -20,8 +20,8 @@ from typing import Any
 import numpy as np
 import pytest
 
-from interpolatepy.quat_core import Quaternion
-from interpolatepy.quat_spline import QuaternionSpline
+from interpolatepy.quaternion.core import Quaternion
+from interpolatepy.quaternion.spline import QuaternionSpline
 
 
 # Type alias for pytest benchmark fixture

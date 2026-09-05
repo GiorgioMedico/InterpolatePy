@@ -652,11 +652,16 @@ wheels = [
 
 [[package]]
 name = "interpolatepy"
+version = "3.2.1"
 source = { editable = "." }
 dependencies = [
-    { name = "matplotlib" },
     { name = "numpy" },
     { name = "scipy" },
+]
+
+[package.optional-dependencies]
+plot = [
+    { name = "matplotlib" },
 ]
 
 [package.dev-dependencies]
@@ -669,6 +674,7 @@ dev = [
     { name = "twine" },
 ]
 docs = [
+    { name = "matplotlib" },
     { name = "mkdocs" },
     { name = "mkdocs-autorefs" },
     { name = "mkdocs-material" },
@@ -678,10 +684,12 @@ docs = [
     { name = "pymdown-extensions" },
 ]
 examples = [
+    { name = "matplotlib" },
     { name = "pyqt6" },
 ]
 test = [
     { name = "codecov" },
+    { name = "matplotlib" },
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-benchmark" },
@@ -690,10 +698,11 @@ test = [
 
 [package.metadata]
 requires-dist = [
-    { name = "matplotlib", specifier = ">=3.6" },
+    { name = "matplotlib", marker = "extra == 'plot'", specifier = ">=3.6" },
     { name = "numpy", specifier = ">=1.26" },
     { name = "scipy", specifier = ">=1.11" },
 ]
+provides-extras = ["plot"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -705,6 +714,7 @@ dev = [
     { name = "twine", specifier = ">=4.0.2" },
 ]
 docs = [
+    { name = "matplotlib", specifier = ">=3.6" },
     { name = "mkdocs", specifier = ">=1.5.3,<2" },
     { name = "mkdocs-autorefs", specifier = ">=0.5.0" },
     { name = "mkdocs-material", specifier = ">=9.4.8" },
@@ -713,9 +723,13 @@ docs = [
     { name = "pygments", specifier = ">=2.16.1" },
     { name = "pymdown-extensions", specifier = ">=10.3.0" },
 ]
-examples = [{ name = "pyqt6", specifier = ">=6.5" }]
+examples = [
+    { name = "matplotlib", specifier = ">=3.6" },
+    { name = "pyqt6", specifier = ">=6.5" },
+]
 test = [
     { name = "codecov", specifier = ">=2.1.13" },
+    { name = "matplotlib", specifier = ">=3.6" },
     { name = "pre-commit", specifier = ">=4.2.0" },
     { name = "pytest", specifier = ">=8.4.0" },
     { name = "pytest-benchmark", specifier = ">=4.0.0" },

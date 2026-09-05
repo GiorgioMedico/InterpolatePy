@@ -25,7 +25,7 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 
-from interpolatepy.lin_poly_parabolic import ParabolicBlendTrajectory
+from interpolatepy.motion.parabolic import ParabolicBlendTrajectory
 
 
 # Type alias for pytest benchmark fixture

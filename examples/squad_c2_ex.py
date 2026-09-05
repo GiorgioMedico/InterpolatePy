@@ -18,7 +18,7 @@ import numpy as np
 from interpolatepy import Quaternion
 from interpolatepy import QuaternionSpline
 from interpolatepy import SquadC2
-from interpolatepy.quat_visualization import QuaternionTrajectoryVisualizer
+from interpolatepy.visualization.quaternion import QuaternionTrajectoryVisualizer
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray

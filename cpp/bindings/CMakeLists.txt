@@ -22,5 +22,6 @@ target_link_libraries(interpolatecpp_py
 )
 
 install(TARGETS interpolatecpp_py
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION interpolatepy COMPONENT python
+    RUNTIME DESTINATION interpolatepy COMPONENT python
 )

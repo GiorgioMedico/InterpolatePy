@@ -1,6 +1,5 @@
 """Tests for C++ backend detection and switching."""
 
-# ruff: noqa: PLC0415
 from __future__ import annotations
 
 import os
@@ -79,7 +78,7 @@ class TestCppClassTypes:
         """Quaternion should always be the pure-Python class."""
         import interpolatepy
 
-        assert "quat_core" in str(interpolatepy.Quaternion)
+        assert ".quaternion.core" in str(interpolatepy.Quaternion)
 
 
 class TestNumericalEquivalence:
@@ -97,7 +96,7 @@ class TestNumericalEquivalence:
         self, t_points: list[float], q_points: list[float]
     ) -> None:
         """C++ and Python CubicSpline should produce identical results."""
-        from interpolatepy.cubic_spline import CubicSpline as PyCubicSpline
+        from interpolatepy.splines.cubic import CubicSpline as PyCubicSpline
 
         import interpolatepy
 
@@ -126,9 +125,9 @@ class TestNumericalEquivalence:
 
     def test_double_s_evaluate_matches(self) -> None:
         """C++ and Python DoubleSTrajectory should produce matching results."""
-        from interpolatepy.double_s import DoubleSTrajectory as PyDoubleSTrajectory
-        from interpolatepy.double_s import StateParams as PyStateParams
-        from interpolatepy.double_s import TrajectoryBounds as PyTrajectoryBounds
+        from interpolatepy.motion.double_s import DoubleSTrajectory as PyDoubleSTrajectory
+        from interpolatepy.motion.double_s import StateParams as PyStateParams
+        from interpolatepy.motion.double_s import TrajectoryBounds as PyTrajectoryBounds
 
         import interpolatepy
 

@@ -12,9 +12,9 @@ from collections.abc import Callable
 import matplotlib.pyplot as plt
 import numpy as np
 
-from interpolatepy.polynomials import ORDER_3
-from interpolatepy.polynomials import ORDER_5
-from interpolatepy.polynomials import ORDER_7
+from interpolatepy.motion.polynomial import ORDER_3
+from interpolatepy.motion.polynomial import ORDER_5
+from interpolatepy.motion.polynomial import ORDER_7
 from interpolatepy import BoundaryCondition
 from interpolatepy import PolynomialTrajectory
 from interpolatepy import TimeInterval

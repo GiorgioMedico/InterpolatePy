@@ -23,13 +23,13 @@ from typing import Any
 import numpy as np
 import pytest
 
-from interpolatepy.double_s import DoubleSTrajectory
-from interpolatepy.double_s import StateParams
-from interpolatepy.double_s import TrajectoryBounds
-from interpolatepy.trapezoidal import CalculationParams
-from interpolatepy.trapezoidal import InterpolationParams
-from interpolatepy.trapezoidal import TrajectoryParams
-from interpolatepy.trapezoidal import TrapezoidalTrajectory
+from interpolatepy.motion.double_s import DoubleSTrajectory
+from interpolatepy.motion.double_s import StateParams
+from interpolatepy.motion.double_s import TrajectoryBounds
+from interpolatepy.motion.trapezoidal import CalculationParams
+from interpolatepy.motion.trapezoidal import InterpolationParams
+from interpolatepy.motion.trapezoidal import TrajectoryParams
+from interpolatepy.motion.trapezoidal import TrapezoidalTrajectory
 
 
 # Type alias for pytest benchmark fixture
@@ -72,7 +72,7 @@ class TestTrajectoryBounds:
     def test_bounds_validation_non_numeric(self) -> None:
         """Test that non-numeric bounds raise TypeError."""
         with pytest.raises(TypeError, match="All bounds must be numeric values"):
-            TrajectoryBounds(v_bound=1.0, a_bound="invalid", j_bound=0.5)  # type: ignore
+            TrajectoryBounds(v_bound=1.0, a_bound="invalid", j_bound=0.5)
 
 
 class TestStateParams:
@@ -92,7 +92,7 @@ class TestStateParams:
         params = StateParams(q_0=0.0, q_1=10.0, v_0=0.0, v_1=0.0)
 
         with pytest.raises(AttributeError):
-            params.q_0 = 5.0  # type: ignore
+            params.q_0 = 5.0
 
 
 class TestDoubleSTrajectoryConstruction:
@@ -113,7 +113,7 @@ class TestDoubleSTrajectoryConstruction:
         bounds = TrajectoryBounds(v_bound=2.0, a_bound=1.0, j_bound=0.5)
 
         with pytest.raises(TypeError, match="All state parameters must be numeric values"):
-            invalid_params = StateParams(q_0=1.0, q_1="invalid", v_0=0.0, v_1=0.0)  # type: ignore
+            invalid_params = StateParams(q_0=1.0, q_1="invalid", v_0=0.0, v_1=0.0)
             DoubleSTrajectory(invalid_params, bounds)
 
     def test_construction_with_various_states(self) -> None:
