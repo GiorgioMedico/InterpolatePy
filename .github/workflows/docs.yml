@@ -8,7 +8,7 @@ on:
       - 'ALGORITHMS.md'
       - 'docs/**'
       - 'mkdocs.yml'
-      - 'interpolatepy/**/*.py'  # Only Python files for API docs
+      - 'src/interpolatepy/**/*.py'  # Only Python files for API docs
       - 'scripts/check_doc_snippets.py'
       - 'pyproject.toml'
       - 'uv.lock'
@@ -20,7 +20,7 @@ on:
       - 'ALGORITHMS.md'
       - 'docs/**'
       - 'mkdocs.yml'
-      - 'interpolatepy/**/*.py'
+      - 'src/interpolatepy/**/*.py'
       - 'scripts/check_doc_snippets.py'
       - 'pyproject.toml'
       - 'uv.lock'
@@ -52,16 +52,20 @@ jobs:
         cache-dependency-glob: uv.lock
 
     - name: Sync dependencies
-      run: uv sync --locked --no-default-groups --group docs
+      run: uv sync --locked --no-default-groups --group docs --no-install-project
 
     - name: Check documentation snippets
       env:
         INTERPOLATEPY_NO_CPP: '1'
         MPLBACKEND: Agg
-      run: uv run python -m scripts.check_doc_snippets
+        PYTHONPATH: src
+      run: uv run --no-sync python -m scripts.check_doc_snippets
 
     - name: Build documentation
-      run: uv run mkdocs build --clean --strict
+      env:
+        INTERPOLATEPY_NO_CPP: '1'
+        PYTHONPATH: src
+      run: uv run --no-sync mkdocs build --clean --strict
 
     - name: Setup Pages
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'

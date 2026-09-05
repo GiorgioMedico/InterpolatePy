@@ -14,6 +14,8 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         python-version: ['3.11', '3.12', '3.13']
     env:
+      INTERPOLATEPY_NO_CPP: '1'
+      PYTHONPATH: src
       UV_PYTHON: ${{ matrix.python-version }}
     steps:
       - uses: actions/checkout@v6
@@ -23,9 +25,9 @@ jobs:
           enable-cache: true
           cache-dependency-glob: uv.lock
       - name: Sync dependencies
-        run: uv sync --locked --no-default-groups --group test
+        run: uv sync --locked --no-default-groups --group test --no-install-project
       - name: Testing with coverage
-        run: uv run pytest tests --cov=interpolatepy --cov-report=xml --cov-report=term-missing
+        run: uv run --no-sync pytest tests --cov=interpolatepy --cov-report=xml --cov-report=term-missing
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v6
         with:
@@ -38,6 +40,7 @@ jobs:
   python-examples:
     runs-on: ubuntu-latest
     env:
+      PYTHONPATH: src
       UV_PYTHON: '3.12'
     steps:
       - uses: actions/checkout@v6
@@ -47,13 +50,14 @@ jobs:
           enable-cache: true
           cache-dependency-glob: uv.lock
       - name: Sync dependencies
-        run: uv sync --locked --no-default-groups --group test
+        run: uv sync --locked --no-default-groups --group test --no-install-project
       - name: Run Python examples with the fallback backend
-        run: uv run python -m scripts.check_python_examples --backend python
+        run: uv run --no-sync python -m scripts.check_python_examples --backend python
 
   native:
     runs-on: ubuntu-latest
     env:
+      PYTHONPATH: src
       UV_PYTHON: '3.12'
     steps:
       - uses: actions/checkout@v6
@@ -63,25 +67,25 @@ jobs:
           enable-cache: true
           cache-dependency-glob: uv.lock
       - name: Sync dependencies
-        run: uv sync --locked --no-default-groups --group test
+        run: uv sync --locked --no-default-groups --group test --no-install-project
       - name: Configure C++ tests, examples, and Python bindings
         run: |
           cmake -S cpp -B build/cpp \
             -DINTERPOLATECPP_BUILD_TESTS=ON \
             -DINTERPOLATECPP_BUILD_EXAMPLES=ON \
             -DINTERPOLATECPP_BUILD_BINDINGS=ON \
-            -DPython_EXECUTABLE=$(uv run python -c 'import sys; print(sys.executable)')
+            -DPython_EXECUTABLE=$(uv run --no-sync python -c 'import sys; print(sys.executable)')
       - name: Build native targets
         run: cmake --build build/cpp --parallel 4
       - name: Run C++ tests and examples
         run: ctest --test-dir build/cpp --output-on-failure
       - name: Activate the native Python backend
-        run: cp build/cpp/bindings/interpolatecpp_py*.so interpolatepy/
+        run: cp build/cpp/bindings/interpolatecpp_py*.so src/interpolatepy/
       - name: Run native adapter regressions
-        run: uv run pytest tests/test_backend.py tests/test_native_adapter_api.py
+        run: uv run --no-sync pytest tests/test_backend.py tests/test_native_adapter_api.py
       - name: Run documentation snippets with the native backend
         env:
           MPLBACKEND: Agg
-        run: uv run python -m scripts.check_doc_snippets
+        run: uv run --no-sync python -m scripts.check_doc_snippets
       - name: Run Python examples with the native backend
-        run: uv run python -m scripts.check_python_examples --backend native
+        run: uv run --no-sync python -m scripts.check_python_examples --backend native
