@@ -19,15 +19,12 @@ _ROUTED = {
     "LogQuaternionInterpolation",
     "ModifiedLogQuaternionInterpolation",
     "QuaternionSpline",
+    "SpringQuaternionInterpolation",
     "SquadC2",
 }
 _LOCAL = {
     "Quaternion": ("interpolatepy.quaternion.core", "Quaternion"),
     "SpringConfig": ("interpolatepy.quaternion.spring", "SpringConfig"),
-    "SpringQuaternionInterpolation": (
-        "interpolatepy.quaternion.spring",
-        "SpringQuaternionInterpolation",
-    ),
     "SquadC2Config": ("interpolatepy.quaternion.squad", "SquadC2Config"),
 }
 __all__ = [

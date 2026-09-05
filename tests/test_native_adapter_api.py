@@ -107,10 +107,7 @@ def test_motion_and_path_helper_return_types() -> None:
 
 def test_quaternion_compatibility_helpers() -> None:
     times = [0.0, 1.0, 2.0, 3.0]
-    quaternions = [
-        ip.Quaternion.from_angle_axis(angle, np.array([0.0, 0.0, 1.0]))
-        for angle in (0.0, 0.4, 0.9, 1.3)
-    ]
+    quaternions = [ip.Quaternion.from_angle_axis(angle, np.array([0.0, 0.0, 1.0])) for angle in (0.0, 0.4, 0.9, 1.3)]
     spline = ip.QuaternionSpline(times, quaternions, interpolation_method="squad")
     interpolated, status = spline.interpolate_at_time(1.5)
     assert isinstance(interpolated, ip.Quaternion)
@@ -125,3 +122,56 @@ def test_quaternion_compatibility_helpers() -> None:
     assert logarithmic.degree == 3
     assert sample_times.shape == (5,)
     assert len(samples) == 5
+
+
+def test_spring_native_adapter_matches_python_reference() -> None:
+    from interpolatepy.quaternion.spring import (
+        SpringQuaternionInterpolation as PythonSpringQuaternionInterpolation,
+    )
+
+    times = [0.0, 1.0, 2.0, 3.0]
+    quaternions = [
+        ip.Quaternion.identity(),
+        ip.Quaternion.from_euler_angles(0.9, 0.1, 0.2),
+        ip.Quaternion.from_euler_angles(0.2, 1.1, 0.5),
+        ip.Quaternion.from_euler_angles(-0.4, 0.3, 1.4),
+    ]
+    config = ip.SpringConfig(num_samples=41, iterations=150)
+    native = ip.SpringQuaternionInterpolation(times, quaternions, config)
+    reference = PythonSpringQuaternionInterpolation(times, quaternions, config)
+
+    assert type(native) is not PythonSpringQuaternionInterpolation
+    assert np.array_equal(native.sample_times, reference.sample_times)
+    assert np.array_equal(native.keyframe_indices, reference.keyframe_indices)
+    assert native.refinement_sample_counts == reference.refinement_sample_counts
+    assert len(native.stage_energy_history) == len(reference.stage_energy_history)
+    assert native.energy_history is native.stage_energy_history[-1]
+    assert np.isclose(native.initial_energy, reference.initial_energy, rtol=1e-11)
+    assert np.isclose(native.final_energy, reference.final_energy, rtol=1e-9)
+    for native_history, reference_history in zip(
+        native.stage_energy_history,
+        reference.stage_energy_history,
+    ):
+        assert np.allclose(native_history, reference_history, rtol=1e-8, atol=1e-12)
+
+    for time in np.linspace(times[0], times[-1], 21):
+        native_value = native.evaluate(float(time))
+        reference_value = reference.evaluate(float(time))
+        assert abs(native_value.dot_product(reference_value)) > 1.0 - 1e-8
+        assert np.allclose(
+            native.evaluate_velocity(float(time)),
+            reference.evaluate_velocity(float(time)),
+            rtol=1e-7,
+            atol=1e-8,
+        )
+        assert np.allclose(
+            native.evaluate_acceleration(float(time)),
+            reference.evaluate_acceleration(float(time)),
+            rtol=1e-6,
+            atol=1e-7,
+        )
+
+    sample_times, samples = native.generate_trajectory(17)
+    assert sample_times.shape == (17,)
+    assert len(samples) == 17
+    assert all(isinstance(sample, ip.Quaternion) for sample in samples)

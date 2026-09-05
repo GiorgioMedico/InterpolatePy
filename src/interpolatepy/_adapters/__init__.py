@@ -38,6 +38,7 @@ from ._quaternion import (
     QuaternionSpline,
     SquadC2,
 )
+from ._quaternion_spring import SpringQuaternionInterpolation
 
 # ── Path adapters ────────────────────────────────────────────────────
 from ._paths import (
@@ -84,6 +85,7 @@ __all__ = [
     "SmoothingCubicBSpline",
     "SplineConfig",
     "SplineParameters",
+    "SpringQuaternionInterpolation",
     "SquadC2",
     "StateParams",
     "TimeInterval",

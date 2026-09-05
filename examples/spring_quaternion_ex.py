@@ -178,7 +178,7 @@ def benchmark_methods(
 def print_timing_table(timings: dict[str, TimingResult]) -> None:
     """Print aligned median construction and evaluation timings."""
     backend = "native adapters where available" if HAS_CPP else "pure Python"
-    print(f"Active backend: {backend}; SPRING is always Python")
+    print(f"Active backend: {backend}")
     print(f"Median of {TIMING_REPEATS} repeats; evaluation batch: {TIMING_SAMPLES} samples")
     print(f"{'Method':<18} {'construct (ms)':>15} {'batch (ms)':>13} {'us/sample':>12}")
     for name, result in timings.items():

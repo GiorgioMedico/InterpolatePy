@@ -38,7 +38,7 @@ concept GeometricPath = requires(const T& path, double s, const Eigen::VectorXd&
 };
 
 /// Concept for quaternion-valued trajectory evaluation.
-/// Conforming types: SquadC2, LogQuaternionInterpolation (Phase 4)
+/// Conforming types: QuaternionSpline, SquadC2, SPRING, and logarithmic variants.
 template <typename T>
 concept QuaternionTrajectory = requires(const T& traj, double t) {
     { traj.evaluate(t) } -> std::convertible_to<Eigen::Quaterniond>;

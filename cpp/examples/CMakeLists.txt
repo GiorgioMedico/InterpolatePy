@@ -16,6 +16,7 @@ set(EXAMPLE_SOURCES
     parabolic_linear_example.cpp
     # Phase 4: Quaternion
     quaternion_example.cpp
+    spring_quaternion_example.cpp
     # Phase 5: Paths & Concepts
     paths_example.cpp
     concepts_example.cpp

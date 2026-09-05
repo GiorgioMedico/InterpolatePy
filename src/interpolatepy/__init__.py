@@ -36,6 +36,7 @@ from ._api import (
     SmoothingCubicBSpline,
     SplineConfig,
     SplineParameters,
+    SpringQuaternionInterpolation,
     SquadC2,
     StateParams,
     TimeInterval,
@@ -49,7 +50,7 @@ from ._api import (
     solve_tridiagonal,
 )
 
-# ── Always pure-Python (no C++ equivalent) ───────────────────────────
+# ── Python-native value objects and helpers ──────────────────────────
 from .motion import CalculationParams
 from .motion import InterpolationParams
 from .motion import PolynomialTrajectoryParams
@@ -58,7 +59,6 @@ from .motion import TrapezoidalTrajectoryParams
 from .paths import plot_frames
 from .quaternion import Quaternion
 from .quaternion import SpringConfig
-from .quaternion import SpringQuaternionInterpolation
 
 # Protocols
 from .protocols import CurveEvaluator

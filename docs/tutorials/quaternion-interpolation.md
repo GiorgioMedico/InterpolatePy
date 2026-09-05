@@ -230,6 +230,9 @@ solver refines a coarse curve approximately fivefold at each level. Every
 optimized coarse frame is held fixed at the next level, following the report's
 multi-step procedure. Set `refinement_levels=1` for a one-stage solve.
 
+The compiled extension runs SPRING in C++ automatically when `HAS_CPP` is
+true. Set `INTERPOLATEPY_NO_CPP=1` to select the NumPy reference implementation.
+
 `refinement_sample_counts` and `stage_energy_history` are immutable tuples for
 inspecting convergence. `energy_history` is the final-stage history, while
 `initial_energy` and `final_energy` compare the original piecewise-SLERP curve

@@ -6,6 +6,7 @@
 #include <interpolatecpp/quat/modified_log_quaternion_interpolation.hpp>
 #include <interpolatecpp/quat/quaternion.hpp>
 #include <interpolatecpp/quat/quaternion_spline.hpp>
+#include <interpolatecpp/quat/spring_quaternion_interpolation.hpp>
 #include <interpolatecpp/quat/squad_c2.hpp>
 
 namespace py = pybind11;
@@ -105,6 +106,53 @@ void bind_quaternion(py::module_& m) {
         .def_property_readonly("t_min", &SquadC2::t_min)
         .def_property_readonly("t_max", &SquadC2::t_max)
         .def_property_readonly("validate_continuity", &SquadC2::validate_continuity);
+
+    // SpringConfig
+    py::class_<SpringConfig>(quat_mod, "SpringConfig")
+        .def(py::init<>())
+        .def_readwrite("num_samples", &SpringConfig::num_samples)
+        .def_readwrite("iterations", &SpringConfig::iterations)
+        .def_readwrite("refinement_levels", &SpringConfig::refinement_levels)
+        .def_readwrite("step_size", &SpringConfig::step_size)
+        .def_readwrite("norm_penalty", &SpringConfig::norm_penalty)
+        .def_readwrite("keyframe_curvature_weight",
+                       &SpringConfig::keyframe_curvature_weight)
+        .def_readwrite("tolerance", &SpringConfig::tolerance);
+
+    // SpringQuaternionInterpolation
+    py::class_<SpringQuaternionInterpolation>(quat_mod,
+                                               "SpringQuaternionInterpolation")
+        .def(py::init<const std::vector<double>&,
+                      const std::vector<Quaternion>&, SpringConfig>(),
+             py::arg("time_points"), py::arg("quaternions"),
+             py::arg("config") = SpringConfig{},
+             py::call_guard<py::gil_scoped_release>())
+        .def("evaluate", &SpringQuaternionInterpolation::evaluate, py::arg("t"))
+        .def("evaluate_velocity",
+             &SpringQuaternionInterpolation::evaluate_velocity, py::arg("t"))
+        .def("evaluate_acceleration",
+             &SpringQuaternionInterpolation::evaluate_acceleration, py::arg("t"))
+        .def("generate_trajectory",
+             &SpringQuaternionInterpolation::generate_trajectory,
+             py::arg("num_points") = 100)
+        .def("get_time_points", &SpringQuaternionInterpolation::time_points)
+        .def("get_quaternions", &SpringQuaternionInterpolation::quaternions)
+        .def("get_sample_times", &SpringQuaternionInterpolation::sample_times)
+        .def("get_samples", &SpringQuaternionInterpolation::samples)
+        .def("get_keyframe_indices",
+             &SpringQuaternionInterpolation::keyframe_indices)
+        .def("get_refinement_sample_counts",
+             &SpringQuaternionInterpolation::refinement_sample_counts)
+        .def("get_stage_energy_history",
+             &SpringQuaternionInterpolation::stage_energy_history)
+        .def_property_readonly("initial_energy",
+                               &SpringQuaternionInterpolation::initial_energy)
+        .def_property_readonly("final_energy",
+                               &SpringQuaternionInterpolation::final_energy)
+        .def_property_readonly("iterations_run",
+                               &SpringQuaternionInterpolation::iterations_run)
+        .def_property_readonly("t_min", &SpringQuaternionInterpolation::t_min)
+        .def_property_readonly("t_max", &SpringQuaternionInterpolation::t_max);
 
     // LogQuaternionInterpolation
     py::class_<LogQuaternionInterpolation>(quat_mod, "LogQuaternionInterpolation")

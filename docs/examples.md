@@ -110,7 +110,7 @@ The generated executables correspond to the files under `cpp/examples/`:
 - cubic, smoothing, and acceleration-constrained splines;
 - base, interpolation, approximation, and smoothing B-splines;
 - trapezoidal, polynomial, Double-S, and parabolic-blend motion;
-- quaternion interpolation;
+- quaternion interpolation, including a native SPRING timing example;
 - paths and C++20 concepts.
 
 Their exact output directory depends on the CMake generator and build

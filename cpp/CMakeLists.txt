@@ -95,6 +95,8 @@ set(INTERPOLATECPP_SOURCES
     src/quaternion.cpp
     src/quaternion_spline.cpp
     src/squad_c2.cpp
+    src/spring_quaternion_interpolation.cpp
+    src/spring_solver.cpp
     src/log_quaternion_interpolation.cpp
     src/modified_log_quaternion_interpolation.cpp
     # Phase 5: Path

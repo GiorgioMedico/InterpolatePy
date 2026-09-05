@@ -40,6 +40,7 @@ if HAS_CPP:
         LinearPath,
         # Quaternion
         QuaternionSpline,
+        SpringQuaternionInterpolation,
         SquadC2,
         LogQuaternionInterpolation,
         ModifiedLogQuaternionInterpolation,
@@ -88,6 +89,7 @@ else:
     from .quaternion.logarithmic import LogQuaternionInterpolation  # type: ignore[assignment]
     from .quaternion.logarithmic import ModifiedLogQuaternionInterpolation  # type: ignore[assignment]
     from .quaternion.spline import QuaternionSpline  # type: ignore[assignment]
+    from .quaternion.spring import SpringQuaternionInterpolation  # type: ignore[assignment]
     from .quaternion.squad import SquadC2  # type: ignore[assignment]
 
     # Free functions
@@ -119,6 +121,7 @@ __all__ = [
     "SmoothingCubicBSpline",
     "SplineConfig",
     "SplineParameters",
+    "SpringQuaternionInterpolation",
     "SquadC2",
     "StateParams",
     "TimeInterval",
