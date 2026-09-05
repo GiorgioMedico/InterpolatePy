@@ -72,7 +72,7 @@ top-level polynomial configuration with the same name.
 import numpy as np
 
 from interpolatepy import TrapezoidalTrajectory
-from interpolatepy.trapezoidal import TrajectoryParams
+from interpolatepy.motion.trapezoidal import TrajectoryParams
 
 params = TrajectoryParams(
     q0=0.0,
@@ -96,7 +96,7 @@ For a fixed feasible duration, provide `duration` and `amax` instead of `vmax`:
 
 ```python
 from interpolatepy import TrapezoidalTrajectory
-from interpolatepy.trapezoidal import TrajectoryParams
+from interpolatepy.motion.trapezoidal import TrajectoryParams
 
 params = TrajectoryParams(
     q0=0.0,

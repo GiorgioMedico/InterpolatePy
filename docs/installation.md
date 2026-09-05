@@ -9,10 +9,10 @@ The Python package declares these runtime requirements in `pyproject.toml`:
 | Python | 3.11 |
 | NumPy | 1.26 |
 | SciPy | 1.11 |
-| Matplotlib | 3.6 |
 
-The normal installation uses the pure-Python implementation and does not need a
-C++ compiler.
+Matplotlib 3.6 or newer is optional and used only by plotting helpers. Published
+platform wheels include the native extension and do not need a C++ compiler at
+installation time.
 
 ## Install from PyPI
 
@@ -43,7 +43,9 @@ Verify the interpreter, package version, and active backend:
 python -c "import interpolatepy as ip; print(ip.__version__, ip.HAS_CPP)"
 ```
 
-`HAS_CPP=False` is normal for a standard Python installation.
+Install plotting support with `python -m pip install "InterpolatePy[plot]"`.
+`HAS_CPP=False` means a compatible native wheel was unavailable or the backend
+was explicitly disabled; the Python implementation remains functional.
 
 ## Development checkout
 
@@ -75,7 +77,8 @@ Useful verification commands are:
 ```bash
 uv run pytest
 uv run ruff check .
-uv run mypy interpolatepy
+uv run mypy src/interpolatepy
+uv run pyright src/interpolatepy
 uv run mkdocs build --clean --strict
 ```
 
@@ -104,12 +107,12 @@ cmake --build build/cpp --parallel
 On Linux or macOS, copy the produced extension beside `_backend.py`:
 
 ```bash
-cp build/cpp/bindings/interpolatecpp_py*.so interpolatepy/
+cp build/cpp/bindings/interpolatecpp_py*.so src/interpolatepy/
 python -c "import interpolatepy as ip; print(ip.HAS_CPP)"
 ```
 
 On Windows, copy the generated `interpolatecpp_py*.pyd` from the selected CMake
-configuration into `interpolatepy/`. Multi-configuration generators usually
+configuration into `src/interpolatepy/`. Multi-configuration generators usually
 place it under a `Debug` or `Release` subdirectory.
 
 The extension filename must retain its Python ABI suffix. `_backend.py` imports

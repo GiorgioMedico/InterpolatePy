@@ -85,7 +85,7 @@ Use the repository checker to run every script in its own process:
 uv run python -m scripts.check_python_examples --backend python
 ```
 
-After building and copying the native extension into `interpolatepy/`, replace
+After building and copying the native extension into `src/interpolatepy/`, replace
 `python` with `native` to verify the adapter-backed API. The checker fails if
 native mode is requested but `HAS_CPP` is false.
 

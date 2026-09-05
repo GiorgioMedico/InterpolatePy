@@ -21,7 +21,11 @@ python -m pip install InterpolatePy
 ```
 
 InterpolatePy 3.2.1 requires Python 3.11 or newer, NumPy 1.26 or newer,
-SciPy 1.11 or newer, and Matplotlib 3.6 or newer.
+and SciPy 1.11 or newer. Install plotting support when needed:
+
+```bash
+python -m pip install "InterpolatePy[plot]"
+```
 
 ## Quick start
 
@@ -76,7 +80,8 @@ See the [algorithm selection guide](ALGORITHMS.md), the
 
 ## Optional C++ backend
 
-The package falls back to Python automatically when the extension is absent:
+Platform wheels include the compiled backend. The package falls back to Python
+automatically when the extension is absent:
 
 ```python
 import interpolatepy
@@ -85,9 +90,9 @@ print(interpolatepy.HAS_CPP)
 ```
 
 Set `INTERPOLATEPY_NO_CPP=1` before importing the package to force the Python
-implementation. The standard Python package does not need a compiler. Building
-the native library or Python extension from a source checkout requires CMake
-3.21+, a C++20 compiler, and network access for CMake's fetched dependencies;
+implementation. Installing a published wheel does not need a compiler. Building
+from a source distribution or source checkout requires CMake 3.21+, a C++20
+compiler, and network access for CMake's fetched dependencies;
 see the [installation guide](docs/installation.md#optional-c-backend).
 
 ## Development

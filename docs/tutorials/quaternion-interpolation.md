@@ -141,7 +141,7 @@ angular kinematics:
 import numpy as np
 
 from interpolatepy import Quaternion
-from interpolatepy.log_quat import LogQuaternionInterpolation
+from interpolatepy.quaternion.logarithmic import LogQuaternionInterpolation
 
 times = [0.0, 1.0, 2.0]
 orientations = [

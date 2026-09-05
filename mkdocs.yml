@@ -159,4 +159,4 @@ nav:
     - Changelog: changelog.md
 
 watch:
-  - interpolatepy/
+  - src/interpolatepy/

@@ -15,6 +15,23 @@ these objects from `interpolatepy` unless a module-qualified exception is shown.
 `interpolatepy.__version__` contains the installed version and
 `interpolatepy.HAS_CPP` reports backend selection.
 
+## Organized imports
+
+The package root remains the shortest stable API. Domain-oriented namespaces
+provide the same backend selection when grouped imports make application code
+clearer:
+
+```python
+from interpolatepy.bsplines import BSpline
+from interpolatepy.motion import DoubleSTrajectory
+from interpolatepy.paths import LinearPath
+from interpolatepy.quaternion import QuaternionSpline
+from interpolatepy.splines import CubicSpline
+```
+
+Concrete modules such as `interpolatepy.splines.cubic` contain the Python
+implementations and intentionally bypass native-backend selection.
+
 ## Scalar splines
 
 ### CubicSpline
@@ -118,7 +135,7 @@ acceleration, jerk)`.
 The trapezoidal configuration type is module-qualified because the package-root
 `TrajectoryParams` name belongs to polynomial trajectories:
 
-::: interpolatepy.trapezoidal.TrajectoryParams
+::: interpolatepy.motion.trapezoidal.TrajectoryParams
 
 ::: interpolatepy.CalculationParams
 

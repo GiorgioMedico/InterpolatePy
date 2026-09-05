@@ -14,13 +14,15 @@ flowchart TD
     Extension --> Library[interpolatecpp C++20 library]
 ```
 
-Application code should normally depend only on the package exports. The
-implementation modules remain importable for development and debugging, but a
-direct implementation import bypasses backend selection.
+Application code should normally use the package root or the grouped
+`splines`, `bsplines`, `motion`, `quaternion`, and `paths` namespaces. Both
+surfaces are backend-aware. Concrete implementation modules remain importable
+for development and debugging, but a direct implementation import bypasses
+backend selection.
 
 ## Backend detection
 
-`interpolatepy/_backend.py` runs once during package import:
+`src/interpolatepy/_backend.py` runs once during package import:
 
 1. if `INTERPOLATEPY_NO_CPP` is nonempty, native loading is skipped;
 2. otherwise it imports `.interpolatecpp_py` relative to the package;
@@ -40,13 +42,15 @@ not loaded.
 
 ## Public import routing
 
-`interpolatepy/__init__.py` exposes version and backend information, imports the
+`src/interpolatepy/__init__.py` exposes version and backend information, imports the
 backend-routed algorithms from `_api.py`, and exports the always-Python
 `Quaternion`, plotting helper, configuration classes, and runtime-checkable
 protocols.
 
 `_api.py` has two explicit branches. This makes the resolved class stable for
-the life of the process and avoids conditional checks in every evaluation.
+the life of the process and avoids conditional checks in every evaluation. The
+domain package initializers resolve their public names lazily through the same
+router, so grouped and package-root imports always select the same backend.
 
 The top-level export list in `interpolatepy.__all__` is the compatibility
 boundary. New public APIs must be wired through:
@@ -54,13 +58,13 @@ boundary. New public APIs must be wired through:
 1. the Python implementation;
 2. the C++ binding and adapter when a native equivalent exists;
 3. both branches of `_api.py`;
-4. `interpolatepy/__init__.py` and its `__all__` list;
+4. `src/interpolatepy/__init__.py` and its `__all__` list;
 5. tests and the API reference.
 
 ## Adapter layer
 
 The pybind11 classes are fast but do not always present Python-native input and
-output behavior. Files under `interpolatepy/_adapters/` handle differences such
+output behavior. Files under `src/interpolatepy/_adapters/` handle differences such
 as:
 
 - accepting lists and NumPy arrays consistently;
@@ -81,12 +85,17 @@ on those helpers.
 ## Source layout
 
 ```text
-interpolatepy/
+src/interpolatepy/
   __init__.py             public namespace
   _backend.py             extension detection
   _api.py                 backend routing
   _adapters/              Python-facing native wrappers
-  *.py                    Python algorithms and utilities
+  splines/                scalar spline algorithms
+  bsplines/               parametric B-spline algorithms
+  motion/                 motion profiles and polynomials
+  quaternion/             rotation primitives and interpolation
+  paths/                  geometric paths and moving frames
+  visualization/          optional Matplotlib integrations
 
 cpp/
   include/interpolatecpp/ public C++ headers
@@ -103,8 +112,8 @@ docs/                     MkDocs sources
 ## C++ targets
 
 The CMake project requires C++20 and creates the `interpolatecpp` library. The
-optional `interpolatecpp_py` module links that library and is copied beside the
-Python package modules for local use.
+`interpolatecpp_py` module links that library. scikit-build-core installs it
+inside the Python package, and cibuildwheel produces tested platform wheels.
 
 | CMake option | Default |
 | --- | --- |
@@ -126,7 +135,7 @@ fallback-only run:
 INTERPOLATEPY_NO_CPP=1 uv run pytest
 ```
 
-After copying a built extension into `interpolatepy/`, start a new process and
+After copying a built extension into `src/interpolatepy/`, start a new process and
 run the same suite without the variable. C++ implementation tests are discovered
 by CTest from `cpp/tests/`.
 

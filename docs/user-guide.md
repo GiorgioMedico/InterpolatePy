@@ -20,7 +20,7 @@ from interpolatepy import QuaternionSpline
 
 These names are resolved by `_api.py`. When the native extension is available,
 they refer to adapter classes; otherwise they refer to Python implementations.
-Direct imports such as `interpolatepy.cubic_spline.CubicSpline` bypass that
+Direct imports such as `interpolatepy.splines.cubic.CubicSpline` bypass that
 routing and always select the implementation module.
 
 Use `interpolatepy.HAS_CPP` for diagnostics, not for normal application
@@ -120,7 +120,7 @@ modules:
 
 ```python
 from interpolatepy import TrajectoryParams  # polynomial multipoint configuration
-from interpolatepy.trapezoidal import TrajectoryParams as TrapezoidalParams
+from interpolatepy.motion.trapezoidal import TrajectoryParams as TrapezoidalParams
 ```
 
 The top-level name is the polynomial class. Use the module-qualified alias for

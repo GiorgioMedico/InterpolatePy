@@ -27,7 +27,7 @@ The trapezoidal `TrajectoryParams` is the intentional exception:
 
 ```python
 from interpolatepy import TrapezoidalTrajectory
-from interpolatepy.trapezoidal import TrajectoryParams
+from interpolatepy.motion.trapezoidal import TrajectoryParams
 ```
 
 The top-level `TrajectoryParams` configures multipoint polynomial motion.
@@ -43,7 +43,7 @@ python -c "import interpolatepy as ip; print(ip.HAS_CPP)"
 `False` is not an error; all core algorithms have a Python implementation. To
 activate the extension from a checkout, follow
 [Optional C++ backend](installation.md#optional-c-backend). The built extension
-must be copied into `interpolatepy/`, not merely left in the CMake build tree.
+must be copied into `src/interpolatepy/`, not merely left in the CMake build tree.
 
 If a copied extension still fails to load, inspect the original import error:
 
@@ -193,7 +193,7 @@ enough time to satisfy boundary speeds and acceleration.
 ### The trapezoidal parameter class looks wrong
 
 There are two classes named `TrajectoryParams`. Import the trapezoidal one from
-`interpolatepy.trapezoidal`; the top-level class is for polynomial multipoint
+`interpolatepy.motion.trapezoidal`; the top-level class is for polynomial multipoint
 interpolation.
 
 ## Quaternion questions

@@ -99,7 +99,7 @@ Scalar and NumPy-array times are supported. Times are clipped to the planned
 duration. Inspect `get_duration()` and `get_phase_durations()` for timing.
 
 `TrapezoidalTrajectory.generate_trajectory()` returns a callable and duration.
-Its `TrajectoryParams` lives in `interpolatepy.trapezoidal`; the top-level
+Its `TrajectoryParams` lives in `interpolatepy.motion.trapezoidal`; the top-level
 `interpolatepy.TrajectoryParams` is the distinct multipoint polynomial
 configuration class.
 

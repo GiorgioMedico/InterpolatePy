@@ -30,7 +30,8 @@ Run checks in proportion to the affected area. The complete Python-side set is:
 ```bash
 uv run pytest
 uv run ruff check .
-uv run mypy interpolatepy
+uv run mypy src/interpolatepy
+uv run pyright src/interpolatepy
 uv run pre-commit run --all-files
 ```
 
@@ -50,10 +51,16 @@ uv run python -m scripts.check_python_examples --backend python
 ## Repository map
 
 ```text
-interpolatepy/            Python package
+src/interpolatepy/        Python package
   _api.py                 backend routing
   _backend.py             native extension detection
   _adapters/              C++-backed Python API adapters
+  splines/                scalar spline algorithms
+  bsplines/               B-spline algorithms
+  motion/                 motion profiles
+  quaternion/             rotation interpolation
+  paths/                  geometric paths
+  visualization/          optional plotting utilities
 tests/                    pytest suite
 examples/                 executable Python demonstrations
 cpp/
@@ -92,8 +99,8 @@ A native algorithm is not complete when only the C++ class exists. Update:
 - a source file and `INTERPOLATECPP_SOURCES` in `cpp/CMakeLists.txt`;
 - Catch2 tests and, when useful, a C++ example;
 - a pybind11 binding under `cpp/bindings/`;
-- the matching adapter in `interpolatepy/_adapters/`;
-- both branches of `interpolatepy/_api.py`;
+- the matching adapter in `src/interpolatepy/_adapters/`;
+- both branches of `src/interpolatepy/_api.py`;
 - package exports and public-API tests.
 
 Adapters should normalize container types, return types, vectorized behavior,
@@ -119,7 +126,7 @@ cmake -S cpp -B build/cpp-bindings \
   -DINTERPOLATECPP_BUILD_TESTS=OFF \
   -DINTERPOLATECPP_BUILD_BINDINGS=ON
 cmake --build build/cpp-bindings --parallel
-cp build/cpp-bindings/bindings/interpolatecpp_py*.so interpolatepy/
+cp build/cpp-bindings/bindings/interpolatecpp_py*.so src/interpolatepy/
 python -c "import interpolatepy as ip; assert ip.HAS_CPP"
 uv run pytest
 ```
