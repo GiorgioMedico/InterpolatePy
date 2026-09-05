@@ -26,12 +26,10 @@ from ._bspline import (
 )
 
 # ── Motion profiles ──────────────────────────────────────────────────
-from ._motion import (
-    DoubleSTrajectory,
-    ParabolicBlendTrajectory,
-    PolynomialTrajectory,
-    TrapezoidalTrajectory,
-)
+from ._motion_double_s import DoubleSTrajectory
+from ._motion_parabolic import ParabolicBlendTrajectory
+from ._motion_polynomial import PolynomialTrajectory
+from ._motion_trapezoidal import TrapezoidalTrajectory
 
 # ── Quaternion interpolation ─────────────────────────────────────────
 from ._quaternion import (

@@ -467,88 +467,15 @@ class BSpline:
         ValueError
             If the dimension of control points is not 2.
         """
-        if self.dimension != self.DIM_2:
-            raise ValueError(
-                f"Control points must be 2D for this plot function, got {self.dimension}D"
-            )
+        from interpolatepy.visualization.bspline import plot_bspline_2d  # noqa: PLC0415
 
-        # Default styles
-        default_curve_style = {
-            "color": "blue",
-            "linewidth": 2,
-            "label": "B-spline curve",
-        }
-        default_control_style = {
-            "color": "red",
-            "linestyle": "--",
-            "marker": "o",
-            "linewidth": 1,
-            "markersize": 8,
-            "label": "Control polygon",
-        }
-        default_knot_style = {
-            "color": "green",
-            "marker": "x",
-            "markersize": 10,
-            "label": "Knot points",
-        }
-
-        # Create a new figure if needed
-        if ax is None:
-            import matplotlib.pyplot as plt  # noqa: PLC0415
-
-            _, ax = plt.subplots(figsize=(10, 6))
-
-        # Generate points along the curve
-        _, curve_points = self.generate_curve_points(num_points)
-
-        # Plot the curve
-        ax.plot(
-            curve_points[:, 0],
-            curve_points[:, 1],
-            color=default_curve_style["color"],
-            linewidth=default_curve_style["linewidth"],
-            label=default_curve_style["label"],
+        return plot_bspline_2d(
+            self,
+            num_points=num_points,
+            show_control_polygon=show_control_polygon,
+            show_knots=show_knots,
+            ax=ax,
         )
-
-        # Plot the control points and polygon if requested
-        if show_control_polygon:
-            ax.plot(
-                self.control_points[:, 0],
-                self.control_points[:, 1],
-                color=default_control_style["color"],
-                linestyle=default_control_style["linestyle"],
-                marker=default_control_style["marker"],
-                linewidth=default_control_style["linewidth"],
-                markersize=default_control_style["markersize"],
-                label=default_control_style["label"],
-            )
-
-        # Plot the knot points if requested
-        if show_knots:
-            # Only plot the knots within the valid parameter range
-            valid_knots = [k for k in self.knots if self.u_min <= k <= self.u_max]
-            unique_knots = np.unique(valid_knots)
-
-            knot_points = np.array([self.evaluate(k) for k in unique_knots])
-            ax.plot(
-                knot_points[:, 0],
-                knot_points[:, 1],
-                color=default_knot_style["color"],
-                marker=default_knot_style["marker"],
-                markersize=default_knot_style["markersize"],
-                linestyle="none",
-                label=default_knot_style["label"],
-            )
-
-        # Set labels and title
-        ax.set_xlabel("X")
-        ax.set_ylabel("Y")
-        ax.set_title(f"B-spline curve of degree {self.degree}")
-        ax.legend()
-        ax.grid(True)
-
-        return ax
 
     def plot_3d(
         self,
@@ -578,68 +505,14 @@ class BSpline:
         ValueError
             If the dimension of control points is not 3.
         """
-        if self.dimension != self.DIM_3:
-            raise ValueError(
-                f"Control points must be 3D for this plot function, got {self.dimension}D"
-            )
+        from interpolatepy.visualization.bspline import plot_bspline_3d  # noqa: PLC0415
 
-        # Default styles
-        default_curve_style = {
-            "color": "blue",
-            "linewidth": 2,
-            "label": "B-spline curve",
-        }
-        default_control_style = {
-            "color": "red",
-            "linestyle": "--",
-            "marker": "o",
-            "linewidth": 1,
-            "markersize": 8,
-            "label": "Control polygon",
-        }
-
-        # Create a new figure if needed
-        if ax is None:
-            import matplotlib.pyplot as plt  # noqa: PLC0415
-
-            fig = plt.figure(figsize=(10, 8))
-            ax = fig.add_subplot(111, projection="3d")
-
-        # Generate points along the curve
-        _, curve_points = self.generate_curve_points(num_points)
-
-        # Plot the curve
-        ax.plot(
-            curve_points[:, 0],
-            curve_points[:, 1],
-            curve_points[:, 2],
-            color=default_curve_style["color"],
-            linewidth=default_curve_style["linewidth"],
-            label=default_curve_style["label"],
+        return plot_bspline_3d(
+            self,
+            num_points=num_points,
+            show_control_polygon=show_control_polygon,
+            ax=ax,
         )
-
-        # Plot the control points and polygon if requested
-        if show_control_polygon:
-            ax.plot(
-                self.control_points[:, 0],
-                self.control_points[:, 1],
-                self.control_points[:, 2],
-                color=default_control_style["color"],
-                linestyle=default_control_style["linestyle"],
-                marker=default_control_style["marker"],
-                linewidth=default_control_style["linewidth"],
-                markersize=default_control_style["markersize"],
-                label=default_control_style["label"],
-            )
-
-        # Set labels and title
-        ax.set_xlabel("X")
-        ax.set_ylabel("Y")
-        ax.set_zlabel("Z")
-        ax.set_title(f"3D B-spline curve of degree {self.degree}")
-        ax.legend()
-
-        return ax
 
     @staticmethod
     def create_uniform_knots(

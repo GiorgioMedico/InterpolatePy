@@ -1,6 +1,7 @@
 import numpy as np
 
 from interpolatepy.linalg import solve_tridiagonal
+from ._parameterization import parameterize_points
 from .core import BSpline
 
 
@@ -179,103 +180,8 @@ class CubicBSplineInterpolation(BSpline):
 
     # The rest of the class implementation remains unchanged
     def _calculate_parameters(self, method: str) -> np.ndarray:
-        """
-        Calculate the parameters ūₖ for each point.
-
-        Parameters
-        ----------
-        method : {'equally_spaced', 'chord_length', 'centripetal'}
-            Method for calculating the parameters:
-            - 'equally_spaced': Parameters are evenly spaced between 0 and 1.
-            - 'chord_length': Parameters are proportional to the cumulative chord length.
-            - 'centripetal': Parameters are proportional to the cumulative chord length
-              raised to the power of mu (0.5).
-
-        Returns
-        -------
-        ndarray
-            The parameters ūₖ with shape (n,) where n is the number of interpolation points.
-
-        Notes
-        -----
-        The endpoints are always set to ū₀ = 0 and ūₙ = 1.
-
-        For 'chord_length' method, the parameter spacing is proportional to the distance
-        between interpolation points.
-
-        For 'centripetal' method, a value of mu = 0.5 is used as recommended in the literature
-        for better shape preservation with non-uniform data.
-
-        Raises
-        ------
-        ValueError
-            If an unknown method is provided.
-        """
-        n = self.n_interpolation_points - 1  # Index of the last point
-
-        # Initialize the parameters
-        u_bars = np.zeros(self.n_interpolation_points, dtype=np.float64)
-
-        # Set the endpoints (equation 8.12)
-        u_bars[0] = 0.0
-        u_bars[n] = 1.0
-
-        if method == "equally_spaced":
-            # Equally spaced parameters (equation 8.12)
-            for k in range(1, n):
-                u_bars[k] = k / n
-
-        elif method == "chord_length":
-            # Chord length distribution (equation 8.13)
-            # Calculate total chord length
-            total_length = 0.0
-            for k in range(1, n + 1):
-                total_length += float(
-                    np.linalg.norm(self.interpolation_points[k] - self.interpolation_points[k - 1])
-                )
-
-            # Calculate parameters
-            for k in range(1, n):
-                u_bars[k] = (
-                    u_bars[k - 1]
-                    + float(
-                        np.linalg.norm(
-                            self.interpolation_points[k] - self.interpolation_points[k - 1]
-                        )
-                    )
-                    / total_length
-                )
-
-        elif method == "centripetal":
-            # Centripetal distribution (equation 8.14)
-            mu = 0.5  # Centripetal parameterization uses square-root chord lengths.
-
-            # Calculate total "centripetal" length
-            total_length = 0.0
-            for k in range(1, n + 1):
-                total_length += float(
-                    np.linalg.norm(self.interpolation_points[k] - self.interpolation_points[k - 1])
-                    ** mu
-                )
-
-            # Calculate parameters
-            for k in range(1, n):
-                u_bars[k] = (
-                    u_bars[k - 1]
-                    + np.linalg.norm(
-                        self.interpolation_points[k] - self.interpolation_points[k - 1]
-                    )
-                    ** mu
-                    / total_length
-                )
-
-        else:
-            raise ValueError(
-                f"Unknown method: {method}. Options are 'equally_spaced', 'chord_length', "
-                f"or 'centripetal'."
-            )
-
-        return u_bars
+        """Calculate normalized parameters for the interpolation points."""
+        return parameterize_points(self.interpolation_points, method)
 
     def _calculate_knot_vector(self) -> np.ndarray:
         """

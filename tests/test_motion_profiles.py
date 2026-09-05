@@ -18,7 +18,7 @@ The tests verify that motion profiles generate smooth trajectories with
 appropriate velocity, acceleration, and jerk constraints.
 """
 
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import pytest
@@ -72,7 +72,7 @@ class TestTrajectoryBounds:
     def test_bounds_validation_non_numeric(self) -> None:
         """Test that non-numeric bounds raise TypeError."""
         with pytest.raises(TypeError, match="All bounds must be numeric values"):
-            TrajectoryBounds(v_bound=1.0, a_bound="invalid", j_bound=0.5)
+            TrajectoryBounds(v_bound=1.0, a_bound=cast("Any", "invalid"), j_bound=0.5)
 
 
 class TestStateParams:
@@ -92,7 +92,7 @@ class TestStateParams:
         params = StateParams(q_0=0.0, q_1=10.0, v_0=0.0, v_1=0.0)
 
         with pytest.raises(AttributeError):
-            params.q_0 = 5.0
+            cast("Any", params).q_0 = 5.0
 
 
 class TestDoubleSTrajectoryConstruction:
@@ -113,7 +113,7 @@ class TestDoubleSTrajectoryConstruction:
         bounds = TrajectoryBounds(v_bound=2.0, a_bound=1.0, j_bound=0.5)
 
         with pytest.raises(TypeError, match="All state parameters must be numeric values"):
-            invalid_params = StateParams(q_0=1.0, q_1="invalid", v_0=0.0, v_1=0.0)
+            invalid_params = StateParams(q_0=1.0, q_1=cast("Any", "invalid"), v_0=0.0, v_1=0.0)
             DoubleSTrajectory(invalid_params, bounds)
 
     def test_construction_with_various_states(self) -> None:
@@ -134,6 +134,25 @@ class TestDoubleSTrajectoryConstruction:
         state_params = StateParams(q_0=5.0, q_1=5.0, v_0=0.0, v_1=0.0)
         trajectory = DoubleSTrajectory(state_params, bounds)
         assert isinstance(trajectory, DoubleSTrajectory)
+
+    def test_construction_with_zero_deceleration_candidate(self) -> None:
+        """A feasible zero-duration phase must not leave jerk times undefined."""
+        state_params = StateParams(
+            q_0=6.01625235744331,
+            q_1=17.027010759902637,
+            v_0=2.284514505806441,
+            v_1=5.081760603333065,
+        )
+        bounds = TrajectoryBounds(
+            v_bound=5.838408390802663,
+            a_bound=5.4221210583490285,
+            j_bound=4.593781964514367,
+        )
+
+        trajectory = DoubleSTrajectory(state_params, bounds)
+        samples = trajectory.evaluate_full(np.linspace(0.0, trajectory.T, 20))
+
+        assert all(np.all(np.isfinite(component)) for component in samples)
 
 
 class TestDoubleSTrajectoryEvaluation:

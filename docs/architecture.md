@@ -109,6 +109,13 @@ examples/                 Python example programs
 docs/                     MkDocs sources
 ```
 
+Public algorithm modules keep the user-facing classes and delegate focused
+numerical work to private helpers such as B-spline system builders,
+parameterization strategies, and the Double-S phase planner. Native motion
+adapters likewise live one profile per module. This keeps the compatibility
+surface easy to find without concentrating unrelated solver, plotting, and
+backend code in a few large files.
+
 ## C++ targets
 
 The CMake project requires C++20 and creates the `interpolatecpp` library. The

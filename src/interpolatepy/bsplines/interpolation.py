@@ -9,7 +9,6 @@ control over continuity and boundary conditions.
 from __future__ import annotations
 
 import numpy as np
-from scipy.linalg import solve
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -17,6 +16,7 @@ if TYPE_CHECKING:
     from mpl_toolkits.mplot3d import Axes3D
 
 from .core import BSpline
+from ._interpolation_system import compute_control_points
 
 CUBIC_DEGREE = 3
 QUARTIC_DEGREE = 4
@@ -25,8 +25,6 @@ VALID_DEGREES = {CUBIC_DEGREE, QUARTIC_DEGREE, QUINTIC_DEGREE}
 MAX_POINTS_FOR_LABELS = 10
 TWO_DIMENSIONAL = 2
 THREE_DIMENSIONAL = 3
-EPS_P = 1e12
-EPS_N = 1e-10
 
 
 class BSplineInterpolator(BSpline):
@@ -199,242 +197,8 @@ class BSplineInterpolator(BSpline):
     def _compute_control_points(
         self, degree: int, points: np.ndarray, times: np.ndarray
     ) -> np.ndarray:
-        """Compute the control points by solving the linear system.
-
-        The system includes:
-        - Interpolation conditions (curve passes through each point)
-        - Boundary conditions (velocity/acceleration or cyclic conditions)
-
-        Parameters
-        ----------
-        degree : int
-            The degree of the B-spline.
-        points : numpy.ndarray
-            The points to be interpolated.
-        times : numpy.ndarray
-            The time instants for each point.
-
-        Returns
-        -------
-        numpy.ndarray
-            The computed control points.
-
-        Raises
-        ------
-        ValueError
-            If the linear system cannot be solved or is ill-conditioned.
-        """
-        n = len(points) - 1  # Number of segments
-        p = degree
-
-        # Determine number of control points based on degree
-        num_control_points = (n + 1) + p - 1 if p % 2 == 1 else (n + 1) + p
-
-        # Determine number of additional conditions needed
-        num_additional = p if p % 2 == 0 else p - 1
-
-        # Create the linear system: A * P = b
-        a_matrix = np.zeros((n + 1 + num_additional, num_control_points))
-        b = np.zeros((n + 1 + num_additional, points.shape[1]))
-
-        # Fill the interpolation conditions (points must lie on the curve)
-        for i in range(n + 1):
-            t = times[i]
-
-            # Find which basis functions are non-zero at this point
-            span = self.temp_spline.find_knot_span(t)
-            basis_values = self.temp_spline.basis_functions(t, span)
-
-            for j in range(p + 1):
-                col = span - p + j
-                if 0 <= col < num_control_points:
-                    a_matrix[i, col] = basis_values[j]
-
-            # The right side is the point to interpolate
-            b[i] = points[i]
-
-        # Add boundary conditions
-        row = n + 1  # Start adding boundary conditions after interpolation
-
-        if self.cyclic:
-            # Add cyclic conditions: derivatives at start = derivatives at end
-            for k in range(1, num_additional + 1):
-                t0 = times[0]
-                tn = times[-1]
-
-                span0 = self.temp_spline.find_knot_span(t0)
-                spann = self.temp_spline.find_knot_span(tn)
-
-                # Get derivative basis functions
-                ders0 = self.temp_spline.basis_function_derivatives(t0, span0, k)
-                dersn = self.temp_spline.basis_function_derivatives(tn, spann, k)
-
-                # Fill the derivative constraint: s^(k)(t0) - s^(k)(tn) = 0
-                for j in range(p + 1):
-                    col0 = span0 - p + j
-                    if 0 <= col0 < num_control_points:
-                        a_matrix[row, col0] = ders0[k, j]
-
-                    coln = spann - p + j
-                    if 0 <= coln < num_control_points:
-                        a_matrix[row, coln] = -dersn[k, j]
-
-                # Right side is zero for cyclic conditions
-                # b[row] already initialized to zero
-
-                row += 1
-                if row >= n + 1 + num_additional:
-                    break
-        else:
-            # Add velocity constraints if provided
-            if self.initial_velocity is not None and row < n + 1 + num_additional:
-                t = times[0]
-                span = self.temp_spline.find_knot_span(t)
-                ders = self.temp_spline.basis_function_derivatives(t, span, 1)
-
-                for j in range(p + 1):
-                    col = span - p + j
-                    if 0 <= col < num_control_points:
-                        a_matrix[row, col] = ders[1, j]
-
-                b[row] = self.initial_velocity
-                row += 1
-
-            if self.final_velocity is not None and row < n + 1 + num_additional:
-                t = times[-1]
-                span = self.temp_spline.find_knot_span(t)
-                ders = self.temp_spline.basis_function_derivatives(t, span, 1)
-
-                for j in range(p + 1):
-                    col = span - p + j
-                    if 0 <= col < num_control_points:
-                        a_matrix[row, col] = ders[1, j]
-
-                b[row] = self.final_velocity
-                row += 1
-
-            # Add acceleration constraints if provided
-            if self.initial_acceleration is not None and row < n + 1 + num_additional:
-                t = times[0]
-                span = self.temp_spline.find_knot_span(t)
-                ders = self.temp_spline.basis_function_derivatives(t, span, 2)
-
-                for j in range(p + 1):
-                    col = span - p + j
-                    if 0 <= col < num_control_points:
-                        a_matrix[row, col] = ders[2, j]
-
-                b[row] = self.initial_acceleration
-                row += 1
-
-            if self.final_acceleration is not None and row < n + 1 + num_additional:
-                t = times[-1]
-                span = self.temp_spline.find_knot_span(t)
-                ders = self.temp_spline.basis_function_derivatives(t, span, 2)
-
-                for j in range(p + 1):
-                    col = span - p + j
-                    if 0 <= col < num_control_points:
-                        a_matrix[row, col] = ders[2, j]
-
-                b[row] = self.final_acceleration
-                row += 1
-
-            # If we still need more constraints, add natural spline conditions
-            # (zero higher derivatives at the endpoints). Walk the
-            # (derivative order, endpoint) pairs from order 2 up to p-1, skipping
-            # any pair an explicit acceleration already pinned -- reusing one
-            # would duplicate a row and make the system rank-deficient.
-            pinned = (self.initial_acceleration is not None, self.final_acceleration is not None)
-            candidates = [(2, endpoint) for endpoint in (0, 1) if not pinned[endpoint]]
-            candidates += [(order, endpoint) for order in range(3, p) for endpoint in (0, 1)]
-            for deriv_order, endpoint in candidates[: n + 1 + num_additional - row]:
-                t = times[0] if endpoint == 0 else times[-1]
-
-                span = self.temp_spline.find_knot_span(t)
-                ders = self.temp_spline.basis_function_derivatives(t, span, deriv_order)
-
-                for j in range(p + 1):
-                    col = span - p + j
-                    if 0 <= col < num_control_points:
-                        a_matrix[row, col] = ders[deriv_order, j]
-
-                # Right side is zero (natural spline condition)
-                # b[row] already initialized to zero
-
-                row += 1
-
-        # Check if the system is well-posed
-        if np.linalg.matrix_rank(a_matrix) < min(a_matrix.shape):
-            raise ValueError(
-                "Linear system is rank-deficient. This typically occurs when there "
-                "are too few points for the specified degree and constraints. "
-                "Add more points or reduce the polynomial degree."
-            )
-
-        # Solve the linear system for each coordinate
-        try:
-            # Check if the system is well-conditioned
-            condition_number = np.linalg.cond(a_matrix)
-            if condition_number > EPS_P:
-                print(
-                    f"Warning: The linear system is ill-conditioned "
-                    f"(condition number: {condition_number:.2e})"
-                )
-                print("This may lead to numerical inaccuracies in the spline interpolation.")
-                print(
-                    "Consider adding more points, using a lower degree, "
-                    "or adjusting the time distribution."
-                )
-
-                # Add a small regularization term for stability
-                if condition_number > EPS_P:
-                    epsilon = EPS_N
-                    a_matrix += epsilon * np.eye(a_matrix.shape[0], a_matrix.shape[1])
-                    print(
-                        f"Adding regularization (epsilon={epsilon}) to improve numerical stability."
-                    )
-
-            # Solve for control points
-            control_points = np.zeros((num_control_points, points.shape[1]))
-            for dim in range(points.shape[1]):
-                control_points[:, dim] = solve(a_matrix, b[:, dim])
-
-            return control_points  # noqa: TRY300
-
-        except np.linalg.LinAlgError as e:
-            recommended_points = degree + 2  # Safe minimum
-            current_points = len(points)
-
-            error_msg = f"Failed to solve for control points: {e}\n"
-            error_msg += "This is likely due to an ill-posed interpolation problem.\n"
-            error_msg += (
-                f"For degree {degree} B-splines, you should have at least "
-                f"{recommended_points} points "
-            )
-            error_msg += f"(you provided {current_points}).\n"
-
-            if self.cyclic:
-                error_msg += "When using cyclic conditions, you may need even more points.\n"
-
-            if (
-                self.initial_velocity is not None
-                or self.final_velocity is not None
-                or self.initial_acceleration is not None
-                or self.final_acceleration is not None
-            ):
-                error_msg += (
-                    "When specifying velocity or acceleration constraints, "
-                    "you may need more points.\n"
-                )
-
-            if degree in {QUARTIC_DEGREE, QUINTIC_DEGREE}:
-                error_msg += (
-                    f"Consider using a lower degree (e.g., degree=3) "
-                    f"with {current_points} points.\n"
-                )
-
-            raise ValueError(error_msg) from e
+        """Build and solve the interpolation system for its control points."""
+        return compute_control_points(self, degree, points, times)
 
     def plot_with_points(
         self,

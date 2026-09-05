@@ -10,6 +10,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from ._parameterization import parameterize_points
 from .core import BSpline
 
 # Define constant to replace magic number
@@ -177,83 +178,8 @@ class SmoothingCubicBSpline(BSpline):
         self.control_points = self._calculate_control_points()
 
     def _calculate_parameters(self, method: str) -> np.ndarray:
-        """Calculate the parameters ūₖ for each point using one of three methods.
-
-        Parameters
-        ----------
-        method : str
-            Method for calculating the parameters.
-            Options are 'equally_spaced', 'chord_length', or 'centripetal'.
-
-        Returns
-        -------
-        np.ndarray
-            The parameters ūₖ.
-
-        Raises
-        ------
-        ValueError
-            If an unknown method is provided.
-        """
-        n = self.n_approximation_points - 1  # Index of the last point
-
-        # Initialize the parameters
-        u_bars = np.zeros(self.n_approximation_points, dtype=np.float64)
-
-        # Set the endpoints (equation 8.12)
-        u_bars[0] = 0.0
-        u_bars[n] = 1.0
-
-        if method == "equally_spaced":
-            # Equally spaced parameters (equation 8.12)
-            for k in range(1, n):
-                u_bars[k] = k / n
-
-        elif method == "chord_length":
-            # Chord length distribution (equation 8.13)
-            # Calculate total chord length
-            total_length = 0.0
-            for k in range(1, n + 1):
-                total_length += float(
-                    np.linalg.norm(self.approximation_points[k] - self.approximation_points[k - 1])
-                )
-
-            # Calculate parameters
-            accumulated_length = 0.0
-            for k in range(1, n):
-                accumulated_length += float(
-                    np.linalg.norm(self.approximation_points[k] - self.approximation_points[k - 1])
-                )
-                u_bars[k] = accumulated_length / total_length
-
-        elif method == "centripetal":
-            # Centripetal distribution (equation 8.14)
-            mu = 0.5  # Centripetal parameterization uses square-root chord lengths.
-
-            # Calculate total "centripetal" length
-            total_length = 0.0
-            for k in range(1, n + 1):
-                total_length += float(
-                    np.linalg.norm(self.approximation_points[k] - self.approximation_points[k - 1])
-                    ** mu
-                )
-
-            # Calculate parameters
-            accumulated_length = 0.0
-            for k in range(1, n):
-                accumulated_length += float(
-                    np.linalg.norm(self.approximation_points[k] - self.approximation_points[k - 1])
-                    ** mu
-                )
-                u_bars[k] = accumulated_length / total_length
-
-        else:
-            raise ValueError(
-                f"Unknown method: {method}. Options are 'equally_spaced', "
-                f"'chord_length', or 'centripetal'."
-            )
-
-        return u_bars
+        """Calculate normalized parameters for the approximation points."""
+        return parameterize_points(self.approximation_points, method)
 
     def _calculate_knot_vector(self) -> np.ndarray:
         """Calculate the cubic knot vector from the parameters ūₖ.

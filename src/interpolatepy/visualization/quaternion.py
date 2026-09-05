@@ -25,6 +25,13 @@ import numpy as np
 from matplotlib.figure import Figure
 
 from interpolatepy.quaternion.core import Quaternion
+from interpolatepy.visualization.quaternion_math import (
+    inverse_stereographic_projection as _inverse_stereographic_projection,
+)
+from interpolatepy.visualization.quaternion_math import project_trajectory as _project_trajectory
+from interpolatepy.visualization.quaternion_math import quaternion_distance
+from interpolatepy.visualization.quaternion_math import stereographic_projection as _stereographic_projection
+from interpolatepy.visualization.quaternion_math import velocity_magnitudes
 
 
 @dataclass
@@ -71,23 +78,9 @@ class QuaternionTrajectoryVisualizer:
         Raises:
             ValueError: If quaternion is too close to the singularity at w = -1
         """
-        # Ensure quaternion is normalized
-        q_unit = q.unit()
-
-        # Handle singularity at w = -1 (antipodal point)
-        if abs(q_unit.w + 1.0) < QuaternionTrajectoryVisualizer.SINGULARITY_THRESHOLD:
-            # Use the equivalent quaternion -q to avoid singularity
-            q_unit = -q_unit
-
-        if abs(q_unit.w + 1.0) < QuaternionTrajectoryVisualizer.SINGULARITY_THRESHOLD:
-            raise ValueError(
-                "Quaternion is too close to singularity at w = -1. "
-                "Cannot perform stereographic projection."
-            )
-
-        # Compute Modified Rodrigues Parameters
-        denominator = 1.0 + q_unit.w
-        return np.array([q_unit.x / denominator, q_unit.y / denominator, q_unit.z / denominator])
+        return _stereographic_projection(
+            q, QuaternionTrajectoryVisualizer.SINGULARITY_THRESHOLD
+        )
 
     @staticmethod
     def inverse_stereographic_projection(mrp: np.ndarray) -> Quaternion:
@@ -100,14 +93,7 @@ class QuaternionTrajectoryVisualizer:
         Returns:
             Unit quaternion corresponding to the MRP
         """
-        mrp_norm_sq = np.dot(mrp, mrp)
-
-        # Compute quaternion components
-        w = (1 - mrp_norm_sq) / (1 + mrp_norm_sq)
-        vector_scale = 2 / (1 + mrp_norm_sq)
-        x, y, z = vector_scale * mrp
-
-        return Quaternion(w, x, y, z)
+        return _inverse_stereographic_projection(mrp)
 
     def project_trajectory(self, quaternions: list[Quaternion]) -> np.ndarray:
         """
@@ -119,20 +105,7 @@ class QuaternionTrajectoryVisualizer:
         Returns:
             Array of 3D points (N x 3) in stereographic projection space
         """
-        if not quaternions:
-            return np.empty((0, 3))
-
-        projected_points = []
-
-        for q in quaternions:
-            try:
-                mrp = self.stereographic_projection(q)
-                projected_points.append(mrp)
-            except ValueError as e:
-                print(f"Warning: Skipping quaternion due to singularity: {e}")
-                continue
-
-        return np.array(projected_points)
+        return _project_trajectory(quaternions, self.SINGULARITY_THRESHOLD)
 
     def plot_3d_trajectory(
         self,
@@ -385,11 +358,10 @@ class QuaternionTrajectoryVisualizer:
         Returns:
             Distance as ||q1 - q2||
         """
-        diff = q1 - q2
-        return diff.norm()
+        return quaternion_distance(q1, q2)
 
+    @staticmethod
     def compute_velocity_magnitudes(
-        self,
         quaternions: list[Quaternion],
         time_points: list[float] | None = None
     ) -> tuple[np.ndarray, np.ndarray]:
@@ -403,34 +375,7 @@ class QuaternionTrajectoryVisualizer:
         Returns:
             Tuple of (time_array, velocity_magnitudes)
         """
-        min_quaternions = 2
-        if len(quaternions) < min_quaternions:
-            raise ValueError("Need at least 2 quaternions to compute velocity")
-
-        n = len(quaternions)
-        velocities = np.zeros(n)
-
-        # Handle first point: only forward difference
-        velocities[0] = self._quaternion_distance(quaternions[1], quaternions[0])
-
-        # Handle interior points: average of forward and backward differences
-        for i in range(1, n - 1):
-            dist_backward = self._quaternion_distance(quaternions[i], quaternions[i - 1])
-            dist_forward = self._quaternion_distance(quaternions[i + 1], quaternions[i])
-            velocities[i] = (dist_backward + dist_forward) / 2.0
-
-        # Handle last point: only backward difference
-        velocities[-1] = self._quaternion_distance(quaternions[-1], quaternions[-2])
-
-        # Create time array
-        if time_points is None:
-            times = np.arange(n, dtype=float)
-        else:
-            if len(time_points) != n:
-                raise ValueError("Time points length must match quaternions length")
-            times = np.array(time_points)
-
-        return times, velocities
+        return velocity_magnitudes(quaternions, time_points)
 
     def plot_angular_velocity(
         self,

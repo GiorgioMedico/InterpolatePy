@@ -8,6 +8,9 @@ efficiency with curve quality using least squares optimization.
 
 import numpy as np
 
+from ._approximation_system import ApproximationProblem
+from ._approximation_system import approximate_control_points
+from ._parameterization import parameterize_points
 from .core import BSpline
 
 
@@ -121,80 +124,13 @@ class ApproximationBSpline(BSpline):
                 print(f"  P{i}: {cp}")
 
     def _compute_parameters(self, points: np.ndarray, method: str = "chord_length") -> np.ndarray:
-        """Calculate parameter values using one of three methods.
-
-        Parameters
-        ----------
-        points : np.ndarray
-            The points to approximate.
-        method : str, default="chord_length"
-            Method for calculating the parameters. Options are 'equally_spaced',
-            'chord_length', or 'centripetal'.
-
-        Returns
-        -------
-        np.ndarray
-            Parameter values for each point, normalized to [0, 1].
-
-        Raises
-        ------
-        ValueError
-            If an unknown method is provided.
-        """
-        n = len(points) - 1  # Index of the last point
-
-        # Initialize the parameters
-        u_bar = np.zeros(n + 1, dtype=np.float64)
-
-        # Set the endpoints
-        u_bar[0] = 0.0
-        u_bar[n] = 1.0
-
-        if method == "equally_spaced":
-            # Equally spaced parameters
-            for k in range(1, n):
-                u_bar[k] = k / n
-
-        elif method == "chord_length":
-            # Chord length distribution
-            # Calculate total chord length
-            total_length = 0.0
-            for k in range(1, n + 1):
-                total_length += float(np.linalg.norm(points[k] - points[k - 1]))
-
-            # Calculate parameters
-            for k in range(1, n):
-                u_bar[k] = (
-                    u_bar[k - 1] + float(np.linalg.norm(points[k] - points[k - 1])) / total_length
-                )
-
-        elif method == "centripetal":
-            # Centripetal distribution
-            mu = 0.5  # Centripetal parameterization uses square-root chord lengths.
-
-            # Calculate total "centripetal" length
-            total_length = 0.0
-            for k in range(1, n + 1):
-                total_length += float(np.linalg.norm(points[k] - points[k - 1])) ** mu
-
-            # Calculate parameters
-            for k in range(1, n):
-                u_bar[k] = (
-                    u_bar[k - 1] + np.linalg.norm(points[k] - points[k - 1]) ** mu / total_length
-                )
-
-        else:
-            raise ValueError(
-                f"Unknown method: {method}. Options are 'equally_spaced', "
-                f"'chord_length', or 'centripetal'."
-            )
-
-        if hasattr(self, "debug") and self.debug:
+        """Calculate normalized parameter values for the approximation points."""
+        parameters = parameterize_points(points, method)
+        if self.debug:
             print(f"\nPARAMETER VALUES (using '{method}' method):")
-            for i, u in enumerate(u_bar):
-                print(f"  u_bar[{i}] = {u:.6f}")
-
-        return u_bar
+            for index, parameter in enumerate(parameters):
+                print(f"  u_bar[{index}] = {parameter:.6f}")
+        return parameters
 
     def _compute_knots(
         self, degree: int, num_control_points: int, num_points: int, u_bar: np.ndarray
@@ -277,193 +213,16 @@ class ApproximationBSpline(BSpline):
         num_control_points: int,
         weights: np.ndarray,
     ) -> np.ndarray:
-        """Compute control points using least squares approximation.
-
-        Solves the endpoint-constrained least-squares normal equations.
-
-        Parameters
-        ----------
-        points : np.ndarray
-            The points to approximate.
-        degree : int
-            The degree of the B-spline.
-        knots : np.ndarray
-            The knot vector.
-        u_bar : np.ndarray
-            Parameter values for the points.
-        num_control_points : int
-            The number of control points.
-        weights : np.ndarray
-            Weights for points in approximation.
-
-        Returns
-        -------
-        np.ndarray
-            The control points.
-        """
-        n = len(points) - 1  # Number of points minus 1
-        m = num_control_points - 1  # Number of control points minus 1
-
-        if hasattr(self, "debug") and self.debug:
-            print("\nCONTROL POINTS CALCULATION:")
-            print(f"  n = {n} (number of points minus 1)")
-            print(f"  m = {m} (number of control points minus 1)")
-
-        # Initialize control points
-        control_points = np.zeros((num_control_points, points.shape[1]))
-
-        # First and last control points are fixed to first and last data points
-        # as per condition 1 in Section 8.5
-        control_points[0] = points[0]
-        control_points[m] = points[n]
-
-        if hasattr(self, "debug") and self.debug:
-            print("  Fixed control points:")
-            print(f"    P_0 = {points[0]}")
-            print(f"    P_{m} = {points[n]}")
-
-        # Handle case where we only have 2 control points
-        if m <= 1:
-            if hasattr(self, "debug") and self.debug:
-                print("  Only two control points needed, returning interpolated curve.")
-            return control_points
-
-        # Create a temporary B-spline for basis function calculation
-        temp_control_points = np.zeros((num_control_points, points.shape[1]))
-        temp_bspline = BSpline(degree, knots, temp_control_points)
-
-        # Initialize matrices for internal points
-        # B is (n-1) x (m-1) matrix as in equation (8.21)
-        b_matrix = np.zeros((n - 1, m - 1))
-        # R is (n-1) x d matrix where d is the dimension of points
-        r_matrix = np.zeros((n - 1, points.shape[1]))
-
-        if hasattr(self, "debug") and self.debug:
-            print(f"  B matrix shape: {b_matrix.shape}")
-            print(f"  R matrix shape: {r_matrix.shape}")
-
-        # For each internal parameter value (k=1 to n-1)
-        for k in range(1, n):
-            u = u_bar[k]
-
-            if hasattr(self, "debug") and self.debug:
-                print(f"\n  Processing point {k} at parameter u = {u:.6f}")
-
-            # Calculate all basis function values at parameter u
-            # This evaluates all basis functions B_j^p(u_k) for j=0,...,m
-            all_basis = np.zeros(m + 1)
-
-            # Find the knot span that contains u
-            span = temp_bspline.find_knot_span(u)
-
-            if hasattr(self, "debug") and self.debug:
-                print(f"    Knot span for u = {u:.6f} is {span}")
-
-            # Get non-zero basis functions at this parameter
-            basis_values = temp_bspline.basis_functions(u, span)
-
-            if hasattr(self, "debug") and self.debug:
-                print(f"    Non-zero basis values: {basis_values}")
-
-            # Map the basis functions to the correct indices in all_basis
-            # Only p+1 basis functions are non-zero at any parameter value
-            for j in range(degree + 1):
-                idx = span - degree + j
-                if 0 <= idx <= m:
-                    all_basis[idx] = basis_values[j]
-
-            if hasattr(self, "debug") and self.debug:
-                print("    All basis function values:")
-                for j, val in enumerate(all_basis):
-                    print(f"      B_{j}^{degree}({u:.6f}) = {val:.6f}")
-
-            # Fill the k-th row of matrix B with values for internal control points (j=1 to m-1)
-            # Exactly as in Equation (8.21)
-            for j in range(1, m):
-                b_matrix[k - 1, j - 1] = all_basis[j]
-
-            # Calculate the k-th row of matrix R
-            # R_k = q_k - B_0^p(u_k)q_0 - B_m^p(u_k)q_m
-            # Remove the fixed endpoint-basis contributions from the residual row.
-            r_matrix[k - 1] = points[k] - all_basis[0] * points[0] - all_basis[m] * points[n]
-
-            if hasattr(self, "debug") and self.debug:
-                print(
-                    f"    Row {k - 1} of R matrix = q_{k} - B_0^{degree}({u:.6f})*q_0 - "
-                    f"B_{m}^{degree}({u:.6f})*q_{n}"
-                )
-                print(
-                    f"      = {points[k]} - {all_basis[0]:.6f}*{points[0]} - "
-                    f"{all_basis[m]:.6f}*{points[n]}"
-                )
-                print(f"      = {r_matrix[k - 1]}")
-
-        if hasattr(self, "debug") and self.debug:
-            print("\n  B matrix:")
-            for i in range(b_matrix.shape[0]):
-                row = "    ["
-                for j in range(b_matrix.shape[1]):
-                    row += f"{b_matrix[i, j]:.6f}, "
-                row = row[:-2] + "]"
-                print(row)
-
-            print("\n  R matrix (first dimension):")
-            for i in range(r_matrix.shape[0]):
-                row = "    ["
-                # Define max columns to display
-                max_cols = 3
-                for j in range(min(max_cols, r_matrix.shape[1])):
-                    row += f"{r_matrix[i, j]:.6f}, "
-                if r_matrix.shape[1] > max_cols:
-                    row += "..."
-                else:
-                    row = row[:-2]
-                row += "]"
-                print(row)
-
-        # Apply weights to minimize the weighted least squares functional in equation (8.19)
-        w_matrix = np.diag(weights)
-
-        if hasattr(self, "debug") and self.debug:
-            print("\n  Weights:")
-            print(f"    {weights}")
-
-        # Compute weighted pseudo-inverse solution according to equation (8.25)
-        # B† = (B^T W B)^(-1) B^T W
-        btw = np.dot(b_matrix.T, w_matrix)
-        btwb = np.dot(btw, b_matrix)
-        btwr = np.dot(btw, r_matrix)
-
-        if hasattr(self, "debug") and self.debug:
-            print("\n  Calculating pseudo-inverse solution:")
-            print(f"    B^T W shape: {btw.shape}")
-            print(f"    B^T W B shape: {btwb.shape}")
-            print(f"    B^T W R shape: {btwr.shape}")
-
-        # Solve for internal control points: P = B† R
-        try:
-            # Solve the normal equations for the least squares solution
-            internal_control_points = np.linalg.solve(btwb, btwr)
-
-            if hasattr(self, "debug") and self.debug:
-                print("    Used np.linalg.solve (direct solution)")
-        except np.linalg.LinAlgError:
-            # If matrix is singular or poorly conditioned, use pseudo-inverse
-            # This provides the least squares solution that minimizes the norm of P
-            internal_control_points = np.dot(np.linalg.pinv(btwb), btwr)
-
-            if hasattr(self, "debug") and self.debug:
-                print("    Used np.linalg.pinv (matrix was singular or poorly conditioned)")
-
-        # Assign internal control points (p_1 to p_(m-1))
-        control_points[1:m] = internal_control_points
-
-        if hasattr(self, "debug") and self.debug:
-            print("\n  Calculated internal control points:")
-            for i in range(1, m):
-                print(f"    P_{i} = {control_points[i]}")
-
-        return control_points
+        """Compute endpoint-constrained weighted least-squares control points."""
+        problem = ApproximationProblem(
+            points=points,
+            degree=degree,
+            knots=knots,
+            parameters=u_bar,
+            control_point_count=num_control_points,
+            weights=weights,
+        )
+        return approximate_control_points(self, problem)
 
     def calculate_approximation_error(
         self, points: np.ndarray | None = None, u_bar: np.ndarray | None = None
