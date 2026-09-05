@@ -23,6 +23,7 @@ For constructor signatures and complete method documentation, use the
 | Interpolate two orientations | `Quaternion.slerp()` | Shortest-path spherical interpolation |
 | Interpolate orientation keyframes | `QuaternionSpline` | Piecewise SLERP/SQUAD selected explicitly or automatically |
 | Require a smooth SQUAD-style orientation trajectory | `SquadC2` | Virtual endpoints and smooth angular derivative evaluation |
+| Reduce curvature globally across orientation keyframes | `SpringQuaternionInterpolation` | Numerical SPRING relaxation with fixed keyframes |
 | Interpolate rotations in logarithmic coordinates | `LogQuaternionInterpolation` | B-spline interpolation of continuous rotation vectors |
 | Decouple rotation angle and axis | `ModifiedLogQuaternionInterpolation` | Separate angle and unit-axis spline state |
 | Describe a 3D line or circle geometrically | `LinearPath` or `CircularPath` | Arc-length parameterized position and geometric derivatives |
@@ -121,6 +122,14 @@ equality when sign is irrelevant.
 `evaluate()`, `evaluate_velocity()`, and `evaluate_acceleration()` methods match
 the quaternion trajectory protocol. `SquadC2` adds virtual endpoints and
 derivative-aware interpolation.
+
+`SpringQuaternionInterpolation` globally relaxes a sampled piecewise-SLERP
+curve to reduce tangential curvature while keeping keyframes fixed. It has a
+higher one-time construction cost than the closed-form methods, so compare
+setup and repeated evaluation separately. The runnable
+[`spring_quaternion_ex.py`](examples/spring_quaternion_ex.py) example plots
+SPRING beside piecewise SLERP, SQUAD, and SQUAD-C2 and measures both costs on
+the active backend.
 
 The logarithmic interpolators support B-spline degrees 3, 4, and 5 and, since
 3.2.0, accept as few as two quaternion waypoints. `evaluate_velocity()` and

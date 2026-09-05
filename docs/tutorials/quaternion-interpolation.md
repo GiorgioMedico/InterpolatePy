@@ -235,6 +235,19 @@ inspecting convergence. `energy_history` is the final-stage history, while
 `initial_energy` and `final_energy` compare the original piecewise-SLERP curve
 and the final optimized curve on the same final grid.
 
+Run the visual and timing comparison against piecewise SLERP, SQUAD, and
+SQUAD-C2:
+
+```bash
+uv run python examples/spring_quaternion_ex.py
+```
+
+The example plots orientation paths, physical angular speed, and a common
+discrete tangential-curvature measure. It reports median construction and
+1,000-evaluation batch times separately and labels the active backend. Treat
+the numbers as measurements of the current machine, not universal performance
+claims.
+
 ## Compare orientations correctly
 
 Component equality rejects the equivalent pair `q` and `-q`. For unit

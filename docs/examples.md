@@ -56,6 +56,7 @@ MPLBACKEND=Agg uv run python examples/double_s_ex.py
 | --- | --- |
 | `quat_visualization_ex.py` | SLERP/SQUAD comparison and quaternion plots |
 | `squad_c2_ex.py` | SLERP, SQUAD, and `SquadC2` comparison |
+| `spring_quaternion_ex.py` | SPRING comparison with SLERP, SQUAD, SQUAD-C2, curvature, and timing |
 | `log_quat_new_ex.py` | LQI and mLQI interpolation and diagnostics |
 | `lqi_spiral_frenet_ex.py` | LQI fitted to Frenet orientations on a helix |
 | `mlqi_spiral_frenet_ex.py` | mLQI fitted to Frenet orientations on a helix |
