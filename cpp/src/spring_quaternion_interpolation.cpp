@@ -191,8 +191,8 @@ SpringQuaternionInterpolation::create_initial_curve(
         for (int offset = 1; offset <= count; ++offset) {
             const double fraction = static_cast<double>(offset) /
                                     static_cast<double>(count);
-            sample_times_.push_back(start_time + fraction *
-                                   (end_time - start_time));
+            sample_times_.push_back(offset == count ? end_time :
+                start_time + fraction * (end_time - start_time));
             frames.push_back(quaternion_to_frame(Quaternion::slerp(
                 quaternions_[index], quaternions_[index + 1], fraction)));
         }
@@ -219,6 +219,7 @@ Quaternion SpringQuaternionInterpolation::evaluate(double t) const {
 
     const auto upper = std::upper_bound(sample_times_.begin(),
                                         sample_times_.end(), t);
+    if (upper == sample_times_.end()) return samples_.back();
     const std::size_t upper_index =
         static_cast<std::size_t>(upper - sample_times_.begin());
     const std::size_t lower_index = upper_index - 1;
@@ -263,7 +264,8 @@ SpringQuaternionInterpolation::generate_trajectory(int num_points) const {
     const double denominator = static_cast<double>(num_points - 1);
     for (int index = 0; index < num_points; ++index) {
         const double fraction = static_cast<double>(index) / denominator;
-        const double time = t_min_ + fraction * (t_max_ - t_min_);
+        const double time = index == num_points - 1 ? t_max_ :
+            t_min_ + fraction * (t_max_ - t_min_);
         times[static_cast<std::size_t>(index)] = time;
         trajectory.push_back(evaluate(time));
     }

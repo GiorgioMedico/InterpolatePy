@@ -107,6 +107,86 @@ TEST_CASE("SPRING is invariant to quaternion signs", "[spring]") {
     }
 }
 
+TEST_CASE("SPRING refinement preserves constant angular speed", "[spring]") {
+    const Eigen::Vector3d axis = Eigen::Vector3d::UnitZ();
+    const std::vector<Quaternion> keyframes = {
+        Quaternion::identity(), Quaternion::from_angle_axis(1.6, axis)};
+    for (const int sample_count : {21, 31, 101, 201}) {
+        CAPTURE(sample_count);
+        SpringConfig config = test_config(sample_count, 300);
+        // Even with no gradient tolerance, refinement must not distort a
+        // stationary curve through coarse-grid truncation error.
+        config.tolerance = 0.0;
+        const SpringQuaternionInterpolation spring({0.0, 2.0}, keyframes, config);
+        for (int index = 0; index <= 40; ++index) {
+            const double time = 2.0 * static_cast<double>(index) / 40.0;
+            const Quaternion value = spring.evaluate(time);
+            REQUIRE_THAT(2.0 * std::atan2(value.z(), value.w()),
+                         WithinAbs(0.8 * time, 1e-10));
+            REQUIRE((spring.evaluate_velocity(time) - 0.8 * axis).norm() < 1e-9);
+            REQUIRE(spring.evaluate_acceleration(time).norm() < 1e-8);
+        }
+        REQUIRE(spring.final_energy() < 1e-20);
+    }
+}
+
+TEST_CASE("SPRING refinement reduces curvature near a geodesic", "[spring]") {
+    const std::vector<Quaternion> keyframes = {
+        Quaternion::identity(), Quaternion::from_euler_angles(1e-4, 0.0, 0.8),
+        Quaternion::from_euler_angles(0.0, 0.0, 1.6)};
+    const SpringQuaternionInterpolation spring({0.0, 1.0, 2.0}, keyframes);
+    REQUIRE(spring.final_energy() < spring.initial_energy());
+    REQUIRE(spring.iterations_run() <= spring.config().iterations);
+    for (std::size_t index = 0; index < keyframes.size(); ++index) {
+        REQUIRE(same_orientation(spring.evaluate(static_cast<double>(index)), keyframes[index], 1e-12));
+    }
+}
+
+TEST_CASE("SPRING preserves exact endpoint times", "[spring]") {
+    const std::vector<double> times = {-100.0, 0.1};
+    const Quaternion end = Quaternion::from_euler_angles(0.0, 0.0, 1.2);
+    for (const int sample_count : {2, 101}) {
+        CAPTURE(sample_count);
+        const SpringQuaternionInterpolation spring(
+            times, {Quaternion::identity(), end}, test_config(sample_count, 0));
+        REQUIRE(spring.sample_times().front() == times.front());
+        REQUIRE(spring.sample_times().back() == times.back());
+        for (const double time : {std::nextafter(times.front(), times.back()),
+                                  std::nextafter(times.back(), times.front()), times.back()}) {
+            REQUIRE_THAT(spring.evaluate(time).norm(), WithinAbs(1.0, 1e-12));
+            REQUIRE(spring.evaluate_velocity(time).allFinite());
+            REQUIRE(spring.evaluate_acceleration(time).allFinite());
+        }
+        const auto [trajectory_times, samples] = spring.generate_trajectory(7);
+        REQUIRE(trajectory_times.front() == times.front());
+        REQUIRE(trajectory_times.back() == times.back());
+        REQUIRE(same_orientation(samples.back(), end));
+    }
+}
+
+TEST_CASE("SPRING preserves exact internal keyframe times", "[spring]") {
+    const std::vector<double> times = {-100.0, 0.1, 1.0};
+    const std::vector<Quaternion> keyframes = {
+        Quaternion::identity(), Quaternion::from_euler_angles(0.0, 0.0, 0.6),
+        Quaternion::from_euler_angles(0.0, 0.0, 1.2)};
+    const SpringQuaternionInterpolation spring(times, keyframes, test_config(21, 0));
+    for (std::size_t index = 0; index < times.size(); ++index) {
+        REQUIRE(spring.sample_times()[spring.keyframe_indices()[index]] == times[index]);
+    }
+}
+
+TEST_CASE("SPRING normalizes small nonzero keyframes", "[spring]") {
+    const Quaternion end = Quaternion::from_euler_angles(0.0, 0.0, 1.2);
+    for (const double scale : {1e-8, -1e-8, 2e-12}) {
+        const SpringQuaternionInterpolation spring(
+            {0.0, 1.0}, {Quaternion::identity() * scale, end * scale}, test_config(2, 0));
+        for (const double time : {0.0, 0.5, 1.0}) {
+            REQUIRE(same_orientation(spring.evaluate(time),
+                                     Quaternion::slerp(Quaternion::identity(), end, time), 1e-12));
+        }
+    }
+}
+
 TEST_CASE("SPRING returns finite kinematics and trajectories", "[spring]") {
     const SpringQuaternionInterpolation spring(
         curved_times(), curved_keyframes(), test_config(21, 20));

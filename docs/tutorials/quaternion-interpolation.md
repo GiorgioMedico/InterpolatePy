@@ -226,9 +226,14 @@ SPRING is a global, iterative method: changing one keyframe can affect the
 whole curve, and increasing `num_samples` or `iterations` increases setup
 cost. Intermediate values are SLERP evaluations of the optimized discrete
 frames; angular derivatives are numerical estimates. The default three-level
-solver refines a coarse curve approximately fivefold at each level. Every
-optimized coarse frame is held fixed at the next level, following the report's
+solver refines a coarse curve approximately fivefold at each level. Optimized
+coarse frames are held fixed at the next level, following the report's
 multi-step procedure. Set `refinement_levels=1` for a one-stage solve.
+Refinement uses the actual spacing between selected frames when computing
+second differences. Convergence is checked on the final grid before starting
+coarse optimization, so an already-converged curve is preserved.
+If refinement increases curvature energy on the final grid, the final stage
+restarts from the original piecewise-SLERP curve with only keyframes fixed.
 
 The compiled extension runs SPRING in C++ automatically when `HAS_CPP` is
 true. Set `INTERPOLATEPY_NO_CPP=1` to select the NumPy reference implementation.

@@ -120,12 +120,14 @@ def test_refinement_grids_are_nested_and_copy_preceding_samples() -> None:
     assert np.array_equal(refined[copied_positions], source_frames)
 
 
-def test_spring_analytic_gradient_matches_centered_difference() -> None:
+@pytest.mark.parametrize("sample_indices", [None, np.array([0, 2, 3, 7, 10, 11, 20])])
+def test_spring_analytic_gradient_matches_centered_difference(sample_indices: np.ndarray | None) -> None:
     random = np.random.default_rng(42)
     frames = random.normal(size=(7, 4))
     frames /= np.linalg.norm(frames, axis=1)[:, None]
+    frames *= random.uniform(0.95, 1.05, size=(7, 1))
     weights = np.array([1.0, 1.0, 1.2, 1.0, 1.0])
-    _, gradient = curvature_energy_gradient(frames, weights, norm_penalty=100.0)
+    _, gradient = curvature_energy_gradient(frames, weights, norm_penalty=100.0, sample_indices=sample_indices)
     delta = 1e-6
 
     for index in ((0, 2), (2, 1), (3, 3), (6, 0)):
@@ -133,10 +135,26 @@ def test_spring_analytic_gradient_matches_centered_difference() -> None:
         below = frames.copy()
         above[index] += delta
         below[index] -= delta
-        energy_above, _ = curvature_energy_gradient(above, weights, norm_penalty=100.0)
-        energy_below, _ = curvature_energy_gradient(below, weights, norm_penalty=100.0)
+        energy_above, _ = curvature_energy_gradient(above, weights, norm_penalty=100.0, sample_indices=sample_indices)
+        energy_below, _ = curvature_energy_gradient(below, weights, norm_penalty=100.0, sample_indices=sample_indices)
         numerical = (energy_above - energy_below) / (2.0 * delta)
         assert np.isclose(gradient[index], numerical, rtol=1e-7, atol=1e-7)
+
+
+def test_spring_curvature_uses_nonuniform_sample_spacing() -> None:
+    indices = np.array([0, 1, 3, 6, 10])
+    parameters = indices / np.mean(np.diff(indices))
+    frames = np.column_stack((np.ones(5), parameters, parameters**2, np.zeros(5)))
+    centers = frames[1:-1]
+    # The exact second derivative of this quadratic is (0, 0, 2, 0).
+    second_derivative = np.array([0.0, 0.0, 2.0, 0.0])
+    radial_scale = (centers @ second_derivative) / np.sum(centers**2, axis=1)
+    tangential = second_derivative - radial_scale[:, None] * centers
+    expected_energy = np.sum(tangential**2)
+
+    energy, _ = curvature_energy_gradient(frames, np.ones(3), 0.0, sample_indices=indices)
+
+    assert np.isclose(energy, expected_energy, rtol=1e-12)
 
 
 def test_keyframe_weight_scales_only_its_curvature_gradient_terms() -> None:
@@ -181,6 +199,78 @@ def test_spring_leaves_a_geodesic_unchanged() -> None:
     for time in np.linspace(0.0, 2.0, 17):
         expected = keyframes[0].slerp(keyframes[-1], float(time / 2.0))
         assert _same_orientation(spring.evaluate(float(time)), expected, atol=1e-8)
+
+
+@pytest.mark.parametrize("num_samples", [21, 31, 101, 201])
+@pytest.mark.parametrize("tolerance", [0.0, 1e-9])
+def test_spring_refinement_preserves_constant_angular_speed(num_samples: int, tolerance: float) -> None:
+    axis = np.array([0.0, 0.0, 1.0])
+    spring = SpringQuaternionInterpolation(
+        [0.0, 2.0],
+        [Quaternion.identity(), Quaternion.from_angle_axis(1.6, axis)],
+        SpringConfig(num_samples=num_samples, tolerance=tolerance),
+    )
+
+    for time in np.linspace(0.0, 2.0, 41):
+        value = spring.evaluate(float(time))
+        angle = 2.0 * np.arctan2(value.z, value.w)
+        assert np.isclose(angle, 0.8 * time, rtol=0.0, atol=1e-10)
+        assert np.allclose(spring.evaluate_velocity(float(time)), 0.8 * axis, rtol=0.0, atol=1e-9)
+        assert np.allclose(spring.evaluate_acceleration(float(time)), 0.0, rtol=0.0, atol=1e-8)
+    assert spring.final_energy < 1e-20
+
+
+def test_spring_refinement_reduces_curvature_near_a_geodesic() -> None:
+    keyframes = [
+        Quaternion.identity(),
+        Quaternion.from_euler_angles(1e-4, 0.0, 0.8),
+        Quaternion.from_euler_angles(0.0, 0.0, 1.6),
+    ]
+    spring = SpringQuaternionInterpolation([0.0, 1.0, 2.0], keyframes)
+
+    assert spring.final_energy < spring.initial_energy
+    assert spring.iterations_run <= spring.config.iterations
+    for time, keyframe in zip([0.0, 1.0, 2.0], keyframes):
+        assert abs(spring.evaluate(time).dot_product(keyframe)) > 1.0 - 1e-12
+
+
+@pytest.mark.parametrize("num_samples", [2, 101])
+def test_spring_preserves_exact_endpoint_times(num_samples: int) -> None:
+    times = [-100.0, 0.1]
+    end = Quaternion.from_euler_angles(0.0, 0.0, 1.2)
+    spring = SpringQuaternionInterpolation(
+        times, [Quaternion.identity(), end], SpringConfig(num_samples=num_samples, iterations=0)
+    )
+
+    assert np.array_equal(spring.sample_times[spring.keyframe_indices], times)
+    for time in (np.nextafter(times[0], times[-1]), np.nextafter(times[-1], times[0]), times[-1]):
+        assert np.isclose(spring.evaluate(float(time)).norm(), 1.0)
+        assert np.all(np.isfinite(spring.evaluate_velocity(float(time))))
+        assert np.all(np.isfinite(spring.evaluate_acceleration(float(time))))
+    trajectory_times, trajectory = spring.generate_trajectory(7)
+    assert trajectory_times[0] == times[0]
+    assert trajectory_times[-1] == times[-1]
+    assert _same_orientation(trajectory[-1], end)
+
+
+def test_spring_preserves_exact_internal_keyframe_times() -> None:
+    times = [-100.0, 0.1, 1.0]
+    keyframes = [Quaternion.from_euler_angles(0.0, 0.0, angle) for angle in (0.0, 0.6, 1.2)]
+    spring = SpringQuaternionInterpolation(times, keyframes, SpringConfig(num_samples=21, iterations=0))
+
+    assert np.array_equal(spring.sample_times[spring.keyframe_indices], times)
+
+
+@pytest.mark.parametrize("scale", [1e-8, -1e-8, 2e-12])
+def test_spring_normalizes_small_nonzero_keyframes(scale: float) -> None:
+    keyframes = [Quaternion.identity(), Quaternion.from_euler_angles(0.0, 0.0, 1.2)]
+    spring = SpringQuaternionInterpolation(
+        [0.0, 1.0], [keyframe * scale for keyframe in keyframes], SpringConfig(num_samples=2, iterations=0)
+    )
+
+    for time in (0.0, 0.5, 1.0):
+        expected = keyframes[0].slerp(keyframes[1], time)
+        assert abs(spring.evaluate(time).dot_product(expected)) > 1.0 - 1e-12
 
 
 def test_spring_is_invariant_to_keyframe_signs() -> None:

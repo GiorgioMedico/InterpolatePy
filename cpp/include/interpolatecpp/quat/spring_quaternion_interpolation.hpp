@@ -117,12 +117,13 @@ class INTERPOLATECPP_API SpringQuaternionInterpolation {
                                                      const Indices& target_indices);
     [[nodiscard]] static EnergyGradient curvature_energy_gradient(
         const Frames& frames, const std::vector<double>& curvature_weights,
-        double norm_penalty);
+        double norm_penalty, const Indices& sample_indices = {});
     [[nodiscard]] static double curvature_energy(
         const Frames& frames, const std::vector<double>& curvature_weights);
     [[nodiscard]] std::pair<Frames, std::vector<double>> minimize(
         const Frames& initial_frames, const std::vector<bool>& fixed_mask,
-        const std::vector<double>& curvature_weights, int iterations) const;
+        const std::vector<double>& curvature_weights, int iterations,
+        const Indices& sample_indices) const;
     [[nodiscard]] Frames optimize_levels(const Frames& final_initial_frames,
                                          const std::vector<Indices>& level_indices,
                                          const std::vector<int>& budgets);

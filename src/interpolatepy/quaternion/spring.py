@@ -14,6 +14,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from ._spring_solver import curvature_energy
+from ._spring_solver import curvature_energy_gradient
 from ._spring_solver import iteration_budgets
 from ._spring_solver import minimize
 from ._spring_solver import nested_level_indices
@@ -111,7 +112,9 @@ class SpringQuaternionInterpolation:
     between optimized frames are evaluated with SLERP. Angular velocity and
     acceleration are centered finite-difference estimates. By default the
     solver performs the report's coarse-to-fine minimization: optimized frames
-    from one level become fixed frames in the next level.
+    from one level become fixed frames in the next level. If refinement
+    increases curvature on the final grid, the final solve restarts from the
+    original SLERP curve with only the keyframes fixed.
     """
 
     def __init__(
@@ -171,7 +174,7 @@ class SpringQuaternionInterpolation:
             norm = quaternion.norm()
             if not np.isfinite(norm) or norm <= _EPSILON:
                 raise ValueError(f"Quaternion {index} must be finite and non-zero")
-            current = quaternion.unit()
+            current = _array_to_quaternion(_quaternion_to_array(quaternion) / norm)
             if prepared and prepared[-1].dot_product(current) < 0.0:
                 current = -current
             prepared.append(current)
@@ -211,7 +214,8 @@ class SpringQuaternionInterpolation:
             end = self.quaternions[index + 1]
             for offset in range(1, int(count) + 1):
                 fraction = offset / count
-                sample_times.append(float(start_time + fraction * (end_time - start_time)))
+                time = end_time if offset == count else start_time + fraction * (end_time - start_time)
+                sample_times.append(float(time))
                 frames.append(_quaternion_to_array(start.slerp(end, fraction)))
             keyframe_indices.append(len(frames) - 1)
 
@@ -257,17 +261,34 @@ class SpringQuaternionInterpolation:
         level_indices: tuple[np.ndarray, ...],
         budgets: tuple[int, ...],
     ) -> tuple[np.ndarray, tuple[tuple[float, ...], ...]]:
+        # Check convergence on the target grid first: a coarse divided
+        # difference can have truncation error even for a stationary geodesic.
+        target_weights = self._curvature_weights(level_indices[-1])
+        initial_curvature = curvature_energy(final_initial_frames, target_weights)
+        _, initial_gradient = curvature_energy_gradient(
+            final_initial_frames, target_weights, self.config.norm_penalty
+        )
+        initial_gradient[self.keyframe_indices] = 0.0
+        converged = np.linalg.norm(initial_gradient) <= self.config.tolerance
         previous_indices: np.ndarray | None = None
         previous_frames: np.ndarray | None = None
         histories: list[tuple[float, ...]] = []
 
         for current_indices, budget in zip(level_indices, budgets):
-            if previous_indices is None or previous_frames is None:
+            if previous_indices is None or previous_frames is None or converged:
                 stage_initial = final_initial_frames[current_indices].copy()
                 fixed_final_indices = self.keyframe_indices
             else:
                 stage_initial = self._refine_initial_curve(previous_indices, previous_frames, current_indices)
                 fixed_final_indices = previous_indices
+
+            if previous_indices is not None and len(current_indices) == len(final_initial_frames):
+                # Coarse-grid truncation error can spoil an almost geodesic
+                # curve. Restart the final solve if prolongation made it worse.
+                normalized_initial = stage_initial / np.linalg.norm(stage_initial, axis=1)[:, None]
+                if curvature_energy(normalized_initial, target_weights) > initial_curvature:
+                    stage_initial = final_initial_frames.copy()
+                    fixed_final_indices = self.keyframe_indices
 
             fixed_mask = np.isin(current_indices, fixed_final_indices)
             stage_frames, history = minimize(
@@ -275,7 +296,8 @@ class SpringQuaternionInterpolation:
                 fixed_mask,
                 self._curvature_weights(current_indices),
                 self.config,
-                iterations=budget,
+                iterations=0 if converged else budget,
+                sample_indices=current_indices,
             )
             histories.append(history)
             previous_indices = current_indices
@@ -301,6 +323,8 @@ class SpringQuaternionInterpolation:
             return self.samples[-1].copy()
 
         upper = int(np.searchsorted(self.sample_times, t, side="right"))
+        if upper >= len(self.samples):
+            return self.samples[-1].copy()
         lower = upper - 1
         fraction = (t - self.sample_times[lower]) / (self.sample_times[upper] - self.sample_times[lower])
         return self.samples[lower].slerp(self.samples[upper], float(fraction)).unit()

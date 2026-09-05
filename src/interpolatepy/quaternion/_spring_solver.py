@@ -32,22 +32,40 @@ def curvature_energy_gradient(
     frames: np.ndarray,
     curvature_weights: np.ndarray,
     norm_penalty: float,
+    sample_indices: np.ndarray | None = None,
 ) -> tuple[float, np.ndarray]:
-    """Return equation 6.28 (with ``l(q_i) = 1``) and its gradient."""
+    """Return the discrete curvature energy and its gradient.
+
+    Refinement indices are measured in units of their mean spacing, keeping
+    the original unit-spacing stencil on uniform grids. Uneven grids use
+    second divided differences before removing the radial component.
+    """
     gradient = np.zeros_like(frames)
-    second_difference = frames[:-2] - 2.0 * frames[1:-1] + frames[2:]
+    if sample_indices is None:
+        spacing = np.ones(len(frames) - 1)
+    else:
+        spacing = np.diff(sample_indices).astype(np.float64)
+        spacing /= np.mean(spacing)
+    left_coefficient = 2.0 / (spacing[:-1] * (spacing[:-1] + spacing[1:]))
+    right_coefficient = 2.0 / (spacing[1:] * (spacing[:-1] + spacing[1:]))
+    center_coefficient = -(left_coefficient + right_coefficient)
+    second_difference = (
+        left_coefficient[:, None] * frames[:-2]
+        + center_coefficient[:, None] * frames[1:-1]
+        + right_coefficient[:, None] * frames[2:]
+    )
     centers = frames[1:-1]
     norm_squared = np.einsum("ij,ij->i", centers, centers)
     projection_scale = np.einsum("ij,ij->i", second_difference, centers) / norm_squared
     curvature = second_difference - projection_scale[:, None] * centers
     weighted_curvature = curvature_weights[:, None] * curvature
 
-    # Reverse accumulation through q'' = q[i-1] - 2q[i] + q[i+1]
-    # and kappa = q'' - ((q'' . q) / (q . q)) q.
-    gradient[:-2] += 2.0 * weighted_curvature
-    gradient[1:-1] += -4.0 * weighted_curvature
+    # Reverse accumulation through the spacing-aware second difference and
+    # kappa = q'' - ((q'' . q) / (q . q)) q.
+    gradient[:-2] += 2.0 * left_coefficient[:, None] * weighted_curvature
+    gradient[1:-1] += 2.0 * center_coefficient[:, None] * weighted_curvature
     gradient[1:-1] += -2.0 * projection_scale[:, None] * weighted_curvature
-    gradient[2:] += 2.0 * weighted_curvature
+    gradient[2:] += 2.0 * right_coefficient[:, None] * weighted_curvature
 
     residual = np.einsum("ij,ij->i", frames, frames) - 1.0
     gradient += 4.0 * norm_penalty * residual[:, None] * frames
@@ -136,16 +154,17 @@ def nested_level_indices(
     return tuple(levels)
 
 
-def minimize(
+def minimize(  # noqa: PLR0913
     initial_frames: np.ndarray,
     fixed_mask: np.ndarray,
     curvature_weights: np.ndarray,
     settings: MinimizationSettings,
     iterations: int,
+    sample_indices: np.ndarray | None = None,
 ) -> tuple[np.ndarray, tuple[float, ...]]:
     """Minimize the SPRING energy with normalized-gradient backtracking."""
     frames = initial_frames.copy()
-    energy, gradient = curvature_energy_gradient(frames, curvature_weights, settings.norm_penalty)
+    energy, gradient = curvature_energy_gradient(frames, curvature_weights, settings.norm_penalty, sample_indices)
     history = [energy]
 
     for _ in range(iterations):
@@ -161,7 +180,7 @@ def minimize(
             candidate = frames - step * direction
             candidate[fixed_mask] = initial_frames[fixed_mask]
             candidate_energy, candidate_gradient = curvature_energy_gradient(
-                candidate, curvature_weights, settings.norm_penalty
+                candidate, curvature_weights, settings.norm_penalty, sample_indices
             )
             if candidate_energy < energy:
                 frames = candidate

@@ -72,7 +72,7 @@ class QuaternionSpline(_CppQuaternionSpline):  # type: ignore[valid-type, misc]
         self._use_python_evaluation = False
 
     def evaluate(self, t: float) -> _PyQuaternion:
-        if not self._py_quaternions:
+        if not self.__dict__.get("_py_quaternions"):
             msg = "Cannot evaluate an empty QuaternionSpline"
             raise ValueError(msg)
         if self._use_python_evaluation:
