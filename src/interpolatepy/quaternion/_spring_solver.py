@@ -9,6 +9,10 @@ from typing import Protocol
 
 import numpy as np
 
+from ._spring_energy import SpringEnergy
+from ._spring_gauss_newton import descent_direction
+from ._spring_gauss_newton import normal_matrix
+
 
 _MIN_BACKTRACK_STEP = 1e-12
 _MAX_BACKTRACKS = 30
@@ -40,45 +44,13 @@ def curvature_energy_gradient(
     the original unit-spacing stencil on uniform grids. Uneven grids use
     second divided differences before removing the radial component.
     """
-    gradient = np.zeros_like(frames)
-    if sample_indices is None:
-        spacing = np.ones(len(frames) - 1)
-    else:
-        spacing = np.diff(sample_indices).astype(np.float64)
-        spacing /= np.mean(spacing)
-    left_coefficient = 2.0 / (spacing[:-1] * (spacing[:-1] + spacing[1:]))
-    right_coefficient = 2.0 / (spacing[1:] * (spacing[:-1] + spacing[1:]))
-    center_coefficient = -(left_coefficient + right_coefficient)
-    second_difference = (
-        left_coefficient[:, None] * frames[:-2]
-        + center_coefficient[:, None] * frames[1:-1]
-        + right_coefficient[:, None] * frames[2:]
-    )
-    centers = frames[1:-1]
-    norm_squared = np.einsum("ij,ij->i", centers, centers)
-    projection_scale = np.einsum("ij,ij->i", second_difference, centers) / norm_squared
-    curvature = second_difference - projection_scale[:, None] * centers
-    weighted_curvature = curvature_weights[:, None] * curvature
-
-    # Reverse accumulation through the spacing-aware second difference and
-    # kappa = q'' - ((q'' . q) / (q . q)) q.
-    gradient[:-2] += 2.0 * left_coefficient[:, None] * weighted_curvature
-    gradient[1:-1] += 2.0 * center_coefficient[:, None] * weighted_curvature
-    gradient[1:-1] += -2.0 * projection_scale[:, None] * weighted_curvature
-    gradient[2:] += 2.0 * right_coefficient[:, None] * weighted_curvature
-
-    residual = np.einsum("ij,ij->i", frames, frames) - 1.0
-    gradient += 4.0 * norm_penalty * residual[:, None] * frames
-
-    curvature_energy = float(np.sum(curvature_weights * np.einsum("ij,ij->i", curvature, curvature)))
-    penalty_energy = float(norm_penalty * np.dot(residual, residual))
-    return curvature_energy + penalty_energy, gradient
+    trial = SpringEnergy(len(frames), curvature_weights, norm_penalty, sample_indices).evaluate(frames)
+    return trial.energy, trial.gradient()
 
 
 def curvature_energy(frames: np.ndarray, curvature_weights: np.ndarray) -> float:
     """Return the weighted discrete tangential-curvature energy."""
-    energy, _ = curvature_energy_gradient(frames, curvature_weights, 0.0)
-    return energy
+    return SpringEnergy(len(frames), curvature_weights, 0.0).evaluate(frames).energy
 
 
 def refinement_sample_counts(
@@ -161,10 +133,15 @@ def minimize(  # noqa: PLR0913
     settings: MinimizationSettings,
     iterations: int,
     sample_indices: np.ndarray | None = None,
+    solver: str = "gradient_descent",
 ) -> tuple[np.ndarray, tuple[float, ...]]:
-    """Minimize the SPRING energy with normalized-gradient backtracking."""
+    """Minimize the same SPRING energy with either descent or banded Gauss-Newton."""
     frames = initial_frames.copy()
-    energy, gradient = curvature_energy_gradient(frames, curvature_weights, settings.norm_penalty, sample_indices)
+    model = SpringEnergy(len(frames), curvature_weights, settings.norm_penalty, sample_indices)
+    trial = model.evaluate(frames)
+    energy, gradient = trial.energy, trial.gradient()
+    fixed_frames = initial_frames[fixed_mask]
+    free_mask = ~fixed_mask
     history = [energy]
 
     for _ in range(iterations):
@@ -173,22 +150,46 @@ def minimize(  # noqa: PLR0913
         if gradient_norm <= settings.tolerance:
             break
 
-        direction = gradient / gradient_norm
-        step = settings.step_size
+        if solver == "gauss_newton":
+            band = normal_matrix(
+                frames, curvature_weights, settings.norm_penalty, fixed_mask, sample_indices, model.coefficients
+            )
+            direction = -descent_direction(band, gradient)
+            lengths = np.linalg.norm(frames, axis=1)
+            radial = np.sum(frames * direction, axis=1) / lengths
+            tangent = direction - (radial / lengths)[:, None] * frames
+            step = 1.0
+        else:
+            direction = gradient / gradient_norm
+            step = settings.step_size
         accepted = False
         for _ in range(_MAX_BACKTRACKS):
-            candidate = frames - step * direction
-            candidate[fixed_mask] = initial_frames[fixed_mask]
-            candidate_energy, candidate_gradient = curvature_energy_gradient(
-                candidate, curvature_weights, settings.norm_penalty, sample_indices
+            if solver == "gauss_newton":
+                # Follow the sphere in tangential directions, but keep the
+                # radial increment free. This is only a reparameterized line
+                # search: the original off-sphere energy is still minimized.
+                target_lengths = lengths - step * radial
+                if np.any(target_lengths <= 0.0):
+                    step *= 0.5
+                    continue
+                candidate = frames - step * tangent
+                candidate *= (target_lengths / np.linalg.norm(candidate, axis=1))[:, None]
+            else:
+                candidate = frames - step * direction
+            candidate[fixed_mask] = fixed_frames
+            trial = model.evaluate(candidate)
+            near_roundoff = solver == "gauss_newton" and abs(trial.energy - energy) <= 64.0 * np.finfo(float).eps * max(
+                abs(energy), 1e-30
             )
-            if candidate_energy < energy:
-                frames = candidate
-                energy = candidate_energy
-                gradient = candidate_gradient
-                history.append(energy)
-                accepted = True
-                break
+            if trial.energy < energy or near_roundoff:
+                candidate_gradient = trial.gradient()
+                if trial.energy < energy or np.linalg.norm(candidate_gradient[free_mask]) < 0.5 * gradient_norm:
+                    frames = candidate
+                    energy = trial.energy
+                    gradient = candidate_gradient
+                    history.append(energy)
+                    accepted = True
+                    break
             step *= 0.5
             if step < _MIN_BACKTRACK_STEP:
                 break

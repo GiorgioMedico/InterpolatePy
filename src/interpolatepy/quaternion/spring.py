@@ -13,6 +13,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from ._spring_slerp import slerp_segments
 from ._spring_solver import curvature_energy
 from ._spring_solver import curvature_energy_gradient
 from ._spring_solver import iteration_budgets
@@ -37,14 +38,15 @@ class SpringConfig:
         Frames are distributed among keyframe intervals in proportion to
         quaternion chord length, as proposed in the report.
     iterations:
-        Total gradient-descent iteration budget across all refinement levels.
+        Total iteration budget across all refinement levels, unless the
+        final-grid budget is explicitly overridden by ``final_iterations``.
     refinement_levels:
         Requested coarse-to-fine levels. Three levels use approximately 1/25,
         1/5, and all final samples, following the report's examples. Counts
         that would be too small or duplicate an earlier level are omitted.
     step_size:
-        Initial length of each normalized-gradient step. Backtracking reduces
-        it whenever a trial step would increase the energy.
+        Initial length of each normalized-gradient step, including all coarse
+        levels. Gauss-Newton uses a full model step and backtracking instead.
     norm_penalty:
         Weight of ``(||q||^2 - 1)^2`` in the discrete energy (equation 6.28).
     keyframe_curvature_weight:
@@ -52,6 +54,15 @@ class SpringConfig:
         approximately ``1.2`` to propagate curvature through sharp keyframes.
     tolerance:
         Stop when the movable part of the gradient has this Euclidean norm.
+    solver:
+        ``"gradient_descent"`` (default) retains the original algorithm.
+        ``"gauss_newton"`` accelerates only the final grid with a banded
+        least-squares model of exactly the same energy. Coarse solves stay
+        identical, preserving the fixed samples and final starting state.
+    final_iterations:
+        Optional final-grid iteration budget, independent of the coarse
+        solves. ``None`` retains the original shared budget. This lets both
+        solvers be compared to convergence without changing coarse anchors.
     """
 
     num_samples: int = 101
@@ -61,8 +72,18 @@ class SpringConfig:
     norm_penalty: float = 100.0
     keyframe_curvature_weight: float = 1.2
     tolerance: float = 1e-9
+    solver: str = "gradient_descent"
+    final_iterations: int | None = None
 
     def __post_init__(self) -> None:
+        if self.solver not in {"gradient_descent", "gauss_newton"}:
+            raise ValueError("solver must be 'gradient_descent' or 'gauss_newton'")
+        if self.final_iterations is not None and (
+            isinstance(self.final_iterations, bool)
+            or not isinstance(self.final_iterations, (int, np.integer))
+            or self.final_iterations < 0
+        ):
+            raise ValueError("final_iterations must be a non-negative integer or None")
         if self.num_samples < _MIN_SAMPLES:
             raise ValueError("num_samples must be at least 2")
         if self.iterations < 0:
@@ -115,6 +136,13 @@ class SpringQuaternionInterpolation:
     from one level become fixed frames in the next level. If refinement
     increases curvature on the final grid, the final solve restarts from the
     original SLERP curve with only the keyframes fixed.
+
+    ``stage_gradient_norms`` reports free-gradient norms before final
+    normalization; ``converged`` reports final-grid stationarity (or an
+    initially stationary target curve). A false value means the budget or
+    line search ended without reaching ``tolerance``. No global-minimum or
+    bitwise equality guarantee is made for this nonconvex problem. Different
+    solvers need not agree after the same number of unconverged iterations.
     """
 
     def __init__(
@@ -137,6 +165,8 @@ class SpringQuaternionInterpolation:
         )
         level_indices = nested_level_indices(len(initial_frames), self.keyframe_indices, self.refinement_sample_counts)
         budgets = iteration_budgets(self.config.iterations, len(level_indices))
+        if self.config.final_iterations is not None:
+            budgets = (*budgets[:-1], self.config.final_iterations)
         optimized_frames, stage_histories = self._optimize_levels(initial_frames, level_indices, budgets)
         final_curvature_weights = self._curvature_weights(level_indices[-1])
 
@@ -203,27 +233,16 @@ class SpringQuaternionInterpolation:
         return intervals
 
     def _initial_curve(self, intervals: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        sample_times = [float(self.time_points[0])]
-        frames = [_quaternion_to_array(self.quaternions[0])]
-        keyframe_indices = [0]
-
+        keyframe_indices = np.r_[0, np.cumsum(intervals)]
+        fractions = np.empty(int(keyframe_indices[-1]) + 1)
+        fractions[0] = 0.0
+        segments = np.r_[0, np.repeat(np.arange(len(intervals)), intervals)]
         for index, count in enumerate(intervals):
-            start_time = self.time_points[index]
-            end_time = self.time_points[index + 1]
-            start = self.quaternions[index]
-            end = self.quaternions[index + 1]
-            for offset in range(1, int(count) + 1):
-                fraction = offset / count
-                time = end_time if offset == count else start_time + fraction * (end_time - start_time)
-                sample_times.append(float(time))
-                frames.append(_quaternion_to_array(start.slerp(end, fraction)))
-            keyframe_indices.append(len(frames) - 1)
-
-        return (
-            np.asarray(sample_times),
-            np.asarray(frames),
-            np.asarray(keyframe_indices, dtype=np.int64),
-        )
+            fractions[keyframe_indices[index] + 1 : keyframe_indices[index + 1] + 1] = np.arange(1, count + 1) / count
+        sample_times = self.time_points[segments] + fractions * np.diff(self.time_points)[segments]
+        sample_times[keyframe_indices] = self.time_points
+        frames = slerp_segments(self.quaternions, segments, fractions)
+        return sample_times, frames, keyframe_indices
 
     def _curvature_weights(self, level_indices: np.ndarray) -> np.ndarray:
         """Weight only curvature centered on an original internal keyframe."""
@@ -239,21 +258,19 @@ class SpringQuaternionInterpolation:
         target_indices: np.ndarray,
     ) -> np.ndarray:
         """SLERP new frames between the preceding level's fixed samples."""
-        refined: list[np.ndarray] = []
-        for target_index in target_indices:
-            upper_position = int(np.searchsorted(source_indices, target_index, side="left"))
-            if upper_position < len(source_indices) and source_indices[upper_position] == target_index:
-                refined.append(source_frames[upper_position].copy())
-                continue
-
-            lower_position = upper_position - 1
-            lower_index = source_indices[lower_position]
-            upper_index = source_indices[upper_position]
-            fraction = float(target_index - lower_index) / float(upper_index - lower_index)
-            lower = _array_to_quaternion(source_frames[lower_position]).unit()
-            upper = _array_to_quaternion(source_frames[upper_position]).unit()
-            refined.append(_quaternion_to_array(lower.slerp(upper, fraction)))
-        return np.asarray(refined)
+        upper = np.searchsorted(source_indices, target_indices, side="left")
+        existing = source_indices[upper] == target_indices
+        refined = source_frames[upper].copy()
+        # Existing coarse anchors retain their raw (possibly nonunit) values.
+        # Only endpoints used to interpolate newly inserted samples are normalized.
+        if np.any(~existing):
+            lower = upper[~existing] - 1
+            fractions = (target_indices[~existing] - source_indices[lower]) / (
+                source_indices[lower + 1] - source_indices[lower]
+            )
+            endpoints = [_array_to_quaternion(frame).unit() for frame in source_frames]
+            refined[~existing] = slerp_segments(endpoints, lower, fractions)
+        return refined
 
     def _optimize_levels(
         self,
@@ -265,14 +282,13 @@ class SpringQuaternionInterpolation:
         # difference can have truncation error even for a stationary geodesic.
         target_weights = self._curvature_weights(level_indices[-1])
         initial_curvature = curvature_energy(final_initial_frames, target_weights)
-        _, initial_gradient = curvature_energy_gradient(
-            final_initial_frames, target_weights, self.config.norm_penalty
-        )
+        _, initial_gradient = curvature_energy_gradient(final_initial_frames, target_weights, self.config.norm_penalty)
         initial_gradient[self.keyframe_indices] = 0.0
         converged = np.linalg.norm(initial_gradient) <= self.config.tolerance
         previous_indices: np.ndarray | None = None
         previous_frames: np.ndarray | None = None
         histories: list[tuple[float, ...]] = []
+        gradient_norms: list[float] = []
 
         for current_indices, budget in zip(level_indices, budgets):
             if previous_indices is None or previous_frames is None or converged:
@@ -298,13 +314,21 @@ class SpringQuaternionInterpolation:
                 self.config,
                 iterations=0 if converged else budget,
                 sample_indices=current_indices,
+                solver=self.config.solver if len(current_indices) == len(final_initial_frames) else "gradient_descent",
             )
+            _, gradient = curvature_energy_gradient(
+                stage_frames, self._curvature_weights(current_indices), self.config.norm_penalty, current_indices
+            )
+            gradient[fixed_mask] = 0.0
+            gradient_norms.append(float(np.linalg.norm(gradient)))
             histories.append(history)
             previous_indices = current_indices
             previous_frames = stage_frames
 
         if previous_frames is None:
             raise RuntimeError("SPRING refinement produced no stages")
+        self.stage_gradient_norms = tuple(gradient_norms)
+        self.converged = bool(converged or gradient_norms[-1] <= self.config.tolerance)
         return previous_frames, tuple(histories)
 
     def _check_time(self, t: float) -> float:

@@ -175,3 +175,60 @@ def test_spring_native_adapter_matches_python_reference() -> None:
     assert sample_times.shape == (17,)
     assert len(samples) == 17
     assert all(isinstance(sample, ip.Quaternion) for sample in samples)
+
+
+def test_shooting_native_adapter_matches_python_reference() -> None:
+    from interpolatepy.quaternion.shooting import (
+        ShootingQuaternionInterpolation as PythonShootingQuaternionInterpolation,
+    )
+
+    times = [0.0, 0.7, 2.1, 3.0]
+    quaternions = [
+        ip.Quaternion.identity(),
+        ip.Quaternion.from_euler_angles(0.9, 0.1, 0.2),
+        ip.Quaternion.from_euler_angles(0.2, 1.1, 0.5),
+        ip.Quaternion.from_euler_angles(-0.4, 0.3, 1.4),
+    ]
+    config = ip.ShootingConfig()
+    native = ip.ShootingQuaternionInterpolation(times, quaternions, config)
+    reference = PythonShootingQuaternionInterpolation(times, quaternions, config)
+    assert type(native) is not PythonShootingQuaternionInterpolation
+    assert np.array_equal(native.time_points, reference.time_points)
+    assert native.iterations_run == reference.iterations_run
+    assert native.integration_steps == reference.integration_steps
+    assert native.num_variables == reference.num_variables
+    assert np.isclose(native.residual_norm, reference.residual_norm, atol=1e-12, rtol=0.0)
+    assert np.isclose(native.acceleration_energy, reference.acceleration_energy, atol=1e-10, rtol=0.0)
+    for time in np.linspace(times[0], times[-1], 21):
+        assert abs(native.evaluate(float(time)).dot_product(reference.evaluate(float(time)))) > 1.0 - 1e-12
+        assert np.allclose(native.evaluate_velocity(float(time)), reference.evaluate_velocity(float(time)), atol=1e-10)
+        assert np.allclose(
+            native.evaluate_acceleration(float(time)), reference.evaluate_acceleration(float(time)), atol=1e-10
+        )
+    sample_times, samples = native.generate_trajectory(17)
+    assert sample_times.shape == (17,)
+    assert all(isinstance(sample, ip.Quaternion) for sample in samples)
+
+
+@pytest.mark.parametrize("samples", [31, 101, 1001])
+def test_spring_gauss_newton_native_adapter_matches_python(samples: int) -> None:
+    from interpolatepy.quaternion.spring import SpringQuaternionInterpolation as PythonSpring
+
+    times = [0.0, 0.7, 2.1, 3.0]
+    keyframes = [
+        ip.Quaternion.identity(),
+        ip.Quaternion.from_euler_angles(0.9, 0.1, 0.2),
+        ip.Quaternion.from_euler_angles(0.2, 1.1, 0.5),
+        ip.Quaternion.from_euler_angles(-0.4, 0.3, 1.4),
+    ]
+    config = ip.SpringConfig(num_samples=samples, solver="gauss_newton", final_iterations=50)
+    native = ip.SpringQuaternionInterpolation(times, keyframes, config)
+    reference = PythonSpring(times, keyframes, config)
+    assert native.converged
+    assert reference.converged
+    assert np.array_equal(native.sample_times, reference.sample_times)
+    assert np.allclose(native.stage_gradient_norms, reference.stage_gradient_norms, atol=1e-8)
+    assert np.isclose(native.final_energy, reference.final_energy, rtol=1e-8, atol=1e-12)
+    for time in np.linspace(times[0], times[-1], 31):
+        difference = native.evaluate(float(time)).inverse() * reference.evaluate(float(time))
+        assert 2.0 * np.arctan2(np.linalg.norm(difference.v_), abs(difference.w)) < 1e-7

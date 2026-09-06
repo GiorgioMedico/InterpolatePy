@@ -19,6 +19,12 @@ Quaternion SpringQuaternionInterpolation::frame_to_quaternion(const Frame& frame
 }
 
 void SpringQuaternionInterpolation::validate_config(const SpringConfig& config) {
+    if (config.final_iterations < -1) {
+        throw std::invalid_argument("final_iterations must be non-negative or -1 for the shared budget");
+    }
+    if (config.solver != "gradient_descent" && config.solver != "gauss_newton") {
+        throw std::invalid_argument("solver must be 'gradient_descent' or 'gauss_newton'");
+    }
     if (config.num_samples < 2) {
         throw std::invalid_argument("num_samples must be at least 2");
     }

@@ -40,6 +40,7 @@ if HAS_CPP:
         LinearPath,
         # Quaternion
         QuaternionSpline,
+        ShootingQuaternionInterpolation,
         SpringQuaternionInterpolation,
         SquadC2,
         LogQuaternionInterpolation,
@@ -89,6 +90,7 @@ else:
     from .quaternion.logarithmic import LogQuaternionInterpolation  # type: ignore[assignment]
     from .quaternion.logarithmic import ModifiedLogQuaternionInterpolation  # type: ignore[assignment]
     from .quaternion.spline import QuaternionSpline  # type: ignore[assignment]
+    from .quaternion.shooting import ShootingQuaternionInterpolation  # type: ignore[assignment]
     from .quaternion.spring import SpringQuaternionInterpolation  # type: ignore[assignment]
     from .quaternion.squad import SquadC2  # type: ignore[assignment]
 
@@ -118,6 +120,7 @@ __all__ = [
     "ParabolicBlendTrajectory",
     "PolynomialTrajectory",
     "QuaternionSpline",
+    "ShootingQuaternionInterpolation",
     "SmoothingCubicBSpline",
     "SplineConfig",
     "SplineParameters",

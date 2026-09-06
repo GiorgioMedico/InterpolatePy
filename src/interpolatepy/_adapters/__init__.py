@@ -39,6 +39,7 @@ from ._quaternion import (
     SquadC2,
 )
 from ._quaternion_spring import SpringQuaternionInterpolation
+from ._quaternion_shooting import ShootingQuaternionInterpolation
 
 # ── Path adapters ────────────────────────────────────────────────────
 from ._paths import (
@@ -82,6 +83,7 @@ __all__ = [
     "ParabolicBlendTrajectory",
     "PolynomialTrajectory",
     "QuaternionSpline",
+    "ShootingQuaternionInterpolation",
     "SmoothingCubicBSpline",
     "SplineConfig",
     "SplineParameters",

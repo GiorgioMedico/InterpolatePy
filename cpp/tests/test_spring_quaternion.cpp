@@ -3,6 +3,8 @@
 
 #include <interpolatecpp/quat/spring_quaternion_interpolation.hpp>
 
+#include "../src/spring_energy.hpp"
+
 #include <Eigen/Core>
 
 #include <cmath>
@@ -38,6 +40,95 @@ SpringConfig test_config(int samples = 41, int iterations = 150) {
 }
 
 }  // namespace
+
+TEST_CASE("SPRING energy-only trials preserve values and reuse gradient buffers", "[spring][energy]") {
+    using Model = interpolatecpp::quat::detail::SpringEnergy;
+    const Model::Frames frames{
+        {1.1, 0.2, 0.0, 0.1}, {0.9, -0.1, 0.3, 0.0}, {0.7, 0.4, 0.1, -0.2},
+        {0.8, 0.0, 0.3, 0.1}, {0.9, 0.2, 0.4, 0.1}, {0.7, 0.1, 0.0, -0.4},
+        {1.0, -0.2, 0.2, 0.0}};
+    const std::vector<double> weights{1.0, 1.2, 0.8, 1.0, 1.2};
+    for (const auto& indices : std::vector<std::vector<std::size_t>>{{}, {0, 1, 3, 4, 8, 12, 13}}) {
+        for (const double penalty : {0.0, 81.0}) {
+            const Model model(frames.size(), weights, penalty, indices);
+            Model::Frames gradient;
+            REQUIRE(model.energy(frames) == model.energy_gradient(frames, gradient));
+            const auto saved = gradient;
+            const auto* buffer = gradient.data();
+            model.energy_gradient(frames, gradient);
+            REQUIRE(gradient.data() == buffer);
+            for (std::size_t row = 0; row < frames.size(); ++row) {
+                REQUIRE(gradient[row] == saved[row]);
+                for (Eigen::Index column = 0; column < 4; ++column) {
+                    auto above = frames, below = frames;
+                    above[row][column] += 1e-6;
+                    below[row][column] -= 1e-6;
+                    const double numeric = (model.energy(above) - model.energy(below)) / 2e-6;
+                    REQUIRE_THAT(gradient[row][column], WithinAbs(numeric, 1e-7));
+                }
+            }
+        }
+    }
+}
+
+TEST_CASE("SPRING banded solver preserves the exact coarse problem", "[spring][gauss_newton]") {
+    SpringConfig config;
+    config.num_samples = 101;
+    config.iterations = 100;
+    config.final_iterations = 0;
+    const SpringQuaternionInterpolation reference(curved_times(), curved_keyframes(), config);
+    config.solver = "gauss_newton";
+    const SpringQuaternionInterpolation idle(curved_times(), curved_keyframes(), config);
+    REQUIRE(reference.stage_energy_history() == idle.stage_energy_history());
+    REQUIRE(reference.sample_times() == idle.sample_times());
+    REQUIRE_FALSE(idle.converged());
+    config.final_iterations = 50;
+    const SpringQuaternionInterpolation accelerated(curved_times(), curved_keyframes(), config);
+    REQUIRE(accelerated.converged());
+    REQUIRE(accelerated.stage_gradient_norms().back() <= config.tolerance);
+    REQUIRE(accelerated.energy_history().front() == reference.energy_history().front());
+    for (std::size_t index = 0; index + 1 < reference.stage_energy_history().size(); ++index) {
+        REQUIRE(accelerated.stage_energy_history()[index] == reference.stage_energy_history()[index]);
+    }
+}
+
+TEST_CASE("SPRING solvers agree at a common convergence tolerance", "[spring][gauss_newton]") {
+    SpringConfig config;
+    config.num_samples = 11;
+    config.iterations = 100;
+    config.final_iterations = 10000;
+    config.tolerance = 1e-5;
+    const SpringQuaternionInterpolation reference(curved_times(), curved_keyframes(), config);
+    config.solver = "gauss_newton";
+    const SpringQuaternionInterpolation accelerated(curved_times(), curved_keyframes(), config);
+    REQUIRE(reference.converged());
+    REQUIRE(accelerated.converged());
+    REQUIRE_THAT(accelerated.energy_history().back(), WithinAbs(reference.energy_history().back(), 1e-9));
+    for (int index = 0; index <= 100; ++index) {
+        const double t = 3.0 * index / 100.0;
+        REQUIRE(same_orientation(accelerated.evaluate(t), reference.evaluate(t), 1e-12));
+    }
+    REQUIRE(accelerated.iterations_run() < reference.iterations_run());
+}
+
+TEST_CASE("SPRING banded solver supports a dense single grid", "[spring][gauss_newton]") {
+    SpringConfig config;
+    config.num_samples = 1001;
+    config.refinement_levels = 1;
+    config.solver = "gauss_newton";
+    const auto keyframes = curved_keyframes();
+    const SpringQuaternionInterpolation curve(curved_times(), keyframes, config);
+    REQUIRE(curve.converged());
+    REQUIRE(curve.final_energy() < curve.initial_energy());
+    for (std::size_t index = 0; index < keyframes.size(); ++index) {
+        REQUIRE(same_orientation(curve.evaluate(static_cast<double>(index)), keyframes[index], 1e-12));
+    }
+    config.solver = "invalid";
+    REQUIRE_THROWS_AS(SpringQuaternionInterpolation(curved_times(), keyframes, config), std::invalid_argument);
+    config.solver = "gauss_newton";
+    config.final_iterations = -2;
+    REQUIRE_THROWS_AS(SpringQuaternionInterpolation(curved_times(), keyframes, config), std::invalid_argument);
+}
 
 TEST_CASE("SPRING preserves keyframes and the unit sphere", "[spring]") {
     const auto times = curved_times();

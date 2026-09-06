@@ -1,5 +1,7 @@
 #include <interpolatecpp/quat/spring_quaternion_interpolation.hpp>
 
+#include "spring_energy.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <numeric>
@@ -171,61 +173,16 @@ SpringQuaternionInterpolation::curvature_energy_gradient(
     const std::vector<double>& curvature_weights,
     double norm_penalty,
     const Indices& sample_indices) {
-    Frames gradient(frames.size(), Frame::Zero());
-    double curve_energy = 0.0;
-    // Scale refinement indices by their mean spacing so uniform grids retain
-    // the original unit-spacing stencil and energy scale.
-    const double mean_spacing = sample_indices.empty()
-        ? 1.0
-        : static_cast<double>(sample_indices.back() - sample_indices.front()) /
-          static_cast<double>(sample_indices.size() - 1);
-    for (std::size_t index = 1; index + 1 < frames.size(); ++index) {
-        const double left_spacing = sample_indices.empty()
-            ? 1.0
-            : static_cast<double>(sample_indices[index] - sample_indices[index - 1]) /
-              mean_spacing;
-        const double right_spacing = sample_indices.empty()
-            ? 1.0
-            : static_cast<double>(sample_indices[index + 1] - sample_indices[index]) /
-              mean_spacing;
-        const double left_coefficient =
-            2.0 / (left_spacing * (left_spacing + right_spacing));
-        const double right_coefficient =
-            2.0 / (right_spacing * (left_spacing + right_spacing));
-        const double center_coefficient = -(left_coefficient + right_coefficient);
-        const Frame second_difference =
-            left_coefficient * frames[index - 1] + center_coefficient * frames[index] +
-            right_coefficient * frames[index + 1];
-        const double projection_scale =
-            second_difference.dot(frames[index]) / frames[index].squaredNorm();
-        const Frame curvature =
-            second_difference - projection_scale * frames[index];
-        const Frame weighted_curvature =
-            curvature_weights[index - 1] * curvature;
-
-        gradient[index - 1] += 2.0 * left_coefficient * weighted_curvature;
-        gradient[index] += 2.0 * center_coefficient * weighted_curvature;
-        gradient[index] +=
-            -2.0 * projection_scale * weighted_curvature;
-        gradient[index + 1] += 2.0 * right_coefficient * weighted_curvature;
-        curve_energy +=
-            curvature_weights[index - 1] * curvature.squaredNorm();
-    }
-
-    double penalty_energy = 0.0;
-    for (std::size_t index = 0; index < frames.size(); ++index) {
-        const double residual = frames[index].squaredNorm() - 1.0;
-        gradient[index] +=
-            4.0 * norm_penalty * residual * frames[index];
-        penalty_energy += norm_penalty * residual * residual;
-    }
-    return {curve_energy + penalty_energy, std::move(gradient)};
+    const detail::SpringEnergy model(frames.size(), curvature_weights, norm_penalty, sample_indices);
+    EnergyGradient result{};
+    result.energy = model.energy_gradient(frames, result.gradient);
+    return result;
 }
 
 double SpringQuaternionInterpolation::curvature_energy(
     const Frames& frames,
     const std::vector<double>& curvature_weights) {
-    return curvature_energy_gradient(frames, curvature_weights, 0.0).energy;
+    return detail::SpringEnergy(frames.size(), curvature_weights, 0.0).energy(frames);
 }
 
 std::pair<SpringQuaternionInterpolation::Frames, std::vector<double>>
@@ -235,9 +192,14 @@ SpringQuaternionInterpolation::minimize(
     const std::vector<double>& curvature_weights,
     int iterations,
     const Indices& sample_indices) const {
+    if (config_.solver == "gauss_newton" && initial_frames.size() == static_cast<std::size_t>(config_.num_samples)) {
+        return minimize_gauss_newton(initial_frames, fixed_mask, curvature_weights, iterations, sample_indices);
+    }
     Frames frames = initial_frames;
-    EnergyGradient current = curvature_energy_gradient(
-        frames, curvature_weights, config_.norm_penalty, sample_indices);
+    const detail::SpringEnergy model(frames.size(), curvature_weights, config_.norm_penalty, sample_indices);
+    EnergyGradient current{};
+    current.energy = model.energy_gradient(frames, current.gradient);
+    Frames candidate(frames.size());
     std::vector<double> history = {current.energy};
 
     for (int iteration = 0; iteration < iterations; ++iteration) {
@@ -255,17 +217,16 @@ SpringQuaternionInterpolation::minimize(
         double step = config_.step_size;
         bool accepted = false;
         for (int backtrack = 0; backtrack < kMaxBacktracks; ++backtrack) {
-            Frames candidate = frames;
+            candidate = frames;
             for (std::size_t index = 0; index < candidate.size(); ++index) {
                 candidate[index] -= step * inverse_gradient_norm *
                                     current.gradient[index];
                 if (fixed_mask[index]) candidate[index] = initial_frames[index];
             }
-            EnergyGradient trial = curvature_energy_gradient(
-                candidate, curvature_weights, config_.norm_penalty, sample_indices);
-            if (trial.energy < current.energy) {
-                frames = std::move(candidate);
-                current = std::move(trial);
+            const double trial_energy = model.energy(candidate);
+            if (trial_energy < current.energy) {
+                frames.swap(candidate);
+                current.energy = model.energy_gradient(frames, current.gradient);
                 history.push_back(current.energy);
                 accepted = true;
                 break;
@@ -333,7 +294,16 @@ SpringQuaternionInterpolation::optimize_levels(
         }
         auto [stage_frames, history] = minimize(
             stage_initial, fixed_mask, curvature_weights(current_indices),
-            converged ? 0 : budgets[level], current_indices);
+            converged ? 0 :
+                (level + 1 == level_indices.size() && config_.final_iterations >= 0
+                    ? config_.final_iterations : budgets[level]), current_indices);
+        auto final = curvature_energy_gradient(stage_frames, curvature_weights(current_indices),
+                                                config_.norm_penalty, current_indices);
+        double squared_norm = 0.0;
+        for (std::size_t index = 0; index < stage_frames.size(); ++index) {
+            if (!fixed_mask[index]) squared_norm += final.gradient[index].squaredNorm();
+        }
+        stage_gradient_norms_.push_back(std::sqrt(squared_norm));
         stage_energy_history_.push_back(std::move(history));
         previous_indices = current_indices;
         previous_frames = std::move(stage_frames);
@@ -342,6 +312,7 @@ SpringQuaternionInterpolation::optimize_levels(
     if (!has_previous) {
         throw std::runtime_error("SPRING refinement produced no stages");
     }
+    converged_ = converged || stage_gradient_norms_.back() <= config_.tolerance;
     return previous_frames;
 }
 

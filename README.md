@@ -67,7 +67,7 @@ component, or `evaluate_full()` for all four.
 | Scalar splines | `CubicSpline`, `CubicSmoothingSpline`, `CubicSplineWithAcceleration1`, `CubicSplineWithAcceleration2` | Smooth scalar waypoint trajectories and noisy data |
 | B-splines | `BSpline`, `BSplineInterpolator`, `CubicBSplineInterpolation`, `ApproximationBSpline`, `SmoothingCubicBSpline` | Parametric curves, interpolation, approximation, and smoothing |
 | Motion profiles | `DoubleSTrajectory`, `TrapezoidalTrajectory`, `PolynomialTrajectory`, `ParabolicBlendTrajectory` | Bounded or boundary-conditioned scalar motion |
-| Rotations | `Quaternion`, `QuaternionSpline`, `SquadC2`, `SpringQuaternionInterpolation`, `LogQuaternionInterpolation`, `ModifiedLogQuaternionInterpolation` | Orientation interpolation without Euler-angle singularities |
+| Rotations | `Quaternion`, `QuaternionSpline`, `SquadC2`, `SpringQuaternionInterpolation`, `ShootingQuaternionInterpolation`, `LogQuaternionInterpolation`, `ModifiedLogQuaternionInterpolation` | Orientation interpolation without Euler-angle singularities |
 | Paths and utilities | `LinearPath`, `CircularPath`, Frenet-frame helpers, `linear_traj`, `solve_tridiagonal` | Geometric paths, moving frames, and numerical helpers |
 
 Degrees 3, 4, and 5 of `BSplineInterpolator`,

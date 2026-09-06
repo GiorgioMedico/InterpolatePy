@@ -15,6 +15,7 @@
 #include <interpolatecpp/quat/log_quaternion_interpolation.hpp>
 #include <interpolatecpp/quat/quaternion_spline.hpp>
 #include <interpolatecpp/quat/spring_quaternion_interpolation.hpp>
+#include <interpolatecpp/quat/shooting_quaternion_interpolation.hpp>
 #include <interpolatecpp/quat/squad_c2.hpp>
 // Phase 5
 #include <interpolatecpp/path/circular_path.hpp>
@@ -54,6 +55,8 @@ static_assert(QuaternionTrajectory<quat::QuaternionSpline>,
               "QuaternionSpline must satisfy QuaternionTrajectory concept");
 static_assert(QuaternionTrajectory<quat::SpringQuaternionInterpolation>,
               "SpringQuaternionInterpolation must satisfy QuaternionTrajectory concept");
+static_assert(QuaternionTrajectory<quat::ShootingQuaternionInterpolation>,
+              "ShootingQuaternionInterpolation must satisfy QuaternionTrajectory concept");
 // Note: ModifiedLogQuaternionInterpolation uses 4D velocity/acceleration
 // so it deliberately does NOT satisfy QuaternionTrajectory (3D).
 

@@ -7,6 +7,7 @@
 #include <interpolatecpp/quat/quaternion.hpp>
 #include <interpolatecpp/quat/quaternion_spline.hpp>
 #include <interpolatecpp/quat/spring_quaternion_interpolation.hpp>
+#include <interpolatecpp/quat/shooting_quaternion_interpolation.hpp>
 #include <interpolatecpp/quat/squad_c2.hpp>
 
 namespace py = pybind11;
@@ -117,7 +118,9 @@ void bind_quaternion(py::module_& m) {
         .def_readwrite("norm_penalty", &SpringConfig::norm_penalty)
         .def_readwrite("keyframe_curvature_weight",
                        &SpringConfig::keyframe_curvature_weight)
-        .def_readwrite("tolerance", &SpringConfig::tolerance);
+        .def_readwrite("tolerance", &SpringConfig::tolerance)
+        .def_readwrite("solver", &SpringConfig::solver)
+        .def_readwrite("final_iterations", &SpringConfig::final_iterations);
 
     // SpringQuaternionInterpolation
     py::class_<SpringQuaternionInterpolation>(quat_mod,
@@ -145,6 +148,8 @@ void bind_quaternion(py::module_& m) {
              &SpringQuaternionInterpolation::refinement_sample_counts)
         .def("get_stage_energy_history",
              &SpringQuaternionInterpolation::stage_energy_history)
+        .def("get_stage_gradient_norms", &SpringQuaternionInterpolation::stage_gradient_norms)
+        .def_property_readonly("converged", &SpringQuaternionInterpolation::converged)
         .def_property_readonly("initial_energy",
                                &SpringQuaternionInterpolation::initial_energy)
         .def_property_readonly("final_energy",
@@ -153,6 +158,31 @@ void bind_quaternion(py::module_& m) {
                                &SpringQuaternionInterpolation::iterations_run)
         .def_property_readonly("t_min", &SpringQuaternionInterpolation::t_min)
         .def_property_readonly("t_max", &SpringQuaternionInterpolation::t_max);
+
+    py::class_<ShootingConfig>(quat_mod, "ShootingConfig")
+        .def(py::init<>())
+        .def_readwrite("tolerance", &ShootingConfig::tolerance)
+        .def_readwrite("max_iterations", &ShootingConfig::max_iterations)
+        .def_readwrite("integration_steps", &ShootingConfig::integration_steps)
+        .def_readwrite("max_integration_steps", &ShootingConfig::max_integration_steps);
+
+    py::class_<ShootingQuaternionInterpolation>(quat_mod, "ShootingQuaternionInterpolation")
+        .def(py::init<const std::vector<double>&, const std::vector<Quaternion>&, ShootingConfig>(),
+             py::arg("time_points"), py::arg("quaternions"), py::arg("config") = ShootingConfig{},
+             py::call_guard<py::gil_scoped_release>())
+        .def("evaluate", &ShootingQuaternionInterpolation::evaluate, py::arg("t"))
+        .def("evaluate_velocity", &ShootingQuaternionInterpolation::evaluate_velocity, py::arg("t"))
+        .def("evaluate_acceleration", &ShootingQuaternionInterpolation::evaluate_acceleration, py::arg("t"))
+        .def("generate_trajectory", &ShootingQuaternionInterpolation::generate_trajectory, py::arg("num_points") = 100)
+        .def("get_time_points", &ShootingQuaternionInterpolation::time_points)
+        .def("get_quaternions", &ShootingQuaternionInterpolation::quaternions)
+        .def_property_readonly("iterations_run", &ShootingQuaternionInterpolation::iterations_run)
+        .def_property_readonly("integration_steps", &ShootingQuaternionInterpolation::integration_steps)
+        .def_property_readonly("num_variables", &ShootingQuaternionInterpolation::num_variables)
+        .def_property_readonly("residual_norm", &ShootingQuaternionInterpolation::residual_norm)
+        .def_property_readonly("acceleration_energy", &ShootingQuaternionInterpolation::acceleration_energy)
+        .def_property_readonly("t_min", &ShootingQuaternionInterpolation::t_min)
+        .def_property_readonly("t_max", &ShootingQuaternionInterpolation::t_max);
 
     // LogQuaternionInterpolation
     py::class_<LogQuaternionInterpolation>(quat_mod, "LogQuaternionInterpolation")

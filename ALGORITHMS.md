@@ -24,6 +24,7 @@ For constructor signatures and complete method documentation, use the
 | Interpolate orientation keyframes | `QuaternionSpline` | Piecewise SLERP/SQUAD selected explicitly or automatically |
 | Require a smooth SQUAD-style orientation trajectory | `SquadC2` | Virtual endpoints and smooth angular derivative evaluation |
 | Reduce curvature globally across orientation keyframes | `SpringQuaternionInterpolation` | Numerical SPRING relaxation with fixed keyframes |
+| Solve continuous natural Riemannian cubics | `ShootingQuaternionInterpolation` | Sparse multiple shooting with nine unknowns per keyframe interval |
 | Interpolate rotations in logarithmic coordinates | `LogQuaternionInterpolation` | B-spline interpolation of continuous rotation vectors |
 | Decouple rotation angle and axis | `ModifiedLogQuaternionInterpolation` | Separate angle and unit-axis spline state |
 | Describe a 3D line or circle geometrically | `LinearPath` or `CircularPath` | Arc-length parameterized position and geometric derivatives |
@@ -128,8 +129,29 @@ curve to reduce tangential curvature while keeping keyframes fixed. It has a
 higher one-time construction cost than the closed-form methods, so compare
 setup and repeated evaluation separately. The runnable
 [`spring_quaternion_ex.py`](examples/spring_quaternion_ex.py) example plots
-SPRING beside piecewise SLERP, SQUAD, and SQUAD-C2 and measures both costs on
+SPRING beside multiple shooting, piecewise SLERP, SQUAD, and SQUAD-C2 and measures both costs on
 the active backend.
+
+For the same discrete SPRING problem, `SpringConfig(solver="gauss_newton")`
+replaces only the final-grid optimizer with a banded Gauss-Newton solve.
+Coarse solves and their fixed anchors remain identical to the default
+`"gradient_descent"`. Check `converged` and `stage_gradient_norms` rather than
+assuming a finite iteration budget reached a solution. `final_iterations`
+can increase just the final-grid budget without changing coarse inputs.
+[`spring_solver_benchmark.py`](examples/spring_solver_benchmark.py) compares
+both solvers at a common tolerance and reports the angular difference.
+
+`ShootingQuaternionInterpolation` solves the natural Riemannian cubic equations
+using independent integrations between keyframes, analytic sensitivities, and
+sparse damped Newton steps. Orientation, body angular velocity, and angular
+acceleration match at knots; endpoint acceleration is zero. Its `9*(K-1)`
+unknowns depend on keyframe count, not output resolution. This is a local
+stationary solution of continuous squared covariant acceleration, not a
+replacement for SPRING's discrete chord-parameterized objective or a guarantee
+of global minimality. The C++ implementation is selected automatically when
+available; the NumPy/SciPy reference remains available. Run
+[`shooting_quaternion_benchmark.py`](examples/shooting_quaternion_benchmark.py)
+to compare construction and sampling costs against different SPRING grids.
 
 The logarithmic interpolators support B-spline degrees 3, 4, and 5 and, since
 3.2.0, accept as few as two quaternion waypoints. `evaluate_velocity()` and

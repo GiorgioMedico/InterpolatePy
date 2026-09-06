@@ -57,6 +57,10 @@ class SpringQuaternionInterpolation(_CppSpringQuaternionInterpolation):  # type:
         native_config.norm_penalty = active_config.norm_penalty
         native_config.keyframe_curvature_weight = active_config.keyframe_curvature_weight
         native_config.tolerance = active_config.tolerance
+        native_config.solver = active_config.solver
+        native_config.final_iterations = (
+            -1 if active_config.final_iterations is None else active_config.final_iterations
+        )
         super().__init__(time_values, cpp_quaternions, native_config)
         self.config = active_config
         self.time_points = np.asarray(super().get_time_points(), dtype=np.float64)
@@ -64,6 +68,7 @@ class SpringQuaternionInterpolation(_CppSpringQuaternionInterpolation):  # type:
         self._stage_energy_history = tuple(
             tuple(float(energy) for energy in history) for history in super().get_stage_energy_history()
         )
+        self.stage_gradient_norms = tuple(float(value) for value in super().get_stage_gradient_norms())
 
     @property
     def sample_times(self) -> np.ndarray:

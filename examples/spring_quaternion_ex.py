@@ -1,4 +1,4 @@
-"""Compare SPRING with piecewise SLERP, SQUAD, and SQUAD-C2.
+"""Compare SPRING, multiple shooting, piecewise SLERP, SQUAD, and SQUAD-C2.
 
 The plots show the orientation path in Modified Rodrigues Parameters, physical
 angular-speed magnitude, and a common discrete tangential-curvature measure.
@@ -22,6 +22,7 @@ from interpolatepy import HAS_CPP
 from interpolatepy import Quaternion
 from interpolatepy import QuaternionSpline
 from interpolatepy import QuaternionTrajectory
+from interpolatepy import ShootingQuaternionInterpolation
 from interpolatepy import SpringConfig
 from interpolatepy import SpringQuaternionInterpolation
 from interpolatepy import SquadC2
@@ -88,6 +89,7 @@ def create_factories(
         "Piecewise SLERP": lambda: QuaternionSpline(times, quaternions, Quaternion.SLERP),
         "SQUAD": lambda: QuaternionSpline(times, quaternions, Quaternion.SQUAD),
         "SQUAD-C2": lambda: SquadC2(times, quaternions),
+        "Multiple shooting": lambda: ShootingQuaternionInterpolation(times, quaternions),
         "SPRING": lambda: SpringQuaternionInterpolation(
             times,
             quaternions,
@@ -203,6 +205,7 @@ def plot_comparison(  # noqa: PLR0913
         "SQUAD": "tab:red",
         "SQUAD-C2": "tab:blue",
         "SPRING": "tab:purple",
+        "Multiple shooting": "tab:orange",
     }
     figure = plt.figure(figsize=(16, 11), constrained_layout=True)
     path_axis = cast("Axes3D", figure.add_subplot(2, 2, 1, projection="3d"))

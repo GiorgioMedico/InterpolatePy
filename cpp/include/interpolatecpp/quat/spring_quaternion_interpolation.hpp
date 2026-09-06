@@ -3,6 +3,7 @@
 #include <Eigen/Core>
 
 #include <cstddef>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -20,6 +21,9 @@ struct SpringConfig {
     double norm_penalty = 100.0;
     double keyframe_curvature_weight = 1.2;
     double tolerance = 1e-9;
+    /// "gauss_newton" accelerates the final grid only; coarse anchors stay identical.
+    std::string solver = "gradient_descent";
+    int final_iterations = -1;  ///< -1 retains the original shared iteration budget.
 };
 
 /// Spherical interpolation using numerical gradient descent (SPRING).
@@ -70,6 +74,9 @@ class INTERPOLATECPP_API SpringQuaternionInterpolation {
     [[nodiscard]] double initial_energy() const noexcept { return initial_energy_; }
     [[nodiscard]] double final_energy() const noexcept { return final_energy_; }
     [[nodiscard]] int iterations_run() const noexcept { return iterations_run_; }
+    [[nodiscard]] const std::vector<double>& stage_gradient_norms() const noexcept { return stage_gradient_norms_; }
+    /// Free-gradient stationarity on the final grid, before output normalization.
+    [[nodiscard]] bool converged() const noexcept { return converged_; }
 
   private:
     using Frame = Eigen::Vector4d;
@@ -92,6 +99,8 @@ class INTERPOLATECPP_API SpringQuaternionInterpolation {
     double initial_energy_ = 0.0;
     double final_energy_ = 0.0;
     int iterations_run_ = 0;
+    std::vector<double> stage_gradient_norms_;
+    bool converged_ = false;
     double t_min_ = 0.0;
     double t_max_ = 0.0;
     double derivative_step_ = 0.0;
@@ -127,6 +136,10 @@ class INTERPOLATECPP_API SpringQuaternionInterpolation {
     [[nodiscard]] Frames optimize_levels(const Frames& final_initial_frames,
                                          const std::vector<Indices>& level_indices,
                                          const std::vector<int>& budgets);
+    [[nodiscard]] std::pair<Frames, std::vector<double>> minimize_gauss_newton(
+        const Frames& initial_frames, const std::vector<bool>& fixed_mask,
+        const std::vector<double>& curvature_weights, int iterations,
+        const Indices& sample_indices) const;
     [[nodiscard]] double check_time(double t) const;
 };
 

@@ -89,7 +89,7 @@ class QuaternionTrajectory(Protocol):
     Conforming Classes
     ------------------
     SquadC2, LogQuaternionInterpolation, ModifiedLogQuaternionInterpolation,
-    QuaternionSpline, SpringQuaternionInterpolation
+    QuaternionSpline, SpringQuaternionInterpolation, ShootingQuaternionInterpolation
     """
 
     def evaluate(self, t: float) -> Quaternion: ...
