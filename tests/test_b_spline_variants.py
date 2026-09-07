@@ -353,6 +353,29 @@ class TestCubicBSplineInterpolation:
         assert isinstance(spline, CubicBSplineInterpolation)
 
 
+    @pytest.mark.parametrize("n_points", [2, 3, 4, 5, 6, 7, 8])
+    def test_curve_passes_through_every_point(self, n_points: int) -> None:
+        """The curve must pass through each point at that point's own u_bar.
+
+        Guards n == 2 (three points), where the single tridiagonal row is both
+        the first and the last: an if/elif chain there keeps only the left
+        term, drops b3_k2 * p[n+1] and displaces the middle control point.
+        Two points return before the solve and four or more have distinct
+        rows, so three is the only count that hits it -- hence the sweep.
+        """
+        rng = np.random.default_rng(0)
+        for _ in range(20):
+            points = rng.uniform(-0.5, 0.5, (n_points, 3))
+            spline = CubicBSplineInterpolation(
+                points=points, v0=np.zeros(3), vn=np.zeros(3), method="chord_length"
+            )
+            for i, u_bar in enumerate(np.asarray(spline.u_bars)):
+                evaluated = np.asarray(spline.evaluate(float(u_bar)))
+                assert np.linalg.norm(evaluated - points[i]) == pytest.approx(
+                    0.0, abs=1e-9
+                )
+
+
 class TestApproximationBSpline:
     """Test suite for ApproximationBSpline class."""
 
