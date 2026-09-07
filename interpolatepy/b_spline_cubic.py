@@ -400,25 +400,23 @@ class CubicBSplineInterpolation(BSpline):
             b3_k1 = basis_vals[1]
             b3_k2 = basis_vals[2]
 
-            # Fill the tridiagonal matrix
+            # A known neighbour (p₁, pₙ₊₁) moves to the right-hand side, an unknown
+            # one gets an off-diagonal. Independent tests, not if/elif: at n == 2
+            # the only row is both first and last and needs both subtractions.
+            main_diagonal[k - 1] = b3_k1
+            rhs_k = np.asarray(self.interpolation_points[k], dtype=np.float64).copy()
+
             if k == 1:
-                # First row
-                main_diagonal[0] = b3_k1
-                upper_diagonal[0] = b3_k2
-                right_hand_side[0] = self.interpolation_points[k] - b3_k * control_points[1]
-            elif k == n - 1:
-                # Last row
-                lower_diagonal[k - 2] = b3_k
-                main_diagonal[k - 1] = b3_k1
-                right_hand_side[k - 1] = (
-                    self.interpolation_points[k] - b3_k2 * control_points[n + 1]
-                )
+                rhs_k -= b3_k * control_points[1]
             else:
-                # Middle rows
                 lower_diagonal[k - 2] = b3_k
-                main_diagonal[k - 1] = b3_k1
+
+            if k == n - 1:
+                rhs_k -= b3_k2 * control_points[n + 1]
+            else:
                 upper_diagonal[k - 1] = b3_k2
-                right_hand_side[k - 1] = self.interpolation_points[k]
+
+            right_hand_side[k - 1] = rhs_k
 
         # Solve the tridiagonal system for each dimension
         for d in range(dimension):
