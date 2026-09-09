@@ -193,8 +193,19 @@ class SquadC2:
         self.time_points = np.array(time_points_list, dtype=float)
 
     def _compute_segment_durations(self) -> np.ndarray:
-        """Compute segment durations hᵢ between waypoints."""
-        return np.diff(self.time_points)
+        """Compute the segment durations hᵢ that the trajectory actually traverses.
+
+        `evaluate` runs each ORIGINAL segment over its full duration and never
+        traverses the virtual waypoints' time slots, so ``diff(self.time_points)`` is
+        not the right weight for Equation (5): it halves h at the two ends and yields a
+        factor-2 velocity discontinuity in any scheme that does not force u̇ = 0 at the
+        waypoints. The extended sequence is [q₀, q₀, q₁, ..., qₙ, qₙ], so pad the
+        original durations at both ends to line up with it.
+        """
+        original_durations = np.diff(self.original_time_points)
+        return np.concatenate(
+            ([original_durations[0]], original_durations, [original_durations[-1]])
+        )
 
     @staticmethod
     def _compute_intermediate_quaternion(
@@ -247,6 +258,7 @@ class SquadC2:
     def _setup_interpolation(self) -> None:
         """Setup intermediate quaternions and polynomial parameterizations for all segments."""
         n_points = len(self.time_points)
+
         segment_durations = self._compute_segment_durations()
 
         # Compute intermediate quaternions for SQUAD using corrected formula from equation (5)

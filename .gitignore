@@ -148,3 +148,12 @@ cpp/build/
 *.so
 *.dylib
 compile_commands.json
+
+################################
+########### GRAPHIFY ###########
+################################
+# Generated graph: keep the human-readable report (and wiki, if built), drop the
+# 9 MB of graph.json/graph.html plus caches that churn on every `graphify update`.
+graphify-out/*
+!graphify-out/GRAPH_REPORT.md
+!graphify-out/wiki/

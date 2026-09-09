@@ -193,6 +193,47 @@ class TestSquadC2IntermediateQuaternions:
         for intermediate_q in squad.intermediate_quaternions:
             assert abs(intermediate_q.norm() - 1.0) < self.NUMERICAL_TOLERANCE
 
+    def test_equation_5_weighted_by_traversed_durations(self) -> None:
+        """Equation 5 must use the durations `evaluate` actually traverses.
+
+        Equation 5 exists so that SQUAD is C¹ in time when the segment durations hᵢ
+        differ. That property is testable only with a linear u(t): the shipped quintic
+        u(t) forces u̇ = 0 at every waypoint, which masks any tangent mismatch. Driving
+        the class's own control quaternions with a linear u must therefore give a
+        continuous ω. Weighting Equation 5 with the extended sequence's durations
+        (which halve h at both ends) breaks this with a factor-2 velocity jump.
+        """
+        time_points = [0.0, 1.0, 2.0, 3.5]  # deliberately unequal hᵢ
+        quaternions = [
+            Quaternion.identity(),
+            Quaternion.from_euler_angles(0.0, 0.0, 1.2),
+            Quaternion.from_euler_angles(0.9, 0.3, 1.2),
+            Quaternion.from_euler_angles(0.9, 1.1, 0.2),
+        ]
+        squad = SquadC2(time_points, quaternions)
+
+        def evaluate_linear_u(t: float) -> Quaternion:
+            i = squad._find_segment_index(t)
+            t_start, t_end = time_points[i], time_points[i + 1]
+            return squad._squad_interpolation(
+                squad.original_quaternions[i],
+                squad.intermediate_quaternions[i + 1],
+                squad.intermediate_quaternions[i + 2],
+                squad.original_quaternions[i + 1],
+                (t - t_start) / (t_end - t_start),
+            )
+
+        def omega(t: float, step: float = 1e-5) -> np.ndarray:
+            dq = (evaluate_linear_u(t + step) - evaluate_linear_u(t - step)) / (2.0 * step)
+            w = 2.0 * dq * evaluate_linear_u(t).inverse()
+            return np.array([w.x, w.y, w.z])
+
+        for t_waypoint in time_points[1:-1]:
+            omega_left = omega(t_waypoint - 1e-4)
+            omega_right = omega(t_waypoint + 1e-4)
+            assert np.linalg.norm(omega_left) > 0.1, "test needs a genuinely moving waypoint"
+            assert np.linalg.norm(omega_right - omega_left) < 1e-2
+
 
 class TestSquadC2Interpolation:
     """Test SQUAD interpolation using Equations 2-4 from the paper."""
