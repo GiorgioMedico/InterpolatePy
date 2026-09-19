@@ -226,14 +226,28 @@ SPRING is a global, iterative method: changing one keyframe can affect the
 whole curve, and increasing `num_samples` or `iterations` increases setup
 cost. Intermediate values are SLERP evaluations of the optimized discrete
 frames; angular derivatives are numerical estimates. The default three-level
-solver refines a coarse curve approximately fivefold at each level. Optimized
-coarse frames are held fixed at the next level, following the report's
-multi-step procedure. Set `refinement_levels=1` for a one-stage solve.
+solver refines a coarse curve approximately fivefold at each level. Each level
+starts from the previous level's result, but only the original keyframes are
+held fixed. Set `refinement_levels=1` for a one-stage solve.
+
+!!! note "Deviation from the report"
+
+    The report's multi-step minimization states that "the frames computed in
+    the first step are used as key frames in the second step". This library
+    does not freeze them: coarse levels are only an initial guess. The report
+    introduces the freeze because plain gradient descent propagates keyframe
+    information one neighbor per iteration, and calls the resulting uneven
+    velocity "a weakness in our implementation, but we expect that a more
+    robust algorithm with better convergence properties will yield nicer
+    velocity graphs". With the freeze in place the final grid is stationary
+    only in the subspace of newly inserted frames, at an energy measurably
+    above the minimum of the same discrete objective, and the gap grows with
+    `num_samples`.
 Refinement uses the actual spacing between selected frames when computing
 second differences. Convergence is checked on the final grid before starting
 coarse optimization, so an already-converged curve is preserved.
 If refinement increases curvature energy on the final grid, the final stage
-restarts from the original piecewise-SLERP curve with only keyframes fixed.
+restarts from the original piecewise-SLERP curve.
 
 The compiled extension runs SPRING in C++ automatically when `HAS_CPP` is
 true. Set `INTERPOLATEPY_NO_CPP=1` to select the NumPy reference implementation.
@@ -243,15 +257,20 @@ inspecting convergence. `energy_history` is the final-stage history, while
 `initial_energy` and `final_energy` compare the original piecewise-SLERP curve
 and the final optimized curve on the same final grid.
 
-Run the visual and timing comparison against multiple shooting, piecewise
-SLERP, SQUAD, and SQUAD-C2:
+Run the visual and timing comparison against multiple shooting, LQI, mLQI,
+piecewise SLERP, SQUAD, and SQUAD-C2:
 
 ```bash
 uv run python examples/spring_quaternion_ex.py
 ```
 
-The example plots orientation paths, physical angular speed, and a common
-discrete tangential-curvature measure. It reports median construction and
+The example plots orientation paths, physical angular speed, and the
+accumulated angular-acceleration energy, then repeats the last measure in a
+second figure for the smoothest methods alone. Angular speed is derived from the
+sampled orientations, not from each method's `evaluate_velocity()`, because the
+logarithmic interpolators return derivatives of their own coordinates there; the
+result agrees with their `get_physical_kinematics()` to 1e-5 rad/s. It reports
+median construction and
 1,000-evaluation batch times separately and labels the active backend. Treat
 the numbers as measurements of the current machine, not universal performance
 claims.
@@ -260,7 +279,7 @@ claims.
 
 Use `SpringConfig(solver="gauss_newton")` to accelerate SPRING without
 changing its sample lattice, chord-based parametrization, curvature weights,
-norm penalty, fixed coarse samples, or final starting state:
+norm penalty, or final starting state:
 
 ```python
 from interpolatepy import SpringConfig, SpringQuaternionInterpolation
@@ -283,12 +302,11 @@ the sample count: this is not the continuous multiple-shooting algorithm below.
 Both solvers cache each grid's curvature coefficients and skip gradient
 accumulation for rejected line-search trials, except when a near-roundoff
 acceptance decision needs the gradient. The Python implementation also batches
-the existing log/exp SLERP operations while copying fixed coarse samples
-unchanged. These implementation optimizations retain the objective, iteration
+the existing log/exp SLERP operations. These implementation optimizations retain the objective, iteration
 budgets, stopping tolerances, and step-acceptance rules.
 
-`converged` checks the Euclidean norm of the free gradient on the **final grid
-with its fixed anchors**, before output normalization. It does not imply that
+`converged` checks the Euclidean norm of the gradient over every non-keyframe
+sample on the final grid, before output normalization. It does not imply that
 all coarse solves converged or that a global minimum was found. Inspect
 `stage_gradient_norms` for each level. `energy_history` includes the full
 optimization energy, including the norm penalty; `final_energy` reports
@@ -300,7 +318,7 @@ after convergence, and measure the actual angular difference. The optional
 coarse stages. With this override, `iterations_run` may exceed `iterations`.
 Setting it to `None` (the default) retains the original shared budget; `0`
 disables final-grid updates. This makes an equal-input comparison possible
-without inadvertently changing the coarse anchors when increasing the final
+without inadvertently changing the coarse solves when increasing the final
 solve budget.
 
 ```bash

@@ -129,13 +129,14 @@ curve to reduce tangential curvature while keeping keyframes fixed. It has a
 higher one-time construction cost than the closed-form methods, so compare
 setup and repeated evaluation separately. The runnable
 [`spring_quaternion_ex.py`](examples/spring_quaternion_ex.py) example plots
-SPRING beside multiple shooting, piecewise SLERP, SQUAD, and SQUAD-C2 and measures both costs on
-the active backend.
+SPRING beside multiple shooting, LQI, mLQI, piecewise SLERP, SQUAD, and
+SQUAD-C2 and measures both costs on the active backend. A second figure repeats
+the acceleration-energy comparison for the smoothest methods alone, which the
+shared scale of the overview figure flattens.
 
 For the same discrete SPRING problem, `SpringConfig(solver="gauss_newton")`
 replaces only the final-grid optimizer with a banded Gauss-Newton solve.
-Coarse solves and their fixed anchors remain identical to the default
-`"gradient_descent"`. Check `converged` and `stage_gradient_norms` rather than
+Coarse solves remain identical to the default `"gradient_descent"`. Check `converged` and `stage_gradient_norms` rather than
 assuming a finite iteration budget reached a solution. `final_iterations`
 can increase just the final-grid budget without changing coarse inputs.
 [`spring_solver_benchmark.py`](examples/spring_solver_benchmark.py) compares

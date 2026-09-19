@@ -263,17 +263,14 @@ SpringQuaternionInterpolation::optimize_levels(
     for (std::size_t level = 0; level < level_indices.size(); ++level) {
         const Indices& current_indices = level_indices[level];
         Frames stage_initial;
-        Indices fixed_final_indices;
         if (!has_previous || converged) {
             stage_initial.reserve(current_indices.size());
             for (const std::size_t index : current_indices) {
                 stage_initial.push_back(final_initial_frames[index]);
             }
-            fixed_final_indices = keyframe_indices_;
         } else {
             stage_initial = refine_initial_curve(previous_indices, previous_frames,
                                                  current_indices);
-            fixed_final_indices = previous_indices;
         }
 
         if (has_previous && current_indices.size() == final_initial_frames.size()) {
@@ -282,14 +279,18 @@ SpringQuaternionInterpolation::optimize_levels(
             for (Frame& frame : normalized_initial) frame.normalize();
             if (curvature_energy(normalized_initial, target_weights) > initial_curvature) {
                 stage_initial = final_initial_frames;
-                fixed_final_indices = keyframe_indices_;
             }
         }
 
+        // Only the original keyframes are fixed. The report's multi-step
+        // minimization instead uses each level's result as key frames for the
+        // next one; that freeze leaves the final grid stationary only in the
+        // subspace of newly inserted frames, above the minimum of the same
+        // discrete energy. Coarse levels are used purely as an initial guess.
         std::vector<bool> fixed_mask(current_indices.size(), false);
         for (std::size_t index = 0; index < current_indices.size(); ++index) {
             fixed_mask[index] = std::binary_search(
-                fixed_final_indices.begin(), fixed_final_indices.end(),
+                keyframe_indices_.begin(), keyframe_indices_.end(),
                 current_indices[index]);
         }
         auto [stage_frames, history] = minimize(

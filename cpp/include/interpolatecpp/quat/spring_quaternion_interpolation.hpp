@@ -21,7 +21,7 @@ struct SpringConfig {
     double norm_penalty = 100.0;
     double keyframe_curvature_weight = 1.2;
     double tolerance = 1e-9;
-    /// "gauss_newton" accelerates the final grid only; coarse anchors stay identical.
+    /// "gauss_newton" accelerates the final grid only; coarse solves stay identical.
     std::string solver = "gradient_descent";
     int final_iterations = -1;  ///< -1 retains the original shared iteration budget.
 };

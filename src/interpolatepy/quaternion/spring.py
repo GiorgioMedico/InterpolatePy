@@ -5,6 +5,19 @@ Lillholm, *Quaternions, Interpolation and Animation* (DIKU-TR-98/5, 1998),
 section 6.3.7.  A SLERP trajectory is relaxed with gradient descent to
 minimize tangential curvature on the unit-quaternion sphere while every
 keyframe remains fixed.
+
+One deliberate deviation from the report: under "Multi-step minimization"
+it states that "the frames computed in the first step are used as key
+frames in the second step".  Here coarse levels only provide the next
+level's initial guess; only the original keyframes are ever fixed.  The
+report introduces that freeze because plain gradient descent propagates
+keyframe information one neighbor per iteration, and notes the resulting
+uneven velocity is "a weakness in our implementation, but we expect that
+a more robust algorithm with better convergence properties will yield
+nicer velocity graphs".  The banded Gauss-Newton solver is that
+algorithm, and with the freeze in place the final grid is stationary only
+in the subspace of newly inserted frames, at an energy well above the
+minimum of the same discrete objective.
 """
 
 from __future__ import annotations
@@ -58,11 +71,11 @@ class SpringConfig:
         ``"gradient_descent"`` (default) retains the original algorithm.
         ``"gauss_newton"`` accelerates only the final grid with a banded
         least-squares model of exactly the same energy. Coarse solves stay
-        identical, preserving the fixed samples and final starting state.
+        identical, preserving the final starting state.
     final_iterations:
         Optional final-grid iteration budget, independent of the coarse
         solves. ``None`` retains the original shared budget. This lets both
-        solvers be compared to convergence without changing coarse anchors.
+        solvers be compared to convergence without changing coarse solves.
     """
 
     num_samples: int = 101
@@ -132,10 +145,10 @@ class SpringQuaternionInterpolation:
     This is a discrete numerical trajectory, not an analytical spline. Values
     between optimized frames are evaluated with SLERP. Angular velocity and
     acceleration are centered finite-difference estimates. By default the
-    solver performs the report's coarse-to-fine minimization: optimized frames
-    from one level become fixed frames in the next level. If refinement
-    increases curvature on the final grid, the final solve restarts from the
-    original SLERP curve with only the keyframes fixed.
+    solver performs a coarse-to-fine minimization: each level starts from the
+    previous level's result, but only the original keyframes are ever held
+    fixed. If refinement increases curvature on the final grid, the final
+    solve restarts from the original SLERP curve instead.
 
     ``stage_gradient_norms`` reports free-gradient norms before final
     normalization; ``converged`` reports final-grid stationarity (or an
@@ -293,10 +306,8 @@ class SpringQuaternionInterpolation:
         for current_indices, budget in zip(level_indices, budgets):
             if previous_indices is None or previous_frames is None or converged:
                 stage_initial = final_initial_frames[current_indices].copy()
-                fixed_final_indices = self.keyframe_indices
             else:
                 stage_initial = self._refine_initial_curve(previous_indices, previous_frames, current_indices)
-                fixed_final_indices = previous_indices
 
             if previous_indices is not None and len(current_indices) == len(final_initial_frames):
                 # Coarse-grid truncation error can spoil an almost geodesic
@@ -304,9 +315,10 @@ class SpringQuaternionInterpolation:
                 normalized_initial = stage_initial / np.linalg.norm(stage_initial, axis=1)[:, None]
                 if curvature_energy(normalized_initial, target_weights) > initial_curvature:
                     stage_initial = final_initial_frames.copy()
-                    fixed_final_indices = self.keyframe_indices
 
-            fixed_mask = np.isin(current_indices, fixed_final_indices)
+            # Only the original keyframes are fixed; see the deviation from
+            # the report's multi-step minimization in the module docstring.
+            fixed_mask = np.isin(current_indices, self.keyframe_indices)
             stage_frames, history = minimize(
                 stage_initial,
                 fixed_mask,
