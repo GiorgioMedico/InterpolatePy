@@ -15,6 +15,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <numbers>
 #include <span>
 #include <string>
 #include <vector>
@@ -124,7 +125,7 @@ static void example_degree_comparison() {
     const int n = 100;
     Eigen::MatrixXd heart_points(n, 2);
     for (int i = 0; i < n; ++i) {
-        const double t = 2.0 * M_PI * static_cast<double>(i) / n;
+        const double t = 2.0 * std::numbers::pi * static_cast<double>(i) / n;
         heart_points(i, 0) = 16.0 * std::pow(std::sin(t), 3) * 10.0 + 150.0;
         heart_points(i, 1) = (13.0 * std::cos(t) - 5.0 * std::cos(2.0 * t)
                                - 2.0 * std::cos(3.0 * t) - std::cos(4.0 * t)) * 10.0 + 150.0;
@@ -153,7 +154,7 @@ static void example_cp_count_comparison() {
     const int n = 100;
     Eigen::MatrixXd spiral_points(n, 2);
     for (int i = 0; i < n; ++i) {
-        const double t = 6.0 * M_PI * static_cast<double>(i) / (n - 1);
+        const double t = 6.0 * std::numbers::pi * static_cast<double>(i) / (n - 1);
         const double r = 5.0 + 15.0 * t;
         spiral_points(i, 0) = r * std::cos(t) + 150.0;
         spiral_points(i, 1) = r * std::sin(t) + 150.0;
@@ -182,7 +183,7 @@ static void example_weighted_approximation() {
     const int n = 60;
     Eigen::MatrixXd circle_points(n, 2);
     for (int i = 0; i < n; ++i) {
-        const double t = 2.0 * M_PI * static_cast<double>(i) / n;
+        const double t = 2.0 * std::numbers::pi * static_cast<double>(i) / n;
         circle_points(i, 0) = 100.0 * std::cos(t) + 150.0;
         circle_points(i, 1) = 100.0 * std::sin(t) + 150.0;
     }

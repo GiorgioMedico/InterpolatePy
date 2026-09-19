@@ -6,6 +6,7 @@
 #include "test_data.hpp"
 
 #include <cmath>
+#include <numbers>
 #include <vector>
 
 using namespace interpolatecpp::spline;
@@ -248,18 +249,18 @@ TEST_CASE("CubicSpline numerical stability", "[cubic_spline]") {
             std::vector<double> t(static_cast<size_t>(n));
             std::vector<double> q(static_cast<size_t>(n));
             for (int i = 0; i < n; ++i) {
-                t[static_cast<size_t>(i)] = M_PI * i / (n - 1);
+                t[static_cast<size_t>(i)] = std::numbers::pi * i / (n - 1);
                 q[static_cast<size_t>(i)] = std::sin(t[static_cast<size_t>(i)]);
             }
-            return CubicSpline(t, q, std::cos(0.0), std::cos(M_PI));
+            return CubicSpline(t, q, std::cos(0.0), std::cos(std::numbers::pi));
         };
 
         auto spline_10 = make_spline(10);
         auto spline_50 = make_spline(50);
 
         // Evaluate at midpoint
-        double error_10 = std::abs(spline_10.evaluate(M_PI / 2.0) - 1.0);
-        double error_50 = std::abs(spline_50.evaluate(M_PI / 2.0) - 1.0);
+        double error_10 = std::abs(spline_10.evaluate(std::numbers::pi / 2.0) - 1.0);
+        double error_50 = std::abs(spline_50.evaluate(std::numbers::pi / 2.0) - 1.0);
 
         REQUIRE(error_50 < error_10);
     }

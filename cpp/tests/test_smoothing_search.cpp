@@ -6,6 +6,7 @@
 #include "test_data.hpp"
 
 #include <cmath>
+#include <numbers>
 #include <vector>
 
 using namespace interpolatecpp::spline;
@@ -19,7 +20,7 @@ void make_noisy_sine(std::vector<double>& t, std::vector<double>& q, int n, doub
     q.resize(static_cast<size_t>(n));
     // Simple deterministic "noise" using a fixed pattern
     for (int i = 0; i < n; ++i) {
-        t[static_cast<size_t>(i)] = 2.0 * M_PI * i / (n - 1);
+        t[static_cast<size_t>(i)] = 2.0 * std::numbers::pi * i / (n - 1);
         double pseudo_noise = noise * std::sin(17.0 * i + 0.3) * std::cos(31.0 * i + 0.7);
         q[static_cast<size_t>(i)] = std::sin(t[static_cast<size_t>(i)]) + pseudo_noise;
     }

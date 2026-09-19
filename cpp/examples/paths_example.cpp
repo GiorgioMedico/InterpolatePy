@@ -15,6 +15,7 @@
 #include <functional>
 #include <iomanip>
 #include <iostream>
+#include <numbers>
 
 namespace ex = interpolatecpp::examples;
 using namespace interpolatecpp::path;
@@ -97,7 +98,7 @@ static void circular_path_example() {
     const CircularPath path(axis, axis_point, circle_point);
 
     const double radius = path.radius();
-    const double half_arc = M_PI * radius;
+    const double half_arc = std::numbers::pi * radius;
 
     ex::print_value("Radius", radius, 4);
     ex::print_vector3("Center", path.center());
@@ -105,7 +106,7 @@ static void circular_path_example() {
 
     // Evaluate at angular samples over a full circle
     const int n_samples = 12;
-    const double full_arc = 2.0 * M_PI * radius;
+    const double full_arc = 2.0 * std::numbers::pi * radius;
     const int w = 14;
     const int p = 6;
 
@@ -168,7 +169,7 @@ static void frenet_frame_helicoidal() {
     // Build parameter values
     Eigen::VectorXd u_values(n_samples);
     for (int i = 0; i < n_samples; ++i) {
-        u_values(i) = 4.0 * M_PI * static_cast<double>(i) / (n_samples - 1);
+        u_values(i) = 4.0 * std::numbers::pi * static_cast<double>(i) / (n_samples - 1);
     }
 
     // Curve function returning (position, velocity, acceleration)
@@ -255,7 +256,7 @@ static void frenet_frame_circular() {
     // Build parameter values over one full circle
     Eigen::VectorXd u_values(n_samples);
     for (int i = 0; i < n_samples; ++i) {
-        u_values(i) = 2.0 * M_PI * static_cast<double>(i) / (n_samples - 1);
+        u_values(i) = 2.0 * std::numbers::pi * static_cast<double>(i) / (n_samples - 1);
     }
 
     // Curve function

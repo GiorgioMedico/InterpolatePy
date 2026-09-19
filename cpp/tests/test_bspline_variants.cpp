@@ -9,6 +9,7 @@
 #include "test_data.hpp"
 
 #include <cmath>
+#include <numbers>
 #include <string>
 
 using namespace interpolatecpp::bspline;
@@ -26,7 +27,7 @@ static Eigen::MatrixXd make_quadratic_2d(int n) {
 }
 
 // Helper: create sine 2D points
-static Eigen::MatrixXd make_sine_2d(int n, double x_max = 2.0 * M_PI) {
+static Eigen::MatrixXd make_sine_2d(int n, double x_max = 2.0 * std::numbers::pi) {
     Eigen::MatrixXd pts(n, 2);
     for (int i = 0; i < n; ++i) {
         double x = x_max * i / (n - 1);
@@ -470,7 +471,7 @@ TEST_CASE("SmoothingCubicBSpline mu effects differ", "[smoothing_bspline]") {
     // Use noisy data to make smoothing effects more pronounced
     Eigen::MatrixXd pts(25, 2);
     for (int i = 0; i < 25; ++i) {
-        double x = 2.0 * M_PI * i / 24.0;
+        double x = 2.0 * std::numbers::pi * i / 24.0;
         pts(i, 0) = x;
         pts(i, 1) = std::sin(x) + 0.3 * std::sin(10.0 * x);  // Signal + noise
     }
@@ -511,7 +512,7 @@ TEST_CASE("SmoothingCubicBSpline auto derivatives", "[smoothing_bspline]") {
     // Circle-like points
     Eigen::MatrixXd pts(12, 2);
     for (int i = 0; i < 12; ++i) {
-        double angle = 2.0 * M_PI * i / 12.0;
+        double angle = 2.0 * std::numbers::pi * i / 12.0;
         pts(i, 0) = std::cos(angle);
         pts(i, 1) = std::sin(angle);
     }

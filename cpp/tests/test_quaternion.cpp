@@ -5,6 +5,7 @@
 #include "test_data.hpp"
 
 #include <cmath>
+#include <numbers>
 
 using namespace interpolatecpp::quat;
 using namespace interpolatecpp::test;
@@ -23,9 +24,9 @@ TEST_CASE("Quaternion construction", "[quaternion]") {
     }
 
     SECTION("From angle-axis") {
-        auto q = Quaternion::from_angle_axis(M_PI / 2, Eigen::Vector3d::UnitZ());
+        auto q = Quaternion::from_angle_axis(std::numbers::pi / 2, Eigen::Vector3d::UnitZ());
         REQUIRE_THAT(q.norm(), WithinAbs(1.0, kRegularAtol));
-        REQUIRE_THAT(q.w(), WithinAbs(std::cos(M_PI / 4), kNumericalAtol));
+        REQUIRE_THAT(q.w(), WithinAbs(std::cos(std::numbers::pi / 4), kNumericalAtol));
     }
 
     SECTION("From euler angles") {
@@ -35,8 +36,8 @@ TEST_CASE("Quaternion construction", "[quaternion]") {
 }
 
 TEST_CASE("Quaternion arithmetic", "[quaternion]") {
-    auto q1 = Quaternion::from_angle_axis(M_PI / 4, Eigen::Vector3d::UnitZ());
-    auto q2 = Quaternion::from_angle_axis(M_PI / 4, Eigen::Vector3d::UnitX());
+    auto q1 = Quaternion::from_angle_axis(std::numbers::pi / 4, Eigen::Vector3d::UnitZ());
+    auto q2 = Quaternion::from_angle_axis(std::numbers::pi / 4, Eigen::Vector3d::UnitX());
 
     SECTION("Multiplication") {
         auto q3 = q1 * q2;
@@ -83,7 +84,7 @@ TEST_CASE("Quaternion exp/log", "[quaternion]") {
     }
 
     SECTION("Power") {
-        auto q = Quaternion::from_angle_axis(M_PI / 2, Eigen::Vector3d::UnitZ());
+        auto q = Quaternion::from_angle_axis(std::numbers::pi / 2, Eigen::Vector3d::UnitZ());
         auto q_half = Quaternion::power(q, 0.5);
         REQUIRE_THAT(q_half.norm(), WithinAbs(1.0, kNumericalAtol));
     }
@@ -91,7 +92,7 @@ TEST_CASE("Quaternion exp/log", "[quaternion]") {
 
 TEST_CASE("Quaternion SLERP", "[quaternion]") {
     auto q0 = Quaternion::identity();
-    auto q1 = Quaternion::from_angle_axis(M_PI / 2, Eigen::Vector3d::UnitZ());
+    auto q1 = Quaternion::from_angle_axis(std::numbers::pi / 2, Eigen::Vector3d::UnitZ());
 
     SECTION("Endpoints") {
         auto r0 = Quaternion::slerp(q0, q1, 0.0);
@@ -117,7 +118,7 @@ TEST_CASE("Quaternion SLERP", "[quaternion]") {
 
 TEST_CASE("Quaternion SQUAD", "[quaternion]") {
     auto p = Quaternion::identity();
-    auto q = Quaternion::from_angle_axis(M_PI / 2, Eigen::Vector3d::UnitZ());
+    auto q = Quaternion::from_angle_axis(std::numbers::pi / 2, Eigen::Vector3d::UnitZ());
     auto a = Quaternion::slerp(p, q, 0.25);
     auto b = Quaternion::slerp(p, q, 0.75);
 
@@ -146,7 +147,7 @@ TEST_CASE("Quaternion intermediate", "[quaternion]") {
 }
 
 TEST_CASE("Quaternion conversions", "[quaternion]") {
-    auto q = Quaternion::from_angle_axis(M_PI / 3, Eigen::Vector3d(1, 1, 0).normalized());
+    auto q = Quaternion::from_angle_axis(std::numbers::pi / 3, Eigen::Vector3d(1, 1, 0).normalized());
 
     SECTION("Rotation matrix") {
         auto R = q.to_rotation_matrix();

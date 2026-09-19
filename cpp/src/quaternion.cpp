@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <numbers>
 #include <stdexcept>
 
 namespace interpolatecpp::quat {
@@ -192,7 +193,7 @@ std::tuple<double, double, double> Quaternion::to_euler_angles() const {
     // Pitch (y-axis rotation)
     double sinp = 2.0 * (w * y - z * x);
     double pitch = (std::abs(sinp) >= 1.0)
-                       ? std::copysign(M_PI / 2.0, sinp)
+                       ? std::copysign(std::numbers::pi / 2.0, sinp)
                        : std::asin(sinp);
 
     // Yaw (z-axis rotation)

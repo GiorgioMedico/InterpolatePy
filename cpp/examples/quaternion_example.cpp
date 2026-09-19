@@ -17,6 +17,7 @@
 #include <cmath>
 #include <iomanip>
 #include <iostream>
+#include <numbers>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -28,13 +29,13 @@ using namespace interpolatecpp::quat;
 // Shared test data
 // ---------------------------------------------------------------------------
 
-static constexpr double kRadToDeg = 180.0 / M_PI;
+static constexpr double kRadToDeg = 180.0 / std::numbers::pi;
 
 /// Five waypoints from euler angles (degrees) at uniform time spacing.
 static std::pair<std::vector<double>, std::vector<Quaternion>> make_waypoints() {
     // Euler angles in degrees: (roll, pitch, yaw)
     //   (0, 0, 0)  (30, 45, 0)  (60, -30, 90)  (0, 45, 180)  (-30, 0, 270)
-    const auto deg = [](double d) { return d * M_PI / 180.0; };
+    const auto deg = [](double d) { return d * std::numbers::pi / 180.0; };
 
     std::vector<double> times = {0.0, 1.0, 2.0, 3.0, 4.0};
     std::vector<Quaternion> quats = {
@@ -86,12 +87,12 @@ static void quaternion_basics() {
     const Quaternion q_id = Quaternion::identity();
     print_quat_full("identity", q_id);
 
-    const auto deg = [](double d) { return d * M_PI / 180.0; };
+    const auto deg = [](double d) { return d * std::numbers::pi / 180.0; };
     const Quaternion q_euler = Quaternion::from_euler_angles(deg(30), deg(45), deg(0));
     print_quat_full("from_euler(30, 45, 0)", q_euler);
 
     const Quaternion q_aa = Quaternion::from_angle_axis(
-        M_PI / 4.0, Eigen::Vector3d::UnitZ());
+        std::numbers::pi / 4.0, Eigen::Vector3d::UnitZ());
     print_quat_full("from_angle_axis(pi/4, Z)", q_aa);
 
     const Quaternion q_raw(0.707, 0.0, 0.707, 0.0);

@@ -8,6 +8,7 @@
 #include "test_data.hpp"
 
 #include <cmath>
+#include <numbers>
 
 using namespace interpolatecpp::path;
 using namespace interpolatecpp::test;
@@ -90,13 +91,13 @@ TEST_CASE("CircularPath XY plane", "[circular_path]") {
     }
 
     SECTION("Quarter circle") {
-        auto p = path.position(M_PI / 2.0);
+        auto p = path.position(std::numbers::pi / 2.0);
         REQUIRE_THAT(p(0), WithinAbs(0.0, kNumericalAtol));
         REQUIRE_THAT(p(1), WithinAbs(1.0, kNumericalAtol));
     }
 
     SECTION("Half circle") {
-        auto p = path.position(M_PI);
+        auto p = path.position(std::numbers::pi);
         REQUIRE_THAT(p(0), WithinAbs(-1.0, kNumericalAtol));
         REQUIRE_THAT(p(1), WithinAbs(0.0, kNumericalAtol));
     }
@@ -142,7 +143,7 @@ TEST_CASE("CircularPath vector evaluation", "[circular_path]") {
     CircularPath path(axis, axis_point, circle_point);
 
     Eigen::VectorXd s(4);
-    s << 0, M_PI / 2, M_PI, 3 * M_PI / 2;
+    s << 0, std::numbers::pi / 2, std::numbers::pi, 3 * std::numbers::pi / 2;
     auto pts = path.position(s);
 
     REQUIRE(pts.rows() == 4);
@@ -210,7 +211,7 @@ TEST_CASE("circular_trajectory_with_derivatives", "[frenet_helpers]") {
     }
 
     SECTION("At u=PI/2") {
-        auto [p, dp, d2p] = circular_trajectory_with_derivatives(M_PI / 2.0, 1.0);
+        auto [p, dp, d2p] = circular_trajectory_with_derivatives(std::numbers::pi / 2.0, 1.0);
 
         REQUIRE_THAT(p(0), WithinAbs(0.0, kNumericalAtol));
         REQUIRE_THAT(p(1), WithinAbs(1.0, kNumericalAtol));
@@ -240,7 +241,7 @@ TEST_CASE("helicoidal_trajectory_with_derivatives", "[frenet_helpers]") {
 
 TEST_CASE("Frenet frames with helicoidal helper", "[frenet_helpers]") {
     Eigen::VectorXd s(5);
-    for (int i = 0; i < 5; ++i) s[i] = M_PI * i / 4.0;
+    for (int i = 0; i < 5; ++i) s[i] = std::numbers::pi * i / 4.0;
 
     auto curve = [](double u) {
         return helicoidal_trajectory_with_derivatives(u, 2.0, 0.5);

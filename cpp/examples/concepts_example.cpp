@@ -30,6 +30,7 @@
 #include <cmath>
 #include <iomanip>
 #include <iostream>
+#include <numbers>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -341,7 +342,7 @@ static void example_geometric_path() {
     const Eigen::Vector3d center(0.0, 0.0, 0.0);
     const Eigen::Vector3d circle_pt(3.0, 0.0, 0.0);
     const interpolatecpp::path::CircularPath circular(axis, center, circle_pt);
-    const double half_arc = M_PI * circular.radius();
+    const double half_arc = std::numbers::pi * circular.radius();
     sample_path(circular, 0.0, half_arc, 8, "CircularPath (half circle, r=3)");
 }
 
@@ -359,8 +360,8 @@ static void example_quaternion_trajectory() {
 
     // Shared waypoints: identity -> 90deg Z -> 90deg X+Z -> identity
     const Quaternion q1 = Quaternion::identity();
-    const Quaternion q2 = Quaternion::from_euler_angles(0.0, 0.0, M_PI / 2.0);
-    const Quaternion q3 = Quaternion::from_euler_angles(M_PI / 2.0, 0.0, M_PI / 2.0);
+    const Quaternion q2 = Quaternion::from_euler_angles(0.0, 0.0, std::numbers::pi / 2.0);
+    const Quaternion q3 = Quaternion::from_euler_angles(std::numbers::pi / 2.0, 0.0, std::numbers::pi / 2.0);
     const Quaternion q4 = Quaternion::identity();
     const std::vector<double> times = {0.0, 1.0, 2.0, 3.0};
     const std::vector<Quaternion> quats = {q1, q2, q3, q4};

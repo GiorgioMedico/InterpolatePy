@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <numbers>
 
 namespace interpolatecpp::motion {
 
@@ -250,13 +251,13 @@ FullTrajectoryResult DoubleSTrajectory::evaluate(double t) const {
         const double t_norm = std::min(t / T_, 1.0);
         const double qp_val = state_.v_0 + t_norm * (state_.v_1 - state_.v_0);
 
-        const double phase = 2.0 * M_PI * t_norm;
-        const double amplitude = (state_.v_1 - state_.v_0) * T_ / (2.0 * M_PI);
+        const double phase = 2.0 * std::numbers::pi * t_norm;
+        const double amplitude = (state_.v_1 - state_.v_0) * T_ / (2.0 * std::numbers::pi);
         const double q_val = state_.q_0 + amplitude * std::sin(phase);
 
         const double qpp_val = (state_.v_1 - state_.v_0) / T_ +
-                               amplitude * (2.0 * M_PI / T_) * std::cos(phase);
-        const double qppp_val = -amplitude * (2.0 * M_PI / T_) * (2.0 * M_PI / T_) *
+                               amplitude * (2.0 * std::numbers::pi / T_) * std::cos(phase);
+        const double qppp_val = -amplitude * (2.0 * std::numbers::pi / T_) * (2.0 * std::numbers::pi / T_) *
                                 std::sin(phase);
 
         return {q_val, qp_val, qpp_val, qppp_val};

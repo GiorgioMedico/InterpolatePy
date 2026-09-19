@@ -1,6 +1,7 @@
 #include <interpolatecpp/quat/log_quaternion_interpolation.hpp>
 
 #include <cmath>
+#include <numbers>
 #include <stdexcept>
 
 namespace interpolatecpp::quat {
@@ -42,13 +43,13 @@ Eigen::MatrixXd LogQuaternionInterpolation::recover_continuous_axis_angle() cons
     // Phase unwrap angles
     for (int i = 1; i < n; ++i) {
         double diff = angles[i] - angles[i - 1];
-        while (diff > M_PI) {
-            angles[i] -= 2.0 * M_PI;
-            diff -= 2.0 * M_PI;
+        while (diff > std::numbers::pi) {
+            angles[i] -= 2.0 * std::numbers::pi;
+            diff -= 2.0 * std::numbers::pi;
         }
-        while (diff < -M_PI) {
-            angles[i] += 2.0 * M_PI;
-            diff += 2.0 * M_PI;
+        while (diff < -std::numbers::pi) {
+            angles[i] += 2.0 * std::numbers::pi;
+            diff += 2.0 * std::numbers::pi;
         }
     }
 

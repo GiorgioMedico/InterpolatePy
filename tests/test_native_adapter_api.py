@@ -141,7 +141,7 @@ def test_spring_native_adapter_matches_python_reference() -> None:
     reference = PythonSpringQuaternionInterpolation(times, quaternions, config)
 
     assert type(native) is not PythonSpringQuaternionInterpolation
-    assert np.array_equal(native.sample_times, reference.sample_times)
+    assert np.allclose(native.sample_times, reference.sample_times, rtol=0.0, atol=1e-12)
     assert np.array_equal(native.keyframe_indices, reference.keyframe_indices)
     assert native.refinement_sample_counts == reference.refinement_sample_counts
     assert len(native.stage_energy_history) == len(reference.stage_energy_history)
@@ -226,7 +226,7 @@ def test_spring_gauss_newton_native_adapter_matches_python(samples: int) -> None
     reference = PythonSpring(times, keyframes, config)
     assert native.converged
     assert reference.converged
-    assert np.array_equal(native.sample_times, reference.sample_times)
+    assert np.allclose(native.sample_times, reference.sample_times, rtol=0.0, atol=1e-12)
     assert np.allclose(native.stage_gradient_norms, reference.stage_gradient_norms, atol=1e-8)
     assert np.isclose(native.final_energy, reference.final_energy, rtol=1e-8, atol=1e-12)
     for time in np.linspace(times[0], times[-1], 31):
