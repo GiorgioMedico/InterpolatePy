@@ -225,7 +225,7 @@ def newton_solve(  # noqa: PLR0913
             return parameters, iteration
         if iteration == iterations:
             break
-        direction = spsolve(jacobian, -residual).reshape(-1, 9)
+        direction = np.asarray(spsolve(jacobian, -residual)).reshape(-1, 9)
         if not np.all(np.isfinite(direction)):
             raise RuntimeError("Multiple shooting Jacobian is singular")
         step = 1.0

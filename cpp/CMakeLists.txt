@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.21)
 if(DEFINED SKBUILD_PROJECT_VERSION)
     set(INTERPOLATECPP_VERSION "${SKBUILD_PROJECT_VERSION}")
 else()
-    set(INTERPOLATECPP_VERSION "3.2.1")
+    set(INTERPOLATECPP_VERSION "3.3.0")
 endif()
 
 project(InterpolateCpp

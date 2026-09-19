@@ -10,7 +10,7 @@ maintainers = [
 ]
 description = "A comprehensive Python library for generating smooth trajectories and curves with precise control over position, velocity, acceleration, and jerk profiles"
 readme = "README.md"
-version = "3.2.1"
+version = "3.3.0"
 license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.11"

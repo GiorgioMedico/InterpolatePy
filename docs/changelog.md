@@ -3,6 +3,35 @@
 This changelog records released InterpolatePy behavior. Dates and versions match
 the repository tags. The project follows [Semantic Versioning](https://semver.org/).
 
+## 3.3.0 — 2026-09-19
+
+### Added
+
+- `SpringQuaternionInterpolation` and `SpringConfig`: energy-minimizing
+  quaternion interpolation with `gradient_descent` and `gauss_newton` solvers,
+  plus a C++ backend implementation.
+- `ShootingQuaternionInterpolation` and `ShootingConfig`: multiple-shooting
+  quaternion interpolation.
+- `PolynomialTrajectoryParams` and `TrapezoidalTrajectoryParams` are now public.
+
+### Fixed
+
+- Quaternion interpolation correctness fixes across SQUAD C2 and the
+  logarithmic quaternion methods.
+
+### Changed
+
+- Package moved to a `src/` layout built with `scikit-build-core`.
+- Large modules split into focused submodules under `splines/`, `quaternion/`,
+  `motion/`, and `visualization/`.
+- Documentation and CI workflows refreshed.
+
+## 3.2.2 — 2026-09-07
+
+### Fixed
+
+- `CubicBSplineInterpolation` now interpolates three input points correctly.
+
 ## 3.2.1 — 2026-09-04
 
 ### Added

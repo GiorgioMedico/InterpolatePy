@@ -352,7 +352,6 @@ class TestCubicBSplineInterpolation:
         spline = CubicBSplineInterpolation(points, v0=v0, vn=vn)
         assert isinstance(spline, CubicBSplineInterpolation)
 
-
     @pytest.mark.parametrize("n_points", [2, 3, 4, 5, 6, 7, 8])
     def test_curve_passes_through_every_point(self, n_points: int) -> None:
         """The curve must pass through each point at that point's own u_bar.

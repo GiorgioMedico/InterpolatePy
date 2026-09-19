@@ -282,8 +282,19 @@ changing its sample lattice, chord-based parametrization, curvature weights,
 norm penalty, or final starting state:
 
 ```python
-from interpolatepy import SpringConfig, SpringQuaternionInterpolation
+import numpy as np
 
+from interpolatepy import Quaternion
+from interpolatepy import SpringConfig
+from interpolatepy import SpringQuaternionInterpolation
+
+times = [0.0, 1.0, 2.0, 3.0]
+orientations = [
+    Quaternion.identity(),
+    Quaternion.from_angle_axis(0.8, np.array([1.0, 0.0, 0.0])),
+    Quaternion.from_angle_axis(1.0, np.array([0.0, 1.0, 0.0])),
+    Quaternion.from_angle_axis(1.2, np.array([0.0, 0.0, 1.0])),
+]
 spring = SpringQuaternionInterpolation(
     times, orientations,
     SpringConfig(num_samples=1001, solver="gauss_newton"),
