@@ -83,8 +83,13 @@ class GeometricPath(Protocol):
 class QuaternionTrajectory(Protocol):
     """Protocol for quaternion-valued trajectory evaluation.
 
-    Conforming classes provide quaternion interpolation with angular
-    velocity and acceleration as functions of time.
+    Conforming classes provide quaternion interpolation with first and second
+    derivatives as functions of time. ``evaluate_velocity`` is a body angular
+    velocity for SquadC2, QuaternionSpline, SpringQuaternionInterpolation and
+    ShootingQuaternionInterpolation. The logarithmic interpolators instead
+    return the derivative of their own coordinates there (the rotation vector
+    for LQI, and the four-component angle-axis state for mLQI); their
+    ``get_physical_kinematics`` returns angular velocity and acceleration.
 
     Conforming Classes
     ------------------

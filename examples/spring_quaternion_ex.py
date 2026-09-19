@@ -1,7 +1,7 @@
-"""Compare SPRING, multiple shooting, piecewise SLERP, SQUAD, and SQUAD-C2.
+"""Compare SPRING, multiple shooting, log-quaternion, piecewise SLERP, SQUAD, and SQUAD-C2.
 
 The plots show the orientation path in Modified Rodrigues Parameters, physical
-angular-speed magnitude, and a common discrete tangential-curvature measure.
+angular-speed magnitude, and the accumulated angular-acceleration energy.
 The console table reports median construction and evaluation times. Timings
 describe the active backend on the current machine; they are not universal
 performance claims.
@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import partial
+from itertools import pairwise
 from statistics import median
 from time import perf_counter
 from typing import TYPE_CHECKING, cast
@@ -19,6 +20,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from interpolatepy import HAS_CPP
+from interpolatepy import LogQuaternionInterpolation
+from interpolatepy import ModifiedLogQuaternionInterpolation
 from interpolatepy import Quaternion
 from interpolatepy import QuaternionSpline
 from interpolatepy import QuaternionTrajectory
@@ -39,6 +42,16 @@ if TYPE_CHECKING:
 
 VISUAL_SAMPLES = 401
 TIMING_SAMPLES = 1_000
+DETAIL_METHODS = 3
+COLORS = {
+    "Piecewise SLERP": "tab:green",
+    "SQUAD": "tab:red",
+    "SQUAD-C2": "tab:blue",
+    "SPRING": "tab:purple",
+    "Multiple shooting": "tab:orange",
+    "LQI": "tab:brown",
+    "mLQI": "tab:olive",
+}
 TIMING_REPEATS = 5
 
 
@@ -90,6 +103,8 @@ def create_factories(
         "SQUAD": lambda: QuaternionSpline(times, quaternions, Quaternion.SQUAD),
         "SQUAD-C2": lambda: SquadC2(times, quaternions),
         "Multiple shooting": lambda: ShootingQuaternionInterpolation(times, quaternions),
+        "LQI": lambda: LogQuaternionInterpolation(times, quaternions),
+        "mLQI": lambda: ModifiedLogQuaternionInterpolation(times, quaternions),
         "SPRING": lambda: SpringQuaternionInterpolation(
             times,
             quaternions,
@@ -107,35 +122,46 @@ def sample_methods(
 
 
 def angular_speed(
-    method: QuaternionTrajectory,
+    quaternions: list[Quaternion],
     evaluation_times: NDArray[np.float64],
 ) -> NDArray[np.float64]:
-    """Return physical angular-speed magnitudes in radians per second."""
-    return np.asarray(
-        [np.linalg.norm(method.evaluate_velocity(float(time))) for time in evaluation_times],
-        dtype=np.float64,
-    )
+    """Return physical angular-speed magnitudes in radians per second.
+
+    Derived from the sampled orientations rather than each method's own
+    ``evaluate_velocity``: the log-quaternion methods return derivatives of
+    their internal parametrization (r, or theta and the axis components),
+    which are not body angular velocities and would not be comparable. The
+    result matches their ``get_physical_kinematics`` to 1e-5 rad/s.
+    """
+    time_step = float(evaluation_times[1] - evaluation_times[0])
+    speeds = []
+    for previous, current in pairwise(quaternions):
+        relative = previous.inverse() * current
+        if relative.s_ < 0.0:
+            relative = -relative
+        speeds.append(2.0 * np.linalg.norm(relative.Log().v_) / time_step)
+    return np.asarray([speeds[0], *speeds], dtype=np.float64)
 
 
-def discrete_tangential_curvature(
+def accumulated_acceleration_energy(
     quaternions: list[Quaternion],
     evaluation_times: NDArray[np.float64],
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
-    """Measure the tangential component of centered quaternion second differences."""
-    values = np.asarray(
-        [[quaternion.w, quaternion.x, quaternion.y, quaternion.z] for quaternion in quaternions],
-        dtype=np.float64,
-    )
-    for index in range(1, len(values)):
-        if np.dot(values[index - 1], values[index]) < 0.0:
-            values[index] *= -1.0
+    """Accumulate the angular-acceleration energy integral of omega.
 
+    The running total of ``|domega/dt|^2 dt`` separates the methods far more
+    readably than the pointwise value, whose keyframe spikes are two orders of
+    magnitude above the rest of the curve.
+    """
     time_step = float(evaluation_times[1] - evaluation_times[0])
-    second_difference = (values[:-2] - 2.0 * values[1:-1] + values[2:]) / time_step**2
-    centers = values[1:-1]
-    radial_scale = np.einsum("ij,ij->i", second_difference, centers) / np.einsum("ij,ij->i", centers, centers)
-    tangential = second_difference - radial_scale[:, None] * centers
-    return evaluation_times[1:-1], np.linalg.norm(tangential, axis=1)
+    velocities = []
+    for previous, current in pairwise(quaternions):
+        relative = previous.inverse() * current
+        if relative.s_ < 0.0:
+            relative = -relative
+        velocities.append(2.0 * relative.Log().v_ / time_step)
+    increments = np.sum(np.diff(np.asarray(velocities), axis=0) ** 2, axis=1) / time_step
+    return evaluation_times[1:-1], np.cumsum(increments)
 
 
 def _median_runtime(operation: Callable[[], object], repeats: int) -> float:
@@ -196,21 +222,15 @@ def plot_comparison(  # noqa: PLR0913
     evaluation_times: NDArray[np.float64],
     sampled: dict[str, list[Quaternion]],
     speeds: dict[str, NDArray[np.float64]],
-    curvatures: dict[str, tuple[NDArray[np.float64], NDArray[np.float64]]],
+    energies: dict[str, tuple[NDArray[np.float64], NDArray[np.float64]]],
     timings: dict[str, TimingResult],
 ) -> Figure:
-    """Plot orientation paths, angular speeds, curvature, and measured timings."""
-    colors = {
-        "Piecewise SLERP": "tab:green",
-        "SQUAD": "tab:red",
-        "SQUAD-C2": "tab:blue",
-        "SPRING": "tab:purple",
-        "Multiple shooting": "tab:orange",
-    }
+    """Plot orientation paths, angular speeds, acceleration energy, and timings."""
+    colors = COLORS
     figure = plt.figure(figsize=(16, 11), constrained_layout=True)
     path_axis = cast("Axes3D", figure.add_subplot(2, 2, 1, projection="3d"))
     speed_axis = figure.add_subplot(2, 2, 2)
-    curvature_axis = figure.add_subplot(2, 2, 3)
+    energy_axis = figure.add_subplot(2, 2, 3)
     timing_axis = figure.add_subplot(2, 2, 4)
     visualizer = QuaternionTrajectoryVisualizer()
 
@@ -239,7 +259,6 @@ def plot_comparison(  # noqa: PLR0913
     path_axis.set_xlabel("MRP X")
     path_axis.set_ylabel("MRP Y")
     path_axis.set_zlabel("MRP Z")
-    path_axis.legend()
 
     for name, values in speeds.items():
         speed_axis.plot(evaluation_times, values, color=colors[name], label=name)
@@ -249,17 +268,15 @@ def plot_comparison(  # noqa: PLR0913
     speed_axis.set_xlabel("Time (s)")
     speed_axis.set_ylabel("|omega| (rad/s)")
     speed_axis.grid(alpha=0.25)
-    speed_axis.legend()
 
-    for name, (times, values) in curvatures.items():
-        curvature_axis.plot(times, values, color=colors[name], label=name)
+    for name, (times, values) in energies.items():
+        energy_axis.plot(times, values, color=colors[name], label=name)
     for time in waypoint_times:
-        curvature_axis.axvline(time, color="black", linestyle=":", alpha=0.25)
-    curvature_axis.set_title("Discrete tangential curvature")
-    curvature_axis.set_xlabel("Time (s)")
-    curvature_axis.set_ylabel("Magnitude (1/s^2)")
-    curvature_axis.grid(alpha=0.25)
-    curvature_axis.legend()
+        energy_axis.axvline(time, color="black", linestyle=":", alpha=0.25)
+    energy_axis.set_title("Accumulated angular-acceleration energy")
+    energy_axis.set_xlabel("Time (s)")
+    energy_axis.set_ylabel("integral of |domega/dt|^2 dt")
+    energy_axis.grid(alpha=0.25)
 
     names = list(timings)
     positions = np.arange(len(names), dtype=np.float64)
@@ -281,9 +298,42 @@ def plot_comparison(  # noqa: PLR0913
     timing_axis.set_ylabel("Median time (ms, logarithmic)")
     timing_axis.set_title("Timing on this machine")
     timing_axis.grid(axis="y", alpha=0.25)
+    # One shared legend: three per-axes legends covered the curves they labeled.
+    figure.legend(*path_axis.get_legend_handles_labels(), loc="outside upper center", ncol=len(colors) + 1)
     timing_axis.legend()
 
-    figure.suptitle("Quaternion interpolation comparison", fontsize=16)
+    return figure
+
+
+def plot_smoothest(
+    waypoint_times: list[float],
+    evaluation_times: NDArray[np.float64],
+    speeds: dict[str, NDArray[np.float64]],
+    energies: dict[str, tuple[NDArray[np.float64], NDArray[np.float64]]],
+    count: int = DETAIL_METHODS,
+) -> Figure:
+    """Plot the methods with the lowest acceleration energy on their own scale.
+
+    The overview figure spans two orders of magnitude on this measure, which
+    flattens the leaders into a single line at the bottom of the panel.
+    """
+    smoothest = sorted(energies, key=lambda name: energies[name][1][-1])[:count]
+    figure, (speed_axis, energy_axis) = plt.subplots(
+        2, 1, figsize=(11, 8), sharex=True, constrained_layout=True
+    )
+    for name in smoothest:
+        speed_axis.plot(evaluation_times, speeds[name], color=COLORS[name], label=name)
+        times, values = energies[name]
+        energy_axis.plot(times, values, color=COLORS[name], label=name)
+    for axis in (speed_axis, energy_axis):
+        for time in waypoint_times:
+            axis.axvline(time, color="black", linestyle=":", alpha=0.25)
+        axis.grid(alpha=0.25)
+    speed_axis.set_title(f"{count} smoothest methods: {', '.join(smoothest)}")
+    speed_axis.set_ylabel("|omega| (rad/s)")
+    speed_axis.legend()
+    energy_axis.set_ylabel("integral of |domega/dt|^2 dt")
+    energy_axis.set_xlabel("Time (s)")
     return figure
 
 
@@ -295,8 +345,10 @@ def main() -> None:
 
     visual_times = np.linspace(waypoint_times[0], waypoint_times[-1], VISUAL_SAMPLES)
     sampled = sample_methods(methods, visual_times)
-    speeds = {name: angular_speed(method, visual_times) for name, method in methods.items()}
-    curvatures = {name: discrete_tangential_curvature(trajectory, visual_times) for name, trajectory in sampled.items()}
+    speeds = {name: angular_speed(trajectory, visual_times) for name, trajectory in sampled.items()}
+    energies = {
+        name: accumulated_acceleration_energy(trajectory, visual_times) for name, trajectory in sampled.items()
+    }
 
     timing_times = np.linspace(waypoint_times[0], waypoint_times[-1], TIMING_SAMPLES)
     timings = benchmark_methods(factories, timing_times)
@@ -314,9 +366,10 @@ def main() -> None:
         visual_times,
         sampled,
         speeds,
-        curvatures,
+        energies,
         timings,
     )
+    plot_smoothest(waypoint_times, visual_times, speeds, energies)
     plt.show()
 
 
