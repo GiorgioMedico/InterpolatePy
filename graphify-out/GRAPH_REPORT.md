@@ -1,7 +1,7 @@
 # Graph Report - InterpolatePy  (2026-09-19)
 
 ## Corpus Check
-- 238 files · ~204,076 words
+- 238 files · ~204,115 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 10 file(s) not represented in the graph (top: (none) 5, .in 2, .css 1)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `600dc842`
+- Built from commit: `591f9c27`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
