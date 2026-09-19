@@ -667,6 +667,7 @@ plot = [
 [package.dev-dependencies]
 dev = [
     { name = "build" },
+    { name = "matplotlib" },
     { name = "mypy" },
     { name = "pre-commit" },
     { name = "pyright" },
@@ -707,6 +708,7 @@ provides-extras = ["plot"]
 [package.metadata.requires-dev]
 dev = [
     { name = "build", specifier = ">=1.0.3" },
+    { name = "matplotlib", specifier = ">=3.6" },
     { name = "mypy", specifier = ">=1.17.0" },
     { name = "pre-commit", specifier = ">=4.2.0" },
     { name = "pyright", specifier = ">=1.1.400" },

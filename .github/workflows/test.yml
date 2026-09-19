@@ -52,9 +52,7 @@ jobs:
       - name: Sync dependencies
         run: uv sync --locked --no-default-groups --group test --no-install-project
       - name: Run Python examples with the fallback backend
-        # spring_solver_benchmark is a benchmark: ~7x slower on the pure-Python
-        # reference than on the native backend, so it needs a longer budget.
-        run: uv run --no-sync python -m scripts.check_python_examples --backend python --timeout 300
+        run: uv run --no-sync python -m scripts.check_python_examples --backend python
 
   native:
     runs-on: ubuntu-latest

@@ -127,6 +127,13 @@ set_target_properties(interpolatecpp PROPERTIES
     VISIBILITY_INLINES_HIDDEN ON
 )
 
+# INTERPOLATECPP_API must export while building the library and stay empty for a
+# static one; without this MSVC marks every symbol dllimport and the link fails.
+target_compile_definitions(interpolatecpp
+    PRIVATE INTERPOLATECPP_EXPORTS
+    PUBLIC $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:INTERPOLATECPP_STATIC_DEFINE>
+)
+
 target_compile_options(interpolatecpp PRIVATE
     $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:
         -Wall -Wextra -Wpedantic -Wconversion -Wshadow

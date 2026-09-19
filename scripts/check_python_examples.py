@@ -19,7 +19,7 @@ def parse_args() -> argparse.Namespace:
         default="auto",
         help="Select or verify the backend used by the examples.",
     )
-    parser.add_argument("--timeout", type=float, default=60.0)
+    parser.add_argument("--timeout", type=float, default=300.0)
     return parser.parse_args()
 
 

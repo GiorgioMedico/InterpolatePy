@@ -65,6 +65,7 @@ test = [
     "pre-commit>=4.2.0",
 ]
 dev = [
+    "matplotlib>=3.6",
     "ruff>=0.12.8",
     "mypy>=1.17.0",
     "pre-commit>=4.2.0",
