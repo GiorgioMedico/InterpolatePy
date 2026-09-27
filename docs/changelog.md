@@ -3,6 +3,16 @@
 This changelog records released InterpolatePy behavior. Dates and versions match
 the repository tags. The project follows [Semantic Versioning](https://semver.org/).
 
+## 3.3.1 — 2026-09-27
+
+### Fixed
+
+- C++ `CubicBSplineInterpolation` now applies the end-velocity correction with
+  three waypoints, matching the Python implementation.
+- C++ `ModifiedLogQuaternionInterpolation` now keeps the rotation axis on one
+  side and unwraps the angle like the Python implementation, fixing rotations
+  past π and varying-axis sequences.
+
 ## 3.3.0 — 2026-09-19
 
 ### Added
