@@ -111,19 +111,18 @@ Eigen::MatrixXd CubicBSplineInterpolation::calculate_control_points(
         const double b3_k1 = basis_vals[1];
         const double b3_k2 = basis_vals[2];
 
+        // Independent tests, not if/else: at n == 2 the only row is both first and last.
+        main_diag[k - 1] = b3_k1;
+        rhs.row(k - 1) = interpolation_points_.row(k);
         if (k == 1) {
-            main_diag[0] = b3_k1;
-            upper_diag[0] = b3_k2;
-            rhs.row(0) = interpolation_points_.row(k) - b3_k * cp.row(1);
-        } else if (k == n - 1) {
-            lower_diag[k - 2] = b3_k;
-            main_diag[k - 1] = b3_k1;
-            rhs.row(k - 1) = interpolation_points_.row(k) - b3_k2 * cp.row(n + 1);
+            rhs.row(k - 1) -= b3_k * cp.row(1);
         } else {
             lower_diag[k - 2] = b3_k;
-            main_diag[k - 1] = b3_k1;
+        }
+        if (k == n - 1) {
+            rhs.row(k - 1) -= b3_k2 * cp.row(n + 1);
+        } else {
             upper_diag[k - 1] = b3_k2;
-            rhs.row(k - 1) = interpolation_points_.row(k);
         }
     }
 

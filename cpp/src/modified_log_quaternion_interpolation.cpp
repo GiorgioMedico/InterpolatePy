@@ -1,6 +1,8 @@
 #include <interpolatecpp/quat/modified_log_quaternion_interpolation.hpp>
 
+#include <algorithm>
 #include <cmath>
+#include <numbers>
 #include <stdexcept>
 
 namespace interpolatecpp::quat {
@@ -15,6 +17,19 @@ void ModifiedLogQuaternionInterpolation::ensure_quaternion_continuity() {
     }
 }
 
+namespace {
+
+// Unlike to_axis_angle(), keeps the sign of w so the angle spans [0, 2*pi].
+std::pair<Eigen::Vector3d, double> axis_angle_raw(const Quaternion& q, double eps) {
+    const double s = q.w();
+    const double sin_half = std::sqrt(std::max(0.0, 1.0 - s * s));
+    const Eigen::Vector3d axis =
+        sin_half < eps ? Eigen::Vector3d::UnitX() : Eigen::Vector3d(q.vec() / sin_half);
+    return {axis, 2.0 * std::acos(std::clamp(s, -1.0, 1.0))};
+}
+
+}  // namespace
+
 std::pair<Eigen::VectorXd, Eigen::MatrixXd>
 ModifiedLogQuaternionInterpolation::transform_to_theta_xyz() const {
     const int n = static_cast<int>(quaternions_.size());
@@ -22,9 +37,32 @@ ModifiedLogQuaternionInterpolation::transform_to_theta_xyz() const {
     Eigen::MatrixXd xyz_values(n, 3);
 
     for (int i = 0; i < n; ++i) {
-        auto [axis, angle] = quaternions_[i].to_axis_angle();
+        auto [axis, angle] = axis_angle_raw(quaternions_[i], kEpsilon);
+        // Keep the axis on the previous sample's side so theta stays on one branch.
+        if (i > 0 && axis.dot(xyz_values.row(i - 1).transpose()) < 0.0) {
+            axis = -axis;
+            angle = 2.0 * std::numbers::pi - angle;
+        }
         theta_values[i] = angle;
         xyz_values.row(i) = axis.transpose();
+    }
+
+    // Same algorithm as np.unwrap, so jumps of exactly pi resolve identically.
+    constexpr double pi = std::numbers::pi;
+    double correction = 0.0;
+    double prev_raw = theta_values[0];
+    for (int i = 1; i < n; ++i) {
+        const double raw = theta_values[i];
+        const double dd = raw - prev_raw;
+        prev_raw = raw;
+        if (std::abs(dd) >= pi) {
+            double dd_mod = dd + pi - 2.0 * pi * std::floor((dd + pi) / (2.0 * pi)) - pi;
+            if (dd_mod == -pi && dd > 0.0) {
+                dd_mod = pi;
+            }
+            correction += dd_mod - dd;
+        }
+        theta_values[i] = raw + correction;
     }
 
     return {theta_values, xyz_values};
