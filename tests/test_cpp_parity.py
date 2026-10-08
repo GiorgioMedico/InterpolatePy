@@ -145,7 +145,7 @@ class TestLogQuaternionParity:
 
 @pytest.mark.parametrize("normalize_axis", [True, False])
 def test_modified_log_angular_velocity_matches_python(normalize_axis: bool) -> None:
-    times = (0.0, 0.2, 0.4, 0.6, 0.8, 1.0)
+    times = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
     rng = np.random.default_rng(11)
     quats = [PyQuaternion(*(q / np.linalg.norm(q))) for q in rng.normal(size=(len(times), 4))]
     cpp = ip.ModifiedLogQuaternionInterpolation(times, quats, normalize_axis=normalize_axis)
