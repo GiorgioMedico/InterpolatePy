@@ -26,6 +26,7 @@ set(TEST_SOURCES
     test_quaternion_spline.cpp
     test_spring_quaternion.cpp
     test_shooting_quaternion.cpp
+    test_quat_accessors.cpp
     # Phase 5: Path
     test_paths.cpp
 )

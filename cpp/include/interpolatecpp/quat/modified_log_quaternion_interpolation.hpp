@@ -36,6 +36,9 @@ class INTERPOLATECPP_API ModifiedLogQuaternionInterpolation {
     [[nodiscard]] Eigen::Vector4d evaluate_velocity(double t) const;
     [[nodiscard]] Eigen::Vector4d evaluate_acceleration(double t) const;
 
+    /// Physical angular velocity (omega of Python get_physical_kinematics).
+    [[nodiscard]] Eigen::Vector3d angular_velocity(double t) const;
+
     [[nodiscard]] double t_min() const noexcept { return times_.front(); }
     [[nodiscard]] double t_max() const noexcept { return times_.back(); }
     [[nodiscard]] bool normalize_axis() const noexcept { return normalize_axis_; }

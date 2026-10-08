@@ -420,6 +420,10 @@ class ModifiedLogQuaternionInterpolation:
         time_values = np.linspace(self.t_min, self.t_max, num_points)
         return time_values, [self.evaluate(t) for t in time_values]
 
+    def angular_velocity(self, t: float) -> np.ndarray:
+        """Physical 3D angular velocity (omega) at time ``t``."""
+        return self.get_physical_kinematics(t)[0]
+
     def get_physical_kinematics(self, t: float) -> tuple[np.ndarray, np.ndarray]:
         """
         Physical 3D angular velocity (omega) and acceleration (alpha) at time ``t``.

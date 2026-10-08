@@ -29,6 +29,11 @@ class INTERPOLATECPP_API LogQuaternionInterpolation {
     [[nodiscard]] double t_min() const noexcept { return times_.front(); }
     [[nodiscard]] double t_max() const noexcept { return times_.back(); }
 
+    /// The underlying axis-angle B-spline.
+    [[nodiscard]] const bspline::BSplineInterpolator& bspline_interpolator() const noexcept {
+        return *spline_;
+    }
+
   private:
     std::vector<double> times_;
     std::vector<Quaternion> quaternions_;

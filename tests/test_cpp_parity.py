@@ -141,3 +141,14 @@ class TestLogQuaternionParity:
         for ti in np.linspace(0.0, 1.0, 241):
             npt.assert_allclose(_as_array(cpp.evaluate(ti)), _as_array(py.evaluate(ti)), atol=TOL)
             npt.assert_allclose(cpp.evaluate_velocity(ti), py.evaluate_velocity(ti), atol=1e-8)
+
+
+@pytest.mark.parametrize("normalize_axis", [True, False])
+def test_modified_log_angular_velocity_matches_python(normalize_axis: bool) -> None:
+    times = (0.0, 0.2, 0.4, 0.6, 0.8, 1.0)
+    rng = np.random.default_rng(11)
+    quats = [PyQuaternion(*(q / np.linalg.norm(q))) for q in rng.normal(size=(len(times), 4))]
+    cpp = ip.ModifiedLogQuaternionInterpolation(times, quats, normalize_axis=normalize_axis)
+    py = py_logarithmic.ModifiedLogQuaternionInterpolation(times, quats, normalize_axis=normalize_axis)
+    for ti in np.linspace(0.0, 1.0, 50):
+        npt.assert_allclose(cpp.angular_velocity(ti), py.get_physical_kinematics(ti)[0], atol=1e-9)

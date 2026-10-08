@@ -195,4 +195,30 @@ Eigen::Vector4d ModifiedLogQuaternionInterpolation::evaluate_acceleration(double
     return Eigen::Vector4d(theta_ddot, xyz_ddot[0], xyz_ddot[1], xyz_ddot[2]);
 }
 
+Eigen::Vector3d ModifiedLogQuaternionInterpolation::angular_velocity(double t) const {
+    t = std::clamp(t, times_.front(), times_.back());
+
+    const double theta = theta_spline_->evaluate(t)[0];
+    const double theta_dot = theta_spline_->evaluate_derivative(t, 1)[0];
+    const Eigen::Vector3d u_raw = xyz_spline_->evaluate(t);
+    const Eigen::Vector3d u_dot_raw = xyz_spline_->evaluate_derivative(t, 1);
+
+    Eigen::Vector3d u = u_raw;
+    Eigen::Vector3d u_dot = u_dot_raw;
+    if (normalize_axis_) {
+        const double r = u_raw.norm();
+        if (r < kEpsilon) {
+            u = Eigen::Vector3d::UnitX();
+            u_dot.setZero();
+        } else {
+            // Project out the radial component so u_dot is tangent to the unit sphere.
+            u = u_raw / r;
+            u_dot = (u_dot_raw - u.dot(u_dot_raw) * u) / r;
+        }
+    }
+
+    return u * theta_dot + u_dot * std::sin(theta) +
+           u.cross(u_dot) * (1.0 - std::cos(theta));
+}
+
 }  // namespace interpolatecpp::quat

@@ -426,6 +426,15 @@ class TestModifiedLogQuaternionInterpolation:
         dot_product = q_interp.dot_product(quaternions[1])
         assert abs(abs(dot_product) - 1.0) < self.NUMERICAL_ATOL
 
+    def test_angular_velocity_matches_physical_kinematics(self) -> None:
+        """angular_velocity(t) is omega from get_physical_kinematics(t)."""
+        time_points, quaternions = self.setup_test_data()
+        interpolator = ModifiedLogQuaternionInterpolation(time_points, quaternions)
+        for t in np.linspace(time_points[0], time_points[-1], 7):
+            np.testing.assert_allclose(
+                interpolator.angular_velocity(t), interpolator.get_physical_kinematics(t)[0]
+            )
+
 
 @pytest.mark.parametrize(
     "cls_name", ["LogQuaternionInterpolation", "ModifiedLogQuaternionInterpolation"]

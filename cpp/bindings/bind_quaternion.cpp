@@ -213,6 +213,8 @@ void bind_quaternion(py::module_& m) {
              py::arg("t"))
         .def("evaluate_acceleration",
              &ModifiedLogQuaternionInterpolation::evaluate_acceleration, py::arg("t"))
+        .def("angular_velocity", &ModifiedLogQuaternionInterpolation::angular_velocity,
+             py::arg("t"))
         .def_property_readonly("t_min", &ModifiedLogQuaternionInterpolation::t_min)
         .def_property_readonly("t_max", &ModifiedLogQuaternionInterpolation::t_max)
         .def_property_readonly("normalize_axis",
