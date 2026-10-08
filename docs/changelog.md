@@ -3,6 +3,16 @@
 This changelog records released InterpolatePy behavior. Dates and versions match
 the repository tags. The project follows [Semantic Versioning](https://semver.org/).
 
+## 3.3.2 — 2026-10-08
+
+### Added
+
+- C++ `LogQuaternionInterpolation::bspline_interpolator()` exposes the
+  underlying B-spline.
+- `ModifiedLogQuaternionInterpolation.angular_velocity(t)` returns the physical
+  angular velocity, matching `get_physical_kinematics(t)[0]`, on both the
+  Python and C++ backends.
+
 ## 3.3.1 — 2026-09-27
 
 ### Fixed

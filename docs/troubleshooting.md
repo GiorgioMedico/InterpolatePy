@@ -22,7 +22,7 @@ Check the installed version:
 python -c "import interpolatepy as ip; print(ip.__version__)"
 ```
 
-This documentation targets 3.3.1. Import public algorithms from `interpolatepy`.
+This documentation targets 3.3.2. Import public algorithms from `interpolatepy`.
 The trapezoidal `TrajectoryParams` is the intentional exception:
 
 ```python
@@ -221,7 +221,8 @@ The time list must still match the quaternion list and be strictly increasing.
 
 Logarithmic interpolators differentiate their internal coordinate state.
 On the Python backend, call `get_physical_kinematics()` for physical angular
-velocity and acceleration.
+velocity and acceleration. For mLQI, `angular_velocity(t)` returns the physical
+angular velocity on either backend.
 
 ## Plotting and examples
 

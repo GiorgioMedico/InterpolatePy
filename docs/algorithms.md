@@ -1,6 +1,6 @@
 # Algorithms
 
-This guide summarizes the numerical families in InterpolatePy 3.3.1 and helps
+This guide summarizes the numerical families in InterpolatePy 3.3.2 and helps
 select between them. The [API reference](api-reference.md) supplies signatures;
 the tutorials supply complete code.
 
