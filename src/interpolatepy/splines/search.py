@@ -88,12 +88,14 @@ def smoothing_spline_with_tolerance(
         print(f"Initial lower_bound={lower_bound}, upper_bound={upper_bound}")
 
     weights = None if config.weights is None else np.asarray(config.weights, dtype=float).tolist()
+    t_list = np.asarray(t_points, dtype=float).tolist()
+    q_list = np.asarray(q_points, dtype=float).tolist()
 
     # Create initial (fallback) spline with μ=1.0 (most accurate)
     # This ensures we always have a valid spline to return
     default_spline = CubicSmoothingSpline(
-        t_points.tolist() if hasattr(t_points, "tolist") else list(t_points),
-        q_points.tolist() if hasattr(q_points, "tolist") else list(q_points),
+        t_list,
+        q_list,
         mu=1.0,
         weights=weights,
         v0=config.v0,
@@ -119,8 +121,8 @@ def smoothing_spline_with_tolerance(
         try:  # ruff: ignore[too-many-statements-in-try-clause]
             # Create spline with current μ
             spline = CubicSmoothingSpline(
-                t_points.tolist() if hasattr(t_points, "tolist") else list(t_points),
-                q_points.tolist() if hasattr(q_points, "tolist") else list(q_points),
+                t_list,
+                q_list,
                 mu=mu,
                 weights=weights,
                 v0=config.v0,
