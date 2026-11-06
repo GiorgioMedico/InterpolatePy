@@ -12,24 +12,24 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: ['3.11', '3.12', '3.13']
+        python-version: ['3.11', '3.14']
     env:
       INTERPOLATEPY_NO_CPP: '1'
       PYTHONPATH: src
-      UV_PYTHON: ${{ matrix.python-version }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Install uv
-        uses: astral-sh/setup-uv@v8.1.0
+        uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
+          python-version: ${{ matrix.python-version }}
       - name: Sync dependencies
         run: uv sync --locked --no-default-groups --group test --no-install-project
       - name: Testing with coverage
         run: uv run --no-sync pytest tests --cov=interpolatepy --cov-report=xml --cov-report=term-missing
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
@@ -41,14 +41,14 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PYTHONPATH: src
-      UV_PYTHON: '3.12'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Install uv
-        uses: astral-sh/setup-uv@v8.1.0
+        uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
+          python-version: '3.12'
       - name: Sync dependencies
         run: uv sync --locked --no-default-groups --group test --no-install-project
       - name: Run Python examples with the fallback backend
@@ -58,14 +58,14 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PYTHONPATH: src
-      UV_PYTHON: '3.12'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Install uv
-        uses: astral-sh/setup-uv@v8.1.0
+        uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
+          python-version: '3.12'
       - name: Sync dependencies
         run: uv sync --locked --no-default-groups --group test --no-install-project
       - name: Configure C++ tests, examples, and Python bindings

@@ -8,10 +8,10 @@ jobs:
   build-sdist:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: astral-sh/setup-uv@v8.1.0
+      - uses: astral-sh/setup-uv@v10.3.3
       - name: Build source distribution
         run: uv build --sdist
       - uses: actions/upload-artifact@v6
@@ -27,7 +27,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-15-intel, macos-latest]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
       - name: Install cibuildwheel
         run: python -m pip install cibuildwheel==4.2.0

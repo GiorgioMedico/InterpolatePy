@@ -9,22 +9,24 @@ jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Install uv
-      uses: astral-sh/setup-uv@v8.1.0
+      uses: astral-sh/setup-uv@v10.3.3
       with:
         enable-cache: true
         cache-dependency-glob: uv.lock
     - name: Sync dependencies
       run: uv sync --locked --no-default-groups --group dev --no-install-project
     - name: Cache pre-commit hook environments
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: ~/.cache/pre-commit
         key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
         restore-keys: |
           pre-commit-${{ runner.os }}-
     - name: Run pre-commit
+      env:
+        UV_NO_SYNC: '1'  # hook runs `uv run mypy`; skip building the C++ extension
       run: uv run --no-sync pre-commit run --all-files --show-diff-on-failure
     - name: Run Pyright
       run: uv run --no-sync pyright src/interpolatepy
