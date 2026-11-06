@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import matplotlib.pyplot as plt
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D  # noqa: F401  (registers 3D projection)
+from mpl_toolkits.mplot3d import Axes3D  # ruff: ignore[unused-import]  (registers 3D projection)
 
 from interpolatepy import LogQuaternionInterpolation
 from interpolatepy import Quaternion
@@ -124,8 +124,8 @@ def main() -> None:
     print("=" * 60)
 
     # Helix parameters
-    r = 1.0   # constant radius
-    b = 0.3   # vertical rise per radian
+    r = 1.0  # constant radius
+    b = 0.3  # vertical rise per radian
     u_min = 0.5
     u_max = 6.0 * np.pi
     n_waypoints = 1000
@@ -152,9 +152,7 @@ def main() -> None:
     # Dense evaluation of position + interpolated orientation.
     n_dense = 240
     u_dense = np.linspace(u_min, u_max, n_dense)
-    dense_positions, dense_frames_lqi, dense_quaternions_lqi = (
-        evaluate_interpolated_trajectory(lqi, u_dense, r=r, b=b)
-    )
+    dense_positions, dense_frames_lqi, dense_quaternions_lqi = evaluate_interpolated_trajectory(lqi, u_dense, r=r, b=b)
 
     # Ground-truth Frenet frames on the same dense grid, for comparison.
     def helix_func(u: float) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -164,10 +162,7 @@ def main() -> None:
 
     # Report worst-case angular deviation between interpolated orientation and
     # the analytical Frenet frame.
-    errors = np.array([
-        angular_error_deg(dense_frames_truth[i], dense_frames_lqi[i])
-        for i in range(n_dense)
-    ])
+    errors = np.array([angular_error_deg(dense_frames_truth[i], dense_frames_lqi[i]) for i in range(n_dense)])
     print(f"Mean angular error vs Frenet truth: {errors.mean():.3f} deg")
     print(f"Max  angular error vs Frenet truth: {errors.max():.3f} deg")
 
@@ -274,9 +269,7 @@ def main() -> None:
     waypoint_data = [theta_wp, nhat_wp[:, 0], nhat_wp[:, 1], nhat_wp[:, 2]]
     component_colors = ["tab:orange", "tab:red", "tab:green", "tab:blue"]
 
-    for ax, label, curve, wp_vals, c in zip(
-        axes3, component_labels, component_data, waypoint_data, component_colors
-    ):
+    for ax, label, curve, wp_vals, c in zip(axes3, component_labels, component_data, waypoint_data, component_colors):
         ax.plot(u_dense, curve, color=c, linewidth=2.0, label="LQI")
         ax.scatter(times_shown, wp_vals, color="magenta", s=25, zorder=5, label="waypoints")
         ax.set_ylabel(label)
@@ -284,9 +277,7 @@ def main() -> None:
         ax.legend(loc="upper right", fontsize=8)
 
     axes3[-1].set_xlabel("Parameter u")
-    axes3[0].set_title(
-        r"LQI internal state recovered from $r(u) = \theta(u)\,\hat n(u)$"
-    )
+    axes3[0].set_title(r"LQI internal state recovered from $r(u) = \theta(u)\,\hat n(u)$")
     plt.tight_layout()
 
     # Raw rotation-vector components r_x, r_y, r_z (what LQI actually splines).

@@ -14,7 +14,7 @@ def linear_traj(
     p1: float | list[float] | np.ndarray,
     t0: float,
     t1: float,
-    time_array: np.ndarray,
+    time_array: list[float] | np.ndarray,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Generate points along a linear trajectory using NumPy vectorization.

@@ -47,7 +47,7 @@ def quaternion_distance(first: Quaternion, second: Quaternion) -> float:
 
 
 def velocity_magnitudes(
-    quaternions: list[Quaternion], time_points: list[float] | None = None
+    quaternions: list[Quaternion], time_points: list[float] | np.ndarray | None = None
 ) -> tuple[np.ndarray, np.ndarray]:
     """Compute neighboring quaternion-distance averages along a trajectory."""
     if len(quaternions) < _MIN_QUATERNIONS:

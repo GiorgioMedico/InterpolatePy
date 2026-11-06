@@ -7,7 +7,7 @@ including helicoidal and circular paths, with and without tool orientation.
 
 import matplotlib.pyplot as plt
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
+from mpl_toolkits.mplot3d import Axes3D  # ruff: ignore[unused-import]
 
 from interpolatepy import circular_trajectory_with_derivatives
 from interpolatepy import compute_trajectory_frames
@@ -78,7 +78,7 @@ def example_8_6() -> None:
     # Plot tool frames
     ax2 = fig.add_subplot(122, projection="3d")
     plot_frames(ax2, points, tool_frames, scale=0.5, skip=8)
-    ax2.set_title("Circular Trajectory with Tool Frames (α = 30°)")  # noqa: RUF001
+    ax2.set_title("Circular Trajectory with Tool Frames (α = 30°)")  # ruff: ignore[ambiguous-unicode-character-string]
     ax2.set_xlabel("x")
     ax2.set_ylabel("y")
     ax2.set_zlabel("z")
@@ -111,9 +111,7 @@ def example_rot() -> None:
     points, frenet_frames = compute_trajectory_frames(circle_func, u_values)
 
     # Compute tool frames with RPY orientation
-    _, tool_frames = compute_trajectory_frames(
-        circle_func, u_values, tool_orientation=(alpha, beta, gamma)
-    )
+    _, tool_frames = compute_trajectory_frames(circle_func, u_values, tool_orientation=(alpha, beta, gamma))
 
     # Visualize
     fig = plt.figure(figsize=(12, 6))

@@ -99,8 +99,7 @@ class SmoothingCubicBSpline(BSpline):
         else:
             if len(params.weights) != n_points:
                 raise ValueError(
-                    f"Length of weights ({len(params.weights)}) must match "
-                    f"the number of points ({n_points})"
+                    f"Length of weights ({len(params.weights)}) must match the number of points ({n_points})"
                 )
             self.weights = np.array(params.weights, dtype=np.float64)
 
@@ -422,7 +421,7 @@ class SmoothingCubicBSpline(BSpline):
         b_reduced = np.zeros((n - 1, n - 1), dtype=np.float64)
         for k in range(1, n):
             u = self.u_bars[k]
-            try:
+            try:  # ruff: ignore[too-many-statements-in-try-clause]
                 span = self.find_knot_span(u)
                 basis_vals = self.basis_functions(u, span)
 
@@ -469,9 +468,7 @@ class SmoothingCubicBSpline(BSpline):
         # Add terms for p₀ and p₁
         pz[0] = c_matrix[0, 0] * control_points[0] + c_matrix[0, 1] * control_points[1]
         # Add terms for pₙ₊₁ and pₙ₊₂
-        pz[n] = (
-            c_matrix[n, n + 1] * control_points[n + 1] + c_matrix[n, n + 2] * control_points[n + 2]
-        )
+        pz[n] = c_matrix[n, n + 1] * control_points[n + 1] + c_matrix[n, n + 2] * control_points[n + 2]
 
         # Calculate the CTAC term for reduced system
         ctac_reduced = c_reduced.T @ a_matrix @ c_reduced

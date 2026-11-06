@@ -61,9 +61,7 @@ class TestLogQuaternionInterpolation:
         initial_velocity = np.array([0.1, 0.2, 0.3])
         final_velocity = np.array([0.4, 0.5, 0.6])
         interpolator = LogQuaternionInterpolation(
-            time_points, quaternions,
-            initial_velocity=initial_velocity,
-            final_velocity=final_velocity
+            time_points, quaternions, initial_velocity=initial_velocity, final_velocity=final_velocity
         )
         assert interpolator.degree == LogQuaternionInterpolation.DEFAULT_DEGREE
 
@@ -184,9 +182,9 @@ class TestLogQuaternionInterpolation:
         time_points = [0.0, 1.0, 2.0, 3.0]
         quaternions = [
             Quaternion.identity(),
-            Quaternion.from_angle_axis(np.pi/4, np.array([1.0, 0.0, 0.0])),
-            Quaternion.from_angle_axis(np.pi/2, np.array([1.0, 0.0, 0.0])),
-            Quaternion.from_angle_axis(3*np.pi/4, np.array([1.0, 0.0, 0.0])),
+            Quaternion.from_angle_axis(np.pi / 4, np.array([1.0, 0.0, 0.0])),
+            Quaternion.from_angle_axis(np.pi / 2, np.array([1.0, 0.0, 0.0])),
+            Quaternion.from_angle_axis(3 * np.pi / 4, np.array([1.0, 0.0, 0.0])),
         ]
 
         interpolator = LogQuaternionInterpolation(time_points, quaternions)
@@ -250,9 +248,7 @@ class TestModifiedLogQuaternionInterpolation:
         time_points, quaternions = self.setup_test_data()
 
         # Test with normalize_axis parameter
-        interpolator = ModifiedLogQuaternionInterpolation(
-            time_points, quaternions, normalize_axis=False
-        )
+        interpolator = ModifiedLogQuaternionInterpolation(time_points, quaternions, normalize_axis=False)
         assert interpolator.degree == ModifiedLogQuaternionInterpolation.DEFAULT_DEGREE
         assert interpolator.normalize_axis is False
 
@@ -260,9 +256,7 @@ class TestModifiedLogQuaternionInterpolation:
         initial_velocity = np.array([0.1, 0.2, 0.3, 0.4])
         final_velocity = np.array([0.4, 0.5, 0.6, 0.7])
         interpolator = ModifiedLogQuaternionInterpolation(
-            time_points, quaternions,
-            initial_velocity=initial_velocity,
-            final_velocity=final_velocity
+            time_points, quaternions, initial_velocity=initial_velocity, final_velocity=final_velocity
         )
         assert interpolator.degree == ModifiedLogQuaternionInterpolation.DEFAULT_DEGREE
 
@@ -382,16 +376,12 @@ class TestModifiedLogQuaternionInterpolation:
         time_points, quaternions = self.setup_test_data()
 
         # Test with normalize_axis=True (default)
-        interpolator_norm = ModifiedLogQuaternionInterpolation(
-            time_points, quaternions, normalize_axis=True
-        )
+        interpolator_norm = ModifiedLogQuaternionInterpolation(time_points, quaternions, normalize_axis=True)
         q_norm = interpolator_norm.evaluate(1.5)
         assert abs(q_norm.norm() - 1.0) < self.NUMERICAL_ATOL
 
         # Test with normalize_axis=False
-        interpolator_no_norm = ModifiedLogQuaternionInterpolation(
-            time_points, quaternions, normalize_axis=False
-        )
+        interpolator_no_norm = ModifiedLogQuaternionInterpolation(time_points, quaternions, normalize_axis=False)
         q_no_norm = interpolator_no_norm.evaluate(1.5)
 
         # With normalize_axis=False, the quaternion might not be perfectly unit
@@ -408,9 +398,9 @@ class TestModifiedLogQuaternionInterpolation:
         # Create quaternions with known axis-angle representations
         time_points = [0.0, 1.0, 2.0, 3.0]
         quaternions = [
-            Quaternion.from_angle_axis(np.pi/4, np.array([1.0, 0.0, 0.0])),
-            Quaternion.from_angle_axis(np.pi/2, np.array([1.0, 0.0, 0.0])),
-            Quaternion.from_angle_axis(3*np.pi/4, np.array([1.0, 0.0, 0.0])),
+            Quaternion.from_angle_axis(np.pi / 4, np.array([1.0, 0.0, 0.0])),
+            Quaternion.from_angle_axis(np.pi / 2, np.array([1.0, 0.0, 0.0])),
+            Quaternion.from_angle_axis(3 * np.pi / 4, np.array([1.0, 0.0, 0.0])),
             Quaternion.from_angle_axis(np.pi, np.array([1.0, 0.0, 0.0])),
         ]
 
@@ -431,19 +421,13 @@ class TestModifiedLogQuaternionInterpolation:
         time_points, quaternions = self.setup_test_data()
         interpolator = ModifiedLogQuaternionInterpolation(time_points, quaternions)
         for t in np.linspace(time_points[0], time_points[-1], 7):
-            np.testing.assert_allclose(
-                interpolator.angular_velocity(t), interpolator.get_physical_kinematics(t)[0]
-            )
+            np.testing.assert_allclose(interpolator.angular_velocity(t), interpolator.get_physical_kinematics(t)[0])
 
 
-@pytest.mark.parametrize(
-    "cls_name", ["LogQuaternionInterpolation", "ModifiedLogQuaternionInterpolation"]
-)
+@pytest.mark.parametrize("cls_name", ["LogQuaternionInterpolation", "ModifiedLogQuaternionInterpolation"])
 @pytest.mark.parametrize("degree", [3, 4, 5])
 @pytest.mark.parametrize("num_quats", [2, 3, 5])
-def test_public_api_interpolates_from_two_quaternions(
-    cls_name: str, degree: int, num_quats: int
-) -> None:
+def test_public_api_interpolates_from_two_quaternions(cls_name: str, degree: int, num_quats: int) -> None:
     """Any degree interpolates down to two quaternions, on whichever backend is active.
 
     Uses the ``interpolatepy`` public names, which resolve to the C++ implementation

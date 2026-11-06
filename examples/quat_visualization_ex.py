@@ -88,9 +88,7 @@ def plot_quaternion_components_comparison(
         waypoint_vals = [getattr(q, comp) for q in waypoints]
 
         # Plot trajectories
-        ax.plot(
-            eval_times, slerp_vals, colors_slerp[i], linewidth=2, label=f"SLERP {comp}", alpha=0.8
-        )
+        ax.plot(eval_times, slerp_vals, colors_slerp[i], linewidth=2, label=f"SLERP {comp}", alpha=0.8)
         ax.plot(
             eval_times,
             squad_vals,
@@ -114,9 +112,7 @@ def plot_quaternion_components_comparison(
     return fig
 
 
-def plot_3d_trajectory_comparison(
-    slerp_traj: list[Quaternion], squad_traj: list[Quaternion]
-) -> plt.Figure:
+def plot_3d_trajectory_comparison(slerp_traj: list[Quaternion], squad_traj: list[Quaternion]) -> plt.Figure:
     """Create 3D visualization using stereographic projection."""
     visualizer = QuaternionTrajectoryVisualizer()
 
@@ -136,9 +132,7 @@ def plot_3d_trajectory_comparison(
             alpha=0.7,
             label="SLERP",
         )
-        ax1.scatter(
-            slerp_points[:, 0], slerp_points[:, 1], slerp_points[:, 2], c=colors, s=20, alpha=0.8
-        )
+        ax1.scatter(slerp_points[:, 0], slerp_points[:, 1], slerp_points[:, 2], c=colors, s=20, alpha=0.8)
     ax1.set_xlabel("MRP X")
     ax1.set_ylabel("MRP Y")
     ax1.set_zlabel("MRP Z")
@@ -158,9 +152,7 @@ def plot_3d_trajectory_comparison(
             alpha=0.7,
             label="SQUAD",
         )
-        ax2.scatter(
-            squad_points[:, 0], squad_points[:, 1], squad_points[:, 2], c=colors, s=20, alpha=0.8
-        )
+        ax2.scatter(squad_points[:, 0], squad_points[:, 1], squad_points[:, 2], c=colors, s=20, alpha=0.8)
     ax2.set_xlabel("MRP X")
     ax2.set_ylabel("MRP Y")
     ax2.set_zlabel("MRP Z")
@@ -188,7 +180,7 @@ def demo_simple_3d_plot() -> None:
         line_width=2.5,
         point_size=30,
         waypoint_color="orange",
-        waypoint_size=100
+        waypoint_size=100,
     )
 
     print(f"Created simple 3D plot with {len(quaternions)} quaternions")
@@ -204,11 +196,7 @@ def demo_velocity_plot() -> None:
 
     # Plot velocity using custom formula: V(qi) = [||qi - qi-1|| + ||qi - qi+1||] / 2
     visualizer.plot_angular_velocity(
-        quaternions,
-        time_points=time_points,
-        title="Quaternion Velocity Analysis",
-        color="orange",
-        line_width=2.5
+        quaternions, time_points=time_points, title="Quaternion Velocity Analysis", color="orange", line_width=2.5
     )
 
     print(f"Created velocity plot for {len(quaternions)} quaternions")
@@ -218,7 +206,7 @@ def demo_velocity_plot() -> None:
     visualizer.plot_angular_velocity(
         quaternions[:5],  # Use fewer points for cleaner index-based plot
         title="Velocity by Index (First 5 Points)",
-        color="green"
+        color="green",
     )
     print("Also created index-based velocity plot")
 
@@ -236,7 +224,7 @@ def demo_combined_plot() -> None:
         time_points=time_points,
         title="Complete Quaternion Analysis: 3D Trajectory + Velocity",
         trajectory_color="navy",
-        velocity_color="crimson"
+        velocity_color="crimson",
     )
 
     print("Created combined plot showing both 3D trajectory and velocity analysis")
@@ -254,18 +242,14 @@ def main() -> None:
     print(f"Time range: {time_points[0]:.1f} to {time_points[-1]:.1f} seconds")
 
     # Generate interpolated trajectories with high resolution
-    eval_times, slerp_traj, squad_traj = generate_interpolated_trajectories(
-        time_points, quaternions, num_samples=800
-    )
+    eval_times, slerp_traj, squad_traj = generate_interpolated_trajectories(time_points, quaternions, num_samples=800)
     print(f"Generated {len(eval_times)} interpolated points for each method")
 
     # Create visualizations
     print("\nGenerating comparison plots...")
 
     # Quaternion components comparison
-    plot_quaternion_components_comparison(
-        eval_times, slerp_traj, squad_traj, time_points, quaternions
-    )
+    plot_quaternion_components_comparison(eval_times, slerp_traj, squad_traj, time_points, quaternions)
 
     # 3D trajectory comparison
     plot_3d_trajectory_comparison(slerp_traj, squad_traj)

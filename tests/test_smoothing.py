@@ -24,6 +24,7 @@ from typing import Any
 
 import numpy as np
 import pytest
+from pytest_benchmark.fixture import BenchmarkFixture
 
 from interpolatepy.splines.acceleration1 import CubicSplineWithAcceleration1
 from interpolatepy.splines.acceleration2 import CubicSplineWithAcceleration2
@@ -32,11 +33,6 @@ from interpolatepy.splines.cubic import CubicSpline
 from interpolatepy.splines.search import SplineConfig
 from interpolatepy.splines.search import smoothing_spline_with_tolerance
 from interpolatepy.splines.smoothing import CubicSmoothingSpline
-
-
-# Type alias for pytest benchmark fixture
-if not hasattr(pytest, "FixtureFunction"):
-    pytest.FixtureFunction = Any
 
 
 class TestSplineParameters:
@@ -139,9 +135,7 @@ class TestSmoothingSplineWithTolerance:
         config = SplineConfig(max_iterations=10, debug=False)
         tolerance = 0.15
 
-        spline, mu, error, iterations = smoothing_spline_with_tolerance(
-            t_points, q_points, tolerance, config
-        )
+        spline, mu, error, iterations = smoothing_spline_with_tolerance(t_points, q_points, tolerance, config)
 
         # Verify return types and values
         assert isinstance(spline, CubicSmoothingSpline)
@@ -163,9 +157,7 @@ class TestSmoothingSplineWithTolerance:
         config = SplineConfig(weights=weights, max_iterations=15)
         tolerance = 0.2
 
-        spline, mu, error, iterations = smoothing_spline_with_tolerance(
-            t_points, q_points, tolerance, config
-        )
+        spline, mu, error, iterations = smoothing_spline_with_tolerance(t_points, q_points, tolerance, config)
 
         assert isinstance(spline, CubicSmoothingSpline)
         assert error <= tolerance + 1e-6  # Allow small numerical tolerance
@@ -178,9 +170,7 @@ class TestSmoothingSplineWithTolerance:
         config = SplineConfig(v0=0.0, vn=6.0, max_iterations=20)  # v=2t at boundaries
         tolerance = 0.25
 
-        spline, mu, error, iterations = smoothing_spline_with_tolerance(
-            t_points, q_points, tolerance, config
-        )
+        spline, mu, error, iterations = smoothing_spline_with_tolerance(t_points, q_points, tolerance, config)
 
         assert isinstance(spline, CubicSmoothingSpline)
         assert error <= tolerance + 1e-6
@@ -193,9 +183,7 @@ class TestSmoothingSplineWithTolerance:
         config = SplineConfig(max_iterations=30, debug=False)
         tolerance = 1e-10  # Very tight tolerance
 
-        spline, mu, error, iterations = smoothing_spline_with_tolerance(
-            t_points, q_points, tolerance, config
-        )
+        spline, mu, error, iterations = smoothing_spline_with_tolerance(t_points, q_points, tolerance, config)
 
         # Should find a solution close to interpolation (mu near 1.0)
         assert mu > 0.9  # Should be close to 1.0 for tight tolerance
@@ -209,9 +197,7 @@ class TestSmoothingSplineWithTolerance:
         config = SplineConfig(max_iterations=25, debug=False)
         tolerance = 1.0  # Very loose tolerance
 
-        spline, mu, error, iterations = smoothing_spline_with_tolerance(
-            t_points, q_points, tolerance, config
-        )
+        spline, mu, error, iterations = smoothing_spline_with_tolerance(t_points, q_points, tolerance, config)
 
         # Should converge quickly with loose tolerance
         assert error <= tolerance
@@ -225,9 +211,7 @@ class TestSmoothingSplineWithTolerance:
         config = SplineConfig(max_iterations=5, debug=True)
         tolerance = 0.2
 
-        spline, mu, error, iterations = smoothing_spline_with_tolerance(
-            t_points, q_points, tolerance, config
-        )
+        spline, mu, error, iterations = smoothing_spline_with_tolerance(t_points, q_points, tolerance, config)
 
         # Check that debug output was generated
         captured = capsys.readouterr()
@@ -243,9 +227,7 @@ class TestSmoothingSplineWithTolerance:
         config = SplineConfig(max_iterations=50, debug=False)
         tolerance = 0.1
 
-        spline, mu, error, iterations = smoothing_spline_with_tolerance(
-            t_points, q_points, tolerance, config
-        )
+        spline, mu, error, iterations = smoothing_spline_with_tolerance(t_points, q_points, tolerance, config)
 
         # Should converge before max iterations
         assert iterations < config.max_iterations
@@ -259,9 +241,7 @@ class TestSmoothingSplineWithTolerance:
         config = SplineConfig(max_iterations=3, debug=False)  # Very low limit
         tolerance = 1e-12  # Very tight tolerance, likely unachievable in 3 iterations
 
-        spline, mu, error, iterations = smoothing_spline_with_tolerance(
-            t_points, q_points, tolerance, config
-        )
+        spline, mu, error, iterations = smoothing_spline_with_tolerance(t_points, q_points, tolerance, config)
 
         # Should return best solution found within iteration limit
         assert iterations == config.max_iterations
@@ -275,9 +255,7 @@ class TestSmoothingSplineWithTolerance:
         config = SplineConfig(max_iterations=20, debug=False)
         tolerance = 0.1
 
-        spline, mu, error, iterations = smoothing_spline_with_tolerance(
-            t_points, q_points, tolerance, config
-        )
+        spline, mu, error, iterations = smoothing_spline_with_tolerance(t_points, q_points, tolerance, config)
 
         assert isinstance(spline, CubicSmoothingSpline)
         assert np.isfinite(mu)
@@ -291,9 +269,7 @@ class TestSmoothingSplineWithTolerance:
         config = SplineConfig(max_iterations=10, debug=False)
         tolerance = 2.0  # Very loose tolerance
 
-        spline, mu, error, iterations = smoothing_spline_with_tolerance(
-            t_points, q_points, tolerance, config
-        )
+        spline, mu, error, iterations = smoothing_spline_with_tolerance(t_points, q_points, tolerance, config)
 
         # Should converge with perfect linear data and loose tolerance
         assert iterations <= config.max_iterations  # Should complete within limit
@@ -309,9 +285,7 @@ class TestSmoothingSplineWithTolerance:
         config = SplineConfig(max_iterations=25, debug=False)
         tolerance = 0.1
 
-        spline, mu, error, iterations = smoothing_spline_with_tolerance(
-            t_points, q_points, tolerance, config
-        )
+        spline, mu, error, iterations = smoothing_spline_with_tolerance(t_points, q_points, tolerance, config)
 
         # Test spline evaluation
         t_test = np.linspace(0, 2 * np.pi, 50)
@@ -335,9 +309,7 @@ class TestSmoothingSplineWithTolerance:
         tolerance = 1e-15  # Extremely tight tolerance
 
         # Should handle potential numerical issues gracefully
-        spline, mu, error, iterations = smoothing_spline_with_tolerance(
-            t_points, q_points, tolerance, config
-        )
+        spline, mu, error, iterations = smoothing_spline_with_tolerance(t_points, q_points, tolerance, config)
 
         # Should return a valid spline (fallback to default)
         assert isinstance(spline, CubicSmoothingSpline)
@@ -375,9 +347,7 @@ class TestSmoothingSplineWithTolerance:
             config = SplineConfig(max_iterations=20, debug=False)
             tolerance = 0.15
 
-            spline, mu, error, iterations = smoothing_spline_with_tolerance(
-                t_points, q_points, tolerance, config
-            )
+            spline, mu, error, iterations = smoothing_spline_with_tolerance(t_points, q_points, tolerance, config)
 
             # Should handle all sizes successfully
             assert isinstance(spline, CubicSmoothingSpline)
@@ -760,7 +730,7 @@ class TestCubicSplineWithAcceleration1:
         except TypeError:
             # Try with acceleration constraints
             acceleration_constraints = np.zeros(len(x_data))
-            spline = CubicSplineWithAcceleration1(x_data, y_data, acceleration_constraints)
+            spline = CubicSplineWithAcceleration1(x_data, y_data, acceleration_constraints)  # type: ignore[arg-type]  # fallback path passes wrong type on purpose
             assert isinstance(spline, CubicSplineWithAcceleration1)
 
     def test_acceleration_constraints(self) -> None:
@@ -918,8 +888,8 @@ class TestCubicSplineWithAcceleration1:
         v_end = spline.evaluate_velocity(x_data[-1])
 
         # Should be reasonably close to specified values
-        assert abs(v_start - v0) < 1.0  # Reasonable tolerance
-        assert abs(v_end - vn) < 1.0
+        assert np.abs(v_start - v0) < 1.0  # Reasonable tolerance
+        assert np.abs(v_end - vn) < 1.0
 
     def test_boundary_acceleration_enforcement(self) -> None:
         """Test that boundary accelerations are enforced."""
@@ -938,8 +908,8 @@ class TestCubicSplineWithAcceleration1:
         a_end = spline.evaluate_acceleration(x_data[-1])
 
         # Should be reasonably close to specified values
-        assert abs(a_start - a0) < 2.0  # Reasonable tolerance for acceleration constraints
-        assert abs(a_end - an) < 2.0
+        assert np.abs(a_start - a0) < 2.0  # Reasonable tolerance for acceleration constraints
+        assert np.abs(a_end - an) < 2.0
 
     def test_plotting_functionality_acc1(self) -> None:
         """Test plotting functionality."""
@@ -1054,8 +1024,8 @@ class TestCubicSplineWithAcceleration2:
 
     def test_parameter_effect(self) -> None:
         """Test effect of different parameters on solution."""
-        t_points = [0, 1, 2, 3, 4]
-        q_points = [0, 2, 1, 3, 2]  # Somewhat oscillatory
+        t_points: list[float] = [0, 1, 2, 3, 4]
+        q_points: list[float] = [0, 2, 1, 3, 2]  # Somewhat oscillatory
 
         # Different parameter settings (using correct SplineParameters API)
         params_low = SplineParameters(v0=0.5, vn=0.5, a0=0.1, an=0.1)
@@ -1131,7 +1101,7 @@ class TestCubicSplineWithAcceleration2:
         t_points = np.linspace(0, 3, 6)
         q_points = t_points**2  # Quadratic data
 
-        try:
+        try:  # ruff: ignore[too-many-statements-in-try-clause]
             params = SplineParameters(a0=0.5, an=0.5, debug=True)
             spline = CubicSplineWithAcceleration2(t_points, q_points, params)
 
@@ -1155,7 +1125,7 @@ class TestCubicSplineWithAcceleration2:
         t_points = np.linspace(0, 2 * np.pi, 8)
         q_points = np.sin(t_points)
 
-        try:
+        try:  # ruff: ignore[too-many-statements-in-try-clause]
             params = SplineParameters(a0=0.1, an=0.1)
             spline = CubicSplineWithAcceleration2(t_points, q_points, params)
 
@@ -1176,7 +1146,7 @@ class TestCubicSplineWithAcceleration2:
         t_points = np.linspace(0, 3, 6)
         q_points = t_points**2  # Quadratic data
 
-        try:
+        try:  # ruff: ignore[too-many-statements-in-try-clause]
             # Test with acceleration constraints to trigger quintic segments
             params = SplineParameters(a0=1.0, an=1.0, debug=False)
             spline = CubicSplineWithAcceleration2(t_points, q_points, params)
@@ -1205,7 +1175,7 @@ class TestCubicSplineWithAcceleration2:
         t_points = [0.0, 1.0, 2.0, 3.0, 4.0]
         q_points = [0.0, 1.0, 4.0, 9.0, 16.0]
 
-        try:
+        try:  # ruff: ignore[too-many-statements-in-try-clause]
             params = SplineParameters(a0=0.5, an=-0.5, debug=False)
             spline = CubicSplineWithAcceleration2(t_points, q_points, params)
 
@@ -1235,7 +1205,7 @@ class TestCubicSplineWithAcceleration2:
         t_points = np.array([0.0, 1.0, 2.0, 3.0])
         q_points = np.array([0.0, 1.0, 2.0, 3.0])
 
-        try:
+        try:  # ruff: ignore[too-many-statements-in-try-clause]
             # Test first segment quintic (a0 specified)
             params_first = SplineParameters(a0=1.0, debug=False)
             spline_first = CubicSplineWithAcceleration2(t_points, q_points, params_first)
@@ -1275,8 +1245,6 @@ class TestSmoothingSplineComparison:
         # Common test data
         x_data = np.linspace(0, 4, 12)
         y_data = 0.5 * x_data**2 + 0.1 * np.random.randn(len(x_data))
-
-        from typing import Any
 
         algorithms: list[tuple[str, Any]] = []
 
@@ -1418,9 +1386,7 @@ class TestSmoothingSplinePerformance:
         "algorithm_class",
         [CubicSmoothingSpline, CubicSplineWithAcceleration1, CubicSplineWithAcceleration2],
     )
-    def test_construction_performance(
-        self, algorithm_class: type, benchmark: pytest.FixtureFunction
-    ) -> None:
+    def test_construction_performance(self, algorithm_class: type, benchmark: BenchmarkFixture) -> None:
         """Benchmark construction performance for different smoothing algorithms."""
         x_data = np.linspace(0, 10, 50)
         y_data = np.sin(x_data) + 0.1 * np.random.randn(len(x_data))
@@ -1437,7 +1403,7 @@ class TestSmoothingSplinePerformance:
         except Exception:
             pytest.skip(f"{algorithm_class.__name__} performance test skipped")
 
-    def test_evaluation_performance(self, benchmark: pytest.FixtureFunction) -> None:
+    def test_evaluation_performance(self, benchmark: BenchmarkFixture) -> None:
         """Benchmark evaluation performance for smoothing splines."""
         x_data = np.linspace(0, 2 * np.pi, 30)
         y_data = np.sin(x_data) + 0.1 * np.random.randn(len(x_data))
@@ -1451,7 +1417,7 @@ class TestSmoothingSplinePerformance:
         results = benchmark(evaluate_spline)
         assert len(results) == 100
 
-    def test_large_dataset_performance(self, benchmark: pytest.FixtureFunction) -> None:
+    def test_large_dataset_performance(self, benchmark: BenchmarkFixture) -> None:
         """Benchmark performance with large datasets."""
         n_large = 500
         x_data = np.linspace(0, 5, n_large)
@@ -1463,7 +1429,7 @@ class TestSmoothingSplinePerformance:
         spline = benchmark(construct_large_spline)
         assert isinstance(spline, CubicSmoothingSpline)
 
-    def test_tolerance_search_performance(self, benchmark: pytest.FixtureFunction) -> None:
+    def test_tolerance_search_performance(self, benchmark: BenchmarkFixture) -> None:
         """Benchmark performance of tolerance search algorithm."""
         t_points = np.linspace(0, 4 * np.pi, 40)
         q_points = np.sin(t_points) + np.cos(2 * t_points) + 0.1 * np.random.randn(len(t_points))
@@ -1481,9 +1447,7 @@ class TestSmoothingSplinePerformance:
         assert error <= tolerance + 1e-6
         assert iterations <= config.max_iterations
 
-    def test_tolerance_search_with_weights_performance(
-        self, benchmark: pytest.FixtureFunction
-    ) -> None:
+    def test_tolerance_search_with_weights_performance(self, benchmark: BenchmarkFixture) -> None:
         """Benchmark performance of tolerance search with custom weights."""
         n_points = 30
         t_points = np.linspace(0, 3, n_points)

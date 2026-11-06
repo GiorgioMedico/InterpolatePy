@@ -9,7 +9,7 @@ This example shows how to:
 
 import matplotlib.pyplot as plt
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
+from mpl_toolkits.mplot3d import Axes3D  # ruff: ignore[unused-import]
 
 from interpolatepy import BoundaryCondition
 from interpolatepy import CircularPath

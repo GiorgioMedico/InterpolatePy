@@ -114,7 +114,7 @@ class BSplineInterpolator(_CppBSplineInterpolator):  # type: ignore[valid-type, 
     DIM_2 = 2
     DIM_3 = 3
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # ruff: ignore[too-many-arguments]
         self,
         degree: int,
         points: list | np.ndarray,
@@ -192,17 +192,9 @@ class SmoothingCubicBSpline(_CppSmoothingCubicBSpline):  # type: ignore[valid-ty
 
         cpp_params = _CppBSplineParams()
         cpp_params.mu = params.mu
-        cpp_params.weights = (
-            None
-            if params.weights is None
-            else np.asarray(params.weights, dtype=np.float64)
-        )
-        cpp_params.v0 = (
-            None if params.v0 is None else np.asarray(params.v0, dtype=np.float64)
-        )
-        cpp_params.vn = (
-            None if params.vn is None else np.asarray(params.vn, dtype=np.float64)
-        )
+        cpp_params.weights = None if params.weights is None else np.asarray(params.weights, dtype=np.float64)
+        cpp_params.v0 = None if params.v0 is None else np.asarray(params.v0, dtype=np.float64)
+        cpp_params.vn = None if params.vn is None else np.asarray(params.vn, dtype=np.float64)
         cpp_params.method = method_map[params.method]
         cpp_params.enforce_endpoints = params.enforce_endpoints
         cpp_params.auto_derivatives = params.auto_derivatives
@@ -220,9 +212,4 @@ class SmoothingCubicBSpline(_CppSmoothingCubicBSpline):  # type: ignore[valid-ty
         """Integrate the squared second-derivative magnitude numerically."""
         u_values = np.linspace(self.u_min, self.u_max, num_points)
         du = (self.u_max - self.u_min) / (num_points - 1)
-        return float(
-            sum(
-                np.sum(self.evaluate_derivative(float(u), order=2) ** 2) * du
-                for u in u_values
-            )
-        )
+        return float(sum(np.sum(self.evaluate_derivative(float(u), order=2) ** 2) * du for u in u_values))

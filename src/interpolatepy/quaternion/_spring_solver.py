@@ -126,7 +126,7 @@ def nested_level_indices(
     return tuple(levels)
 
 
-def minimize(  # noqa: PLR0913
+def minimize(  # ruff: ignore[too-many-arguments]
     initial_frames: np.ndarray,
     fixed_mask: np.ndarray,
     curvature_weights: np.ndarray,

@@ -62,8 +62,8 @@ class CubicBSplineInterpolation(BSpline):
     def __init__(
         self,
         points: list | np.ndarray,
-        v0: list | np.ndarray | None = None,
-        vn: list | np.ndarray | None = None,
+        v0: float | list | np.ndarray | None = None,
+        vn: float | list | np.ndarray | None = None,
         method: str = "chord_length",
         auto_derivatives: bool = False,
     ) -> None:
@@ -268,9 +268,7 @@ class CubicBSplineInterpolation(BSpline):
         control_points[1] = self.interpolation_points[0] + (knots[4] / 3.0) * self.v0
 
         # Calculate pₙ₊₁ using vn (scaled by the knot spacing)
-        control_points[n + 1] = (
-            self.interpolation_points[n] - ((1.0 - knots[n + 2]) / 3.0) * self.vn
-        )
+        control_points[n + 1] = self.interpolation_points[n] - ((1.0 - knots[n + 2]) / 3.0) * self.vn
 
         control_points[n + 2] = self.interpolation_points[n]
 

@@ -20,13 +20,9 @@ from typing import Any
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
+from pytest_benchmark.fixture import BenchmarkFixture
 
 from interpolatepy.bsplines.core import BSpline
-
-
-# Type alias for pytest benchmark fixture
-if not hasattr(pytest, "FixtureFunction"):
-    pytest.FixtureFunction = Any
 
 
 class TestBSplineConstruction:
@@ -782,7 +778,7 @@ class TestBSplinePerformance:
     """Test suite for performance benchmarks."""
 
     @pytest.mark.parametrize("degree", [1, 2, 3, 5])
-    def test_construction_performance(self, degree: int, benchmark: pytest.FixtureFunction) -> None:
+    def test_construction_performance(self, degree: int, benchmark: BenchmarkFixture) -> None:
         """Benchmark B-spline construction performance."""
         n_control = 20
         knots = BSpline.create_uniform_knots(degree, n_control)
@@ -795,9 +791,7 @@ class TestBSplinePerformance:
         assert spline.degree == degree
 
     @pytest.mark.parametrize("n_evaluations", [100, 1000])
-    def test_evaluation_performance(
-        self, n_evaluations: int, benchmark: pytest.FixtureFunction
-    ) -> None:
+    def test_evaluation_performance(self, n_evaluations: int, benchmark: BenchmarkFixture) -> None:
         """Benchmark B-spline evaluation performance."""
         degree = 3
         n_control = 10
@@ -813,7 +807,7 @@ class TestBSplinePerformance:
         results = benchmark(evaluate_spline)
         assert len(results) == n_evaluations
 
-    def test_basis_function_performance(self, benchmark: pytest.FixtureFunction) -> None:
+    def test_basis_function_performance(self, benchmark: BenchmarkFixture) -> None:
         """Benchmark basis function calculation performance."""
         degree = 4
         n_control = 15

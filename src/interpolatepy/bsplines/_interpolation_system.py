@@ -166,7 +166,7 @@ def _solve_system(
             "Add more points or reduce the polynomial degree."
         )
 
-    try:
+    try:  # ruff: ignore[too-many-statements-in-try-clause]
         condition_number = np.linalg.cond(system.matrix)
         if condition_number > _ILL_CONDITIONED:
             print(f"Warning: The linear system is ill-conditioned (condition number: {condition_number:.2e})")
@@ -178,7 +178,7 @@ def _solve_system(
         control_points = np.zeros((system.matrix.shape[1], points.shape[1]))
         for dimension in range(points.shape[1]):
             control_points[:, dimension] = solve(system.matrix, system.right_hand_side[:, dimension])
-        return control_points  # noqa: TRY300
+        return control_points  # ruff: ignore[try-consider-else]
     except np.linalg.LinAlgError as error:
         raise ValueError(_solve_error_message(interpolator, degree, len(points), error)) from error
 

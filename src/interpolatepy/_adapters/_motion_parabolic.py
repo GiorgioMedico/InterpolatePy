@@ -76,7 +76,7 @@ class ParabolicBlendTrajectory(_CppParabolicBlendTrajectory):  # type: ignore[va
         acc: np.ndarray | None = None,
     ) -> None:
         """Plot position, velocity, and acceleration samples."""
-        import matplotlib.pyplot as plt  # noqa: PLC0415
+        import matplotlib.pyplot as plt  # ruff: ignore[import-outside-top-level]
 
         if times is None or pos is None or vel is None or acc is None:
             times = np.arange(0.0, self.duration + self.dt, self.dt)

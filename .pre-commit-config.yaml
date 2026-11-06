@@ -12,16 +12,24 @@ repos:
       - id: check-toml
 
 -   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 'v0.15.7'
+    rev: 'v0.17.3'
     hooks:
-    -   id: ruff
+    -   id: ruff-check
         types_or: [python, pyi, jupyter]
         args: [ --fix, --exit-non-zero-on-fix, --preview ]
+    -   id: ruff-format
+        types_or: [python, pyi, jupyter]
 
--   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.19.1
+-   repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.13.7
+    hooks:
+    -   id: uv-lock
+
+-   repo: local
     hooks:
     -   id: mypy
-        args: [--ignore-missing-imports]
-
-# pre-commit autoupdate
+        name: mypy
+        entry: uv run mypy
+        language: system
+        types: [python]
+        require_serial: true

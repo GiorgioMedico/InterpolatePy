@@ -216,7 +216,7 @@ def print_timing_table(timings: dict[str, TimingResult]) -> None:
         )
 
 
-def plot_comparison(  # noqa: PLR0913
+def plot_comparison(  # ruff: ignore[too-many-arguments]
     waypoint_times: list[float],
     waypoints: list[Quaternion],
     evaluation_times: NDArray[np.float64],
@@ -318,9 +318,7 @@ def plot_smoothest(
     flattens the leaders into a single line at the bottom of the panel.
     """
     smoothest = sorted(energies, key=lambda name: energies[name][1][-1])[:count]
-    figure, (speed_axis, energy_axis) = plt.subplots(
-        2, 1, figsize=(11, 8), sharex=True, constrained_layout=True
-    )
+    figure, (speed_axis, energy_axis) = plt.subplots(2, 1, figsize=(11, 8), sharex=True, constrained_layout=True)
     for name in smoothest:
         speed_axis.plot(evaluation_times, speeds[name], color=COLORS[name], label=name)
         times, values = energies[name]
@@ -346,9 +344,7 @@ def main() -> None:
     visual_times = np.linspace(waypoint_times[0], waypoint_times[-1], VISUAL_SAMPLES)
     sampled = sample_methods(methods, visual_times)
     speeds = {name: angular_speed(trajectory, visual_times) for name, trajectory in sampled.items()}
-    energies = {
-        name: accumulated_acceleration_energy(trajectory, visual_times) for name, trajectory in sampled.items()
-    }
+    energies = {name: accumulated_acceleration_energy(trajectory, visual_times) for name, trajectory in sampled.items()}
 
     timing_times = np.linspace(waypoint_times[0], waypoint_times[-1], TIMING_SAMPLES)
     timings = benchmark_methods(factories, timing_times)

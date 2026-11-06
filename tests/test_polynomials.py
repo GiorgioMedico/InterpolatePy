@@ -25,6 +25,7 @@ from typing import Any
 
 import numpy as np
 import pytest
+from pytest_benchmark.fixture import BenchmarkFixture
 
 from interpolatepy.motion.polynomial import ORDER_3
 from interpolatepy.motion.polynomial import ORDER_5
@@ -33,11 +34,6 @@ from interpolatepy.motion.polynomial import BoundaryCondition
 from interpolatepy.motion.polynomial import PolynomialTrajectory
 from interpolatepy.motion.polynomial import TimeInterval
 from interpolatepy.motion.polynomial import TrajectoryParams
-
-
-# Type alias for pytest benchmark fixture
-if not hasattr(pytest, "FixtureFunction"):
-    pytest.FixtureFunction = Any
 
 
 class TestBoundaryCondition:
@@ -621,9 +617,7 @@ class TestPolynomialTrajectoryMultipoint:
 
     def test_multipoint_trajectory_continuity(self) -> None:
         """Test continuity between segments in multipoint trajectory."""
-        params = TrajectoryParams(
-            points=[0.0, 2.0, 6.0, 8.0], times=[0.0, 1.0, 2.5, 3.5], order=ORDER_3
-        )
+        params = TrajectoryParams(points=[0.0, 2.0, 6.0, 8.0], times=[0.0, 1.0, 2.5, 3.5], order=ORDER_3)
 
         trajectory = PolynomialTrajectory.multipoint_trajectory(params)
 
@@ -752,42 +746,34 @@ class TestPolynomialTrajectoryPerformance:
     """Test suite for performance benchmarks."""
 
     @pytest.mark.parametrize("order", [ORDER_3, ORDER_5, ORDER_7])
-    def test_trajectory_generation_performance(
-        self, order: int, benchmark: pytest.FixtureFunction
-    ) -> None:
+    def test_trajectory_generation_performance(self, order: int, benchmark: BenchmarkFixture) -> None:
         """Benchmark trajectory generation performance for different orders."""
         if order == ORDER_3:
             initial = BoundaryCondition(position=0.0, velocity=0.0)
             final = BoundaryCondition(position=10.0, velocity=0.0)
 
             def generate_trajectory():
-                return PolynomialTrajectory.order_3_trajectory(
-                    initial, final, TimeInterval(start=0.0, end=2.0)
-                )
+                return PolynomialTrajectory.order_3_trajectory(initial, final, TimeInterval(start=0.0, end=2.0))
+
         elif order == ORDER_5:
             initial = BoundaryCondition(position=0.0, velocity=0.0, acceleration=0.0)
             final = BoundaryCondition(position=10.0, velocity=0.0, acceleration=0.0)
 
             def generate_trajectory():
-                return PolynomialTrajectory.order_5_trajectory(
-                    initial, final, TimeInterval(start=0.0, end=2.0)
-                )
+                return PolynomialTrajectory.order_5_trajectory(initial, final, TimeInterval(start=0.0, end=2.0))
+
         else:  # ORDER_7
             initial = BoundaryCondition(position=0.0, velocity=0.0, acceleration=0.0, jerk=0.0)
             final = BoundaryCondition(position=10.0, velocity=0.0, acceleration=0.0, jerk=0.0)
 
             def generate_trajectory():
-                return PolynomialTrajectory.order_7_trajectory(
-                    initial, final, TimeInterval(start=0.0, end=2.0)
-                )
+                return PolynomialTrajectory.order_7_trajectory(initial, final, TimeInterval(start=0.0, end=2.0))
 
         trajectory = benchmark(generate_trajectory)
         assert callable(trajectory)
 
     @pytest.mark.parametrize("n_points", [5, 10, 20])
-    def test_multipoint_trajectory_performance(
-        self, n_points: int, benchmark: pytest.FixtureFunction
-    ) -> None:
+    def test_multipoint_trajectory_performance(self, n_points: int, benchmark: BenchmarkFixture) -> None:
         """Benchmark multipoint trajectory generation performance."""
         points = [i * 2.0 for i in range(n_points)]
         times = [i * 1.0 for i in range(n_points)]
@@ -800,7 +786,7 @@ class TestPolynomialTrajectoryPerformance:
         trajectory = benchmark(generate_multipoint_trajectory)
         assert callable(trajectory)
 
-    def test_heuristic_velocities_performance(self, benchmark: pytest.FixtureFunction) -> None:
+    def test_heuristic_velocities_performance(self, benchmark: BenchmarkFixture) -> None:
         """Benchmark heuristic velocity calculation performance."""
         n_points = 100
         points = [i + 0.1 * i**2 for i in range(n_points)]

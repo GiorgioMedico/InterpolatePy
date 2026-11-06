@@ -99,9 +99,7 @@ class DoubleSTrajectory:
 
         # Check if initial or final velocities exceed bounds
         if abs(state_params.v_0) > bounds.v_bound or abs(state_params.v_1) > bounds.v_bound:
-            raise ValueError(
-                f"Initial or final velocities exceed the velocity bound of {bounds.v_bound}"
-            )
+            raise ValueError(f"Initial or final velocities exceed the velocity bound of {bounds.v_bound}")
 
         # Initialize trajectory parameters
         self.T = 0.0  # Total trajectory duration
@@ -168,15 +166,11 @@ class DoubleSTrajectory:
             return q, qp, qpp, qppp
 
         # Special case for equal positions with equal velocities
-        if np.isclose(self.state.q_0, self.state.q_1) and np.isclose(
-            self.state.v_0, self.state.v_1
-        ):
+        if np.isclose(self.state.q_0, self.state.q_1) and np.isclose(self.state.v_0, self.state.v_1):
             return self.state.q_0, self.state.v_0, 0.0, 0.0
 
         # Special case for equal positions with different velocities
-        if np.isclose(self.state.q_0, self.state.q_1) and not np.isclose(
-            self.state.v_0, self.state.v_1
-        ):
+        if np.isclose(self.state.q_0, self.state.q_1) and not np.isclose(self.state.v_0, self.state.v_1):
             t_norm = min(t / self.T, 1.0)
             qp_val = self.state.v_0 + t_norm * (self.state.v_1 - self.state.v_0)
 
@@ -184,9 +178,7 @@ class DoubleSTrajectory:
             amplitude = (self.state.v_1 - self.state.v_0) * self.T / (2 * np.pi)
             q_val = self.state.q_0 + amplitude * np.sin(phase)
 
-            qpp_val = (self.state.v_1 - self.state.v_0) / self.T + amplitude * (
-                2 * np.pi / self.T
-            ) * np.cos(phase)
+            qpp_val = (self.state.v_1 - self.state.v_0) / self.T + amplitude * (2 * np.pi / self.T) * np.cos(phase)
             qppp_val = -amplitude * (2 * np.pi / self.T) ** 2 * np.sin(phase)
 
             return q_val, qp_val, qpp_val, qppp_val
@@ -215,9 +207,7 @@ class DoubleSTrajectory:
             q_val = (
                 q_0
                 + self.v_0_transformed * t_scalar
-                + self.a_lim_a
-                / 6
-                * (3 * t_scalar**2 - 3 * self.Tj_1 * t_scalar + self.Tj_1**2)
+                + self.a_lim_a / 6 * (3 * t_scalar**2 - 3 * self.Tj_1 * t_scalar + self.Tj_1**2)
             )
             qp_val = self.v_0_transformed + self.a_lim_a * (t_scalar - self.Tj_1 / 2)
             qpp_val = self.a_lim_a
@@ -238,11 +228,7 @@ class DoubleSTrajectory:
         # CONSTANT VELOCITY PHASE
         elif t_scalar <= (self.Ta + self.Tv) and self.Tv > 0:
             # t in [Ta, Ta+Tv]
-            q_val = (
-                q_0
-                + (self.v_lim + self.v_0_transformed) * self.Ta / 2
-                + self.v_lim * (t_scalar - self.Ta)
-            )
+            q_val = q_0 + (self.v_lim + self.v_0_transformed) * self.Ta / 2 + self.v_lim * (t_scalar - self.Ta)
             qp_val = self.v_lim
             qpp_val = 0
             qppp_val = 0
@@ -274,19 +260,13 @@ class DoubleSTrajectory:
                     + self.Tj_2**2
                 )
             )
-            qp_val = self.v_lim + self.a_lim_d * (
-                t_scalar - self.T + self.Td - self.Tj_2 / 2
-            )
+            qp_val = self.v_lim + self.a_lim_d * (t_scalar - self.T + self.Td - self.Tj_2 / 2)
             qpp_val = self.a_lim_d
             qppp_val = 0
 
         elif t_scalar <= self.T and self.Td > 0:
             # t in [Ta+Tv+(Td-Tj_2), T]
-            q_val = (
-                q_1
-                - self.v_1_transformed * (self.T - t_scalar)
-                - self.j_max * (self.T - t_scalar) ** 3 / 6
-            )
+            q_val = q_1 - self.v_1_transformed * (self.T - t_scalar) - self.j_max * (self.T - t_scalar) ** 3 / 6
             qp_val = self.v_1_transformed + self.j_max * (self.T - t_scalar) ** 2 / 2
             qpp_val = -self.j_max * (self.T - t_scalar)
             qppp_val = self.j_max

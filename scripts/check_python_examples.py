@@ -50,9 +50,7 @@ def main() -> int:
     root = Path(__file__).resolve().parents[1]
     # benchmarks measure performance deliberately; their runtime is not a
     # smoke-test signal and depends on the runner, so they are not gated here
-    examples = sorted(
-        path for path in (root / "examples").glob("*.py") if not path.stem.endswith("_benchmark")
-    )
+    examples = sorted(path for path in (root / "examples").glob("*.py") if not path.stem.endswith("_benchmark"))
     environment = os.environ.copy()
     environment["MPLBACKEND"] = "Agg"
 

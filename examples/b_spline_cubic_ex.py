@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
+from mpl_toolkits.mplot3d import Axes3D  # ruff: ignore[unused-import]
 
 from interpolatepy import CubicBSplineInterpolation
 
@@ -10,20 +10,18 @@ def example_8_8() -> None:
     Interpolate a ten-point 3D path with a cubic B-spline.
     """
     # Define the points to interpolate as given in the matrix
-    points = np.array(
-        [
-            [83, -54, 119],
-            [-64, 10, 124],
-            [42, 79, 226],
-            [-98, 23, 222],
-            [-13, 125, 102],
-            [140, 81, 92],
-            [43, 32, 92],
-            [-65, -17, 134],
-            [-45, -89, 182],
-            [71, 90, 192],
-        ]
-    )
+    points = np.array([
+        [83, -54, 119],
+        [-64, 10, 124],
+        [42, 79, 226],
+        [-98, 23, 222],
+        [-13, 125, 102],
+        [140, 81, 92],
+        [43, 32, 92],
+        [-65, -17, 134],
+        [-45, -89, 182],
+        [71, 90, 192],
+    ])
 
     # Create the cubic B-spline interpolation
     # Use chord length parameterization as recommended for 3D curves

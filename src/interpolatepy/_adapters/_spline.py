@@ -24,15 +24,13 @@ _CppCubicSplineWithAcc2 = _cpp.CubicSplineWithAcceleration2
 
 def _plot_spline(spline: Any, num_points: int = 1000) -> None:
     """Plot a native spline through its common evaluation interface."""
-    import matplotlib.pyplot as plt  # noqa: PLC0415
+    import matplotlib.pyplot as plt  # ruff: ignore[import-outside-top-level]
 
     t_points = np.asarray(spline.t_points)
     q_points = np.asarray(spline.q_points)
     times = np.linspace(t_points[0], t_points[-1], num_points)
 
-    _figure, (position_ax, velocity_ax, acceleration_ax) = plt.subplots(
-        3, 1, figsize=(10, 8), sharex=True
-    )
+    _figure, (position_ax, velocity_ax, acceleration_ax) = plt.subplots(3, 1, figsize=(10, 8), sharex=True)
     position_ax.plot(times, spline.evaluate(times), "b-", linewidth=2)
     position_ax.plot(t_points, q_points, "ro", markersize=8)
     position_ax.set_ylabel("Position")

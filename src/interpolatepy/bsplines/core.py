@@ -41,9 +41,7 @@ class BSpline:
     DIM_2 = 2
     DIM_3 = 3
 
-    def __init__(
-        self, degree: int, knots: list | np.ndarray, control_points: list | np.ndarray
-    ) -> None:
+    def __init__(self, degree: int, knots: list | np.ndarray, control_points: list | np.ndarray) -> None:
         """
         Initialize a B-spline curve.
 
@@ -467,7 +465,7 @@ class BSpline:
         ValueError
             If the dimension of control points is not 2.
         """
-        from interpolatepy.visualization.bspline import plot_bspline_2d  # noqa: PLC0415
+        from interpolatepy.visualization.bspline import plot_bspline_2d  # ruff: ignore[import-outside-top-level]
 
         return plot_bspline_2d(
             self,
@@ -505,7 +503,7 @@ class BSpline:
         ValueError
             If the dimension of control points is not 3.
         """
-        from interpolatepy.visualization.bspline import plot_bspline_3d  # noqa: PLC0415
+        from interpolatepy.visualization.bspline import plot_bspline_3d  # ruff: ignore[import-outside-top-level]
 
         return plot_bspline_3d(
             self,
@@ -611,9 +609,7 @@ class BSpline:
         if degree < 0:
             raise ValueError("Degree must be non-negative")
         if num_control_points < degree + 1:
-            raise ValueError(
-                "For a periodic B-spline, number of control points must be at least degree+1"
-            )
+            raise ValueError("For a periodic B-spline, number of control points must be at least degree+1")
 
         # Calculate total number of knots required
         num_knots = num_control_points + degree + 1
@@ -647,8 +643,4 @@ class BSpline:
         str
             String representation.
         """
-        return (
-            f"BSpline(degree={self.degree}, "
-            f"control_points={len(self.control_points)}, "
-            f"dimension={self.dimension})"
-        )
+        return f"BSpline(degree={self.degree}, control_points={len(self.control_points)}, dimension={self.dimension})"

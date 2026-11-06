@@ -92,9 +92,7 @@ class TestNumericalEquivalence:
     def q_points(self) -> list[float]:
         return [0.0, 1.0, 0.5, 2.0, 1.5]
 
-    def test_cubic_spline_evaluate_matches(
-        self, t_points: list[float], q_points: list[float]
-    ) -> None:
+    def test_cubic_spline_evaluate_matches(self, t_points: list[float], q_points: list[float]) -> None:
         """C++ and Python CubicSpline should produce identical results."""
         from interpolatepy.splines.cubic import CubicSpline as PyCubicSpline
 

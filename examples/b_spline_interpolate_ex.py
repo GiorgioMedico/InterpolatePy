@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
+from mpl_toolkits.mplot3d import Axes3D  # ruff: ignore[unused-import]
 
 from interpolatepy import BSplineInterpolator
 
@@ -16,9 +16,7 @@ def example_cubic_bspline() -> None:
     points = np.array([3, -2, -5, 0, 6, 12, 8])
 
     # Create a degree 3 interpolator with velocity constraints
-    interpolator = BSplineInterpolator(
-        degree=3, points=points, times=times, initial_velocity=2, final_velocity=-3
-    )
+    interpolator = BSplineInterpolator(degree=3, points=points, times=times, initial_velocity=2, final_velocity=-3)
 
     # Generate curve points for plotting
     t_values = np.linspace(times[0], times[-1], 500)
@@ -176,18 +174,16 @@ def simple_3d_example() -> None:
 
     # Define simple 3D points to interpolate (a curved path in 3D)
     times = [0, 1, 2, 3, 4]
-    points = np.array(
-        [
-            [0, 0, 0],  # Start point
-            [1, 1, 2],  # Point 1
-            [2, 0, 3],  # Point 2
-            [3, -1, 2],  # Point 3
-            [4, 0, 0],  # End point
-        ]
-    )
+    points = np.array([
+        [0, 0, 0],  # Start point
+        [1, 1, 2],  # Point 1
+        [2, 0, 3],  # Point 2
+        [3, -1, 2],  # Point 3
+        [4, 0, 0],  # End point
+    ])
 
     # Demonstrate with different degrees
-    try:
+    try:  # ruff: ignore[too-many-statements-in-try-clause]
         degree = 3  # This should work fine with 5 points
         print(f"\nTrying to create a B-spline with degree {degree} using {len(points)} points...")
         interpolator = BSplineInterpolator(degree=degree, points=points, times=times)
@@ -252,28 +248,21 @@ def simple_3d_example() -> None:
 
     # Define more points for higher degree interpolation
     times_extended = [0, 1, 2, 3, 4, 5, 6]
-    points_extended = np.array(
-        [
-            [0, 0, 0],  # Start point
-            [1, 1, 2],  # Point 1
-            [2, 0, 3],  # Point 2
-            [3, -1, 2],  # Point 3
-            [4, 0, 0],  # Point 4
-            [5, 1, -1],  # Point 5
-            [6, 0, -2],  # Point 6
-        ]
-    )
+    points_extended = np.array([
+        [0, 0, 0],  # Start point
+        [1, 1, 2],  # Point 1
+        [2, 0, 3],  # Point 2
+        [3, -1, 2],  # Point 3
+        [4, 0, 0],  # Point 4
+        [5, 1, -1],  # Point 5
+        [6, 0, -2],  # Point 6
+    ])
 
-    try:
+    try:  # ruff: ignore[too-many-statements-in-try-clause]
         # Try degree 5 again with more points.
         degree = 5
-        print(
-            f"\nTrying to create a B-spline with degree {degree} "
-            f"using {len(points_extended)} points..."
-        )
-        interpolator = BSplineInterpolator(
-            degree=degree, points=points_extended, times=times_extended
-        )
+        print(f"\nTrying to create a B-spline with degree {degree} using {len(points_extended)} points...")
+        interpolator = BSplineInterpolator(degree=degree, points=points_extended, times=times_extended)
 
         # Plot the 3D curve with interpolation points
         fig = plt.figure(figsize=(10, 8))
@@ -291,9 +280,7 @@ def simple_3d_example() -> None:
         plt.tight_layout()
         plt.show()
 
-        print(
-            f"Successfully created a degree {degree} B-spline with {len(points_extended)} points!"
-        )
+        print(f"Successfully created a degree {degree} B-spline with {len(points_extended)} points!")
     except ValueError as e:
         print(f"Failed with degree {degree} and {len(points_extended)} points: {e}")
 

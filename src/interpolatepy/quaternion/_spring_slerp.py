@@ -16,7 +16,7 @@ def slerp_segments(quaternions: list[Quaternion], segments: np.ndarray, fraction
     """
     values = np.array([[q.s_, *q.v_] for q in quaternions])
     result = values[segments].copy()
-    at_end = fractions == 1.0  # noqa: RUF069 -- preserve exact SLERP endpoint semantics
+    at_end = fractions == 1.0  # ruff: ignore[float-equality-comparison] -- preserve exact SLERP endpoint semantics
     result[at_end] = values[segments[at_end] + 1]
     interior = (fractions > 0.0) & ~at_end
     if not np.any(interior):

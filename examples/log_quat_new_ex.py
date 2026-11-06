@@ -227,12 +227,18 @@ def demo_lqi_vs_mlqi_comparison() -> None:
     ax1 = fig.add_subplot(3, 2, 1, projection="3d")
     projected_lqi = visualizer.project_trajectory(lqi_trajectory)
     if len(projected_lqi) > 0:
-        ax1.plot(projected_lqi[:, 0], projected_lqi[:, 1], projected_lqi[:, 2],
-                color="blue", linewidth=3, alpha=0.8, label="LQI")
+        ax1.plot(
+            projected_lqi[:, 0],
+            projected_lqi[:, 1],
+            projected_lqi[:, 2],
+            color="blue",
+            linewidth=3,
+            alpha=0.8,
+            label="LQI",
+        )
         # Color points by progression
         point_colors = plt.colormaps["viridis"](np.linspace(0, 1, len(projected_lqi)))
-        ax1.scatter(projected_lqi[:, 0], projected_lqi[:, 1], projected_lqi[:, 2],
-                   c=point_colors, s=20, alpha=0.7)
+        ax1.scatter(projected_lqi[:, 0], projected_lqi[:, 1], projected_lqi[:, 2], c=point_colors, s=20, alpha=0.7)
     ax1.set_title("LQI Method\n3D Trajectory", fontsize=14)
     ax1.set_xlabel("MRP X")
     ax1.set_ylabel("MRP Y")
@@ -242,12 +248,18 @@ def demo_lqi_vs_mlqi_comparison() -> None:
     ax2 = fig.add_subplot(3, 2, 2, projection="3d")
     projected_mlqi = visualizer.project_trajectory(mlqi_trajectory)
     if len(projected_mlqi) > 0:
-        ax2.plot(projected_mlqi[:, 0], projected_mlqi[:, 1], projected_mlqi[:, 2],
-                color="purple", linewidth=3, alpha=0.8, label="mLQI")
+        ax2.plot(
+            projected_mlqi[:, 0],
+            projected_mlqi[:, 1],
+            projected_mlqi[:, 2],
+            color="purple",
+            linewidth=3,
+            alpha=0.8,
+            label="mLQI",
+        )
         # Color points by progression
         point_colors = plt.colormaps["plasma"](np.linspace(0, 1, len(projected_mlqi)))
-        ax2.scatter(projected_mlqi[:, 0], projected_mlqi[:, 1], projected_mlqi[:, 2],
-                   c=point_colors, s=20, alpha=0.7)
+        ax2.scatter(projected_mlqi[:, 0], projected_mlqi[:, 1], projected_mlqi[:, 2], c=point_colors, s=20, alpha=0.7)
     ax2.set_title("Modified LQI Method\n3D Trajectory", fontsize=14)
     ax2.set_xlabel("MRP X")
     ax2.set_ylabel("MRP Y")
@@ -288,10 +300,24 @@ def demo_lqi_vs_mlqi_comparison() -> None:
     # Combined trajectory overlay
     ax5 = fig.add_subplot(3, 2, 5, projection="3d")
     if len(projected_lqi) > 0 and len(projected_mlqi) > 0:
-        ax5.plot(projected_lqi[:, 0], projected_lqi[:, 1], projected_lqi[:, 2],
-                color="blue", linewidth=2.5, alpha=0.7, label="LQI")
-        ax5.plot(projected_mlqi[:, 0], projected_mlqi[:, 1], projected_mlqi[:, 2],
-                color="purple", linewidth=2.5, alpha=0.7, label="mLQI")
+        ax5.plot(
+            projected_lqi[:, 0],
+            projected_lqi[:, 1],
+            projected_lqi[:, 2],
+            color="blue",
+            linewidth=2.5,
+            alpha=0.7,
+            label="LQI",
+        )
+        ax5.plot(
+            projected_mlqi[:, 0],
+            projected_mlqi[:, 1],
+            projected_mlqi[:, 2],
+            color="purple",
+            linewidth=2.5,
+            alpha=0.7,
+            label="mLQI",
+        )
         ax5.legend()
     ax5.set_title("Overlay Comparison\nLQI vs mLQI", fontsize=14)
     ax5.set_xlabel("MRP X")

@@ -100,11 +100,7 @@ def example_standard_trajectory() -> None:
     plt.show()
 
     # Handle index access with proper type checking to satisfy mypy
-    if (
-        isinstance(positions, np.ndarray)
-        and isinstance(velocities, np.ndarray)
-        and len(positions) > 0
-    ):
+    if isinstance(positions, np.ndarray) and isinstance(velocities, np.ndarray) and len(positions) > 0:
         final_pos = positions[-1]
         final_vel = velocities[-1]
         print(f"Final position: {final_pos:.3f}, Final velocity: {final_vel:.3f}")
@@ -171,11 +167,7 @@ def example_velocity_matching() -> None:
     plt.show()
 
     # Handle index access with proper type checking
-    if (
-        isinstance(positions, np.ndarray)
-        and isinstance(velocities, np.ndarray)
-        and len(positions) > 0
-    ):
+    if isinstance(positions, np.ndarray) and isinstance(velocities, np.ndarray) and len(positions) > 0:
         final_pos = positions[-1]
         final_vel = velocities[-1]
         print(f"Final position: {final_pos:.3f}, Final velocity: {final_vel:.3f}")
@@ -263,11 +255,7 @@ def example_negative_displacement() -> None:
     plt.show()
 
     # Handle index access with proper type checking
-    if (
-        isinstance(positions, np.ndarray)
-        and isinstance(velocities, np.ndarray)
-        and len(positions) > 0
-    ):
+    if isinstance(positions, np.ndarray) and isinstance(velocities, np.ndarray) and len(positions) > 0:
         final_pos = positions[-1]
         final_vel = velocities[-1]
         print(f"Final position: {final_pos:.3f}, Final velocity: {final_vel:.3f}")
@@ -355,11 +343,7 @@ def example_asymmetric_velocities() -> None:
     plt.show()
 
     # Handle index access with proper type checking
-    if (
-        isinstance(positions, np.ndarray)
-        and isinstance(velocities, np.ndarray)
-        and len(positions) > 0
-    ):
+    if isinstance(positions, np.ndarray) and isinstance(velocities, np.ndarray) and len(positions) > 0:
         final_pos = positions[-1]
         final_vel = velocities[-1]
         print(f"Final position: {final_pos:.3f}, Final velocity: {final_vel:.3f}")
@@ -423,11 +407,7 @@ def example_factory_method() -> None:
     plt.show()
 
     # Handle index access with proper type checking
-    if (
-        isinstance(positions, np.ndarray)
-        and isinstance(velocities, np.ndarray)
-        and len(positions) > 0
-    ):
+    if isinstance(positions, np.ndarray) and isinstance(velocities, np.ndarray) and len(positions) > 0:
         final_pos = positions[-1]
         final_vel = velocities[-1]
         print(f"Final position: {final_pos:.3f}, Final velocity: {final_vel:.3f}")
@@ -440,7 +420,7 @@ def main() -> None:
     print("Double-S Trajectory Examples")
     print("===========================")
 
-    try:
+    try:  # ruff: ignore[too-many-statements-in-try-clause]
         example_standard_trajectory()
         example_velocity_matching()
         example_negative_displacement()

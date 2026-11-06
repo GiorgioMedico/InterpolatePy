@@ -19,14 +19,10 @@ from typing import Any
 
 import numpy as np
 import pytest
+from pytest_benchmark.fixture import BenchmarkFixture
 
 from interpolatepy.quaternion.core import Quaternion
 from interpolatepy.quaternion.spline import QuaternionSpline
-
-
-# Type alias for pytest benchmark fixture
-if not hasattr(pytest, "FixtureFunction"):
-    pytest.FixtureFunction = Any
 
 
 class TestQuaternionBasicOperations:
@@ -153,15 +149,10 @@ class TestQuaternionBasicOperations:
         recovered_roll, recovered_pitch, recovered_yaw = q.to_euler_angles()
 
         # Handle angle wrapping and gimbal lock cases
-        if (
-            abs(pitch - np.pi / 2) < self.NUMERICAL_ATOL
-            or abs(pitch + np.pi / 2) < self.NUMERICAL_ATOL
-        ):
+        if abs(pitch - np.pi / 2) < self.NUMERICAL_ATOL or abs(pitch + np.pi / 2) < self.NUMERICAL_ATOL:
             # Gimbal lock case - only verify that rotation is equivalent
             q_expected = Quaternion.from_euler_angles(roll, pitch, yaw)
-            q_recovered = Quaternion.from_euler_angles(
-                recovered_roll, recovered_pitch, recovered_yaw
-            )
+            q_recovered = Quaternion.from_euler_angles(recovered_roll, recovered_pitch, recovered_yaw)
 
             # Check if quaternions represent same rotation (q or -q)
             dot_product = q_expected.dot_product(q_recovered)
@@ -530,15 +521,10 @@ class TestQuaternionConversions:
         recovered_roll, recovered_pitch, recovered_yaw = q.to_euler_angles()
 
         # Handle angle wrapping and gimbal lock cases
-        if (
-            abs(pitch - np.pi / 2) < self.NUMERICAL_ATOL
-            or abs(pitch + np.pi / 2) < self.NUMERICAL_ATOL
-        ):
+        if abs(pitch - np.pi / 2) < self.NUMERICAL_ATOL or abs(pitch + np.pi / 2) < self.NUMERICAL_ATOL:
             # Gimbal lock case - only verify that rotation is equivalent
             q_expected = Quaternion.from_euler_angles(roll, pitch, yaw)
-            q_recovered = Quaternion.from_euler_angles(
-                recovered_roll, recovered_pitch, recovered_yaw
-            )
+            q_recovered = Quaternion.from_euler_angles(recovered_roll, recovered_pitch, recovered_yaw)
 
             # Check if quaternions represent same rotation (q or -q)
             dot_product = q_expected.dot_product(q_recovered)
@@ -737,9 +723,7 @@ class TestQuaternionDynamics:
         dt = 0.1
 
         # Integrate
-        q_new, dq_new_present, dq_new_past, status = Quaternion.Integ_quat(
-            dq_present, dq_past, q0, dt
-        )
+        q_new, dq_new_present, dq_new_past, status = Quaternion.Integ_quat(dq_present, dq_past, q0, dt)
 
         # Should succeed
         assert status == 0
@@ -1181,9 +1165,7 @@ class TestQuaternionPerformance:
     """Test suite for performance benchmarks."""
 
     @pytest.mark.parametrize("num_operations", [100, 1000, 10000])
-    def test_basic_operations_performance(
-        self, num_operations: int, benchmark: pytest.FixtureFunction
-    ) -> None:
+    def test_basic_operations_performance(self, num_operations: int, benchmark: BenchmarkFixture) -> None:
         """Benchmark basic quaternion operations."""
         q1 = Quaternion.from_euler_angles(0.1, 0.2, 0.3)
         q2 = Quaternion.from_euler_angles(0.4, 0.5, 0.6)
@@ -1198,9 +1180,7 @@ class TestQuaternionPerformance:
         benchmark(run_operations)
 
     @pytest.mark.parametrize("num_interpolations", [100, 1000])
-    def test_slerp_performance(
-        self, num_interpolations: int, benchmark: pytest.FixtureFunction
-    ) -> None:
+    def test_slerp_performance(self, num_interpolations: int, benchmark: BenchmarkFixture) -> None:
         """Benchmark SLERP interpolation performance."""
         q1 = Quaternion.from_euler_angles(0.1, 0.2, 0.3)
         q2 = Quaternion.from_euler_angles(0.4, 0.5, 0.6)
@@ -1214,15 +1194,11 @@ class TestQuaternionPerformance:
 
     @pytest.mark.parametrize("num_points", [10, 50, 100])
     @pytest.mark.parametrize("num_evaluations", [100, 1000])
-    def test_spline_performance(
-        self, num_points: int, num_evaluations: int, benchmark: pytest.FixtureFunction
-    ) -> None:
+    def test_spline_performance(self, num_points: int, num_evaluations: int, benchmark: BenchmarkFixture) -> None:
         """Benchmark spline interpolation performance."""
         # Create spline data
         time_points = [float(i) for i in range(num_points)]
-        quaternions = [
-            Quaternion.from_euler_angles(0.1 * i, 0.2 * i, 0.3 * i) for i in range(num_points)
-        ]
+        quaternions = [Quaternion.from_euler_angles(0.1 * i, 0.2 * i, 0.3 * i) for i in range(num_points)]
 
         spline = QuaternionSpline(time_points, quaternions, Quaternion.SLERP)
 
@@ -1233,7 +1209,7 @@ class TestQuaternionPerformance:
 
         benchmark(run_spline_evaluation)
 
-    def test_conversion_performance(self, benchmark: pytest.FixtureFunction) -> None:
+    def test_conversion_performance(self, benchmark: BenchmarkFixture) -> None:
         """Benchmark conversion operations performance."""
         quaternions = [Quaternion.from_euler_angles(0.1 * i, 0.2 * i, 0.3 * i) for i in range(1000)]
 

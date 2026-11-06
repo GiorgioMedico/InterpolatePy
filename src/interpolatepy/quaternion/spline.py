@@ -110,11 +110,9 @@ class QuaternionSpline:
             q_curr = self.quat_data[t_curr]
             q_next = self.quat_data[t_next]
 
-            self.intermediate_quaternions[t_curr] = Quaternion.compute_intermediate_quaternion(
-                q_prev, q_curr, q_next
-            )
+            self.intermediate_quaternions[t_curr] = Quaternion.compute_intermediate_quaternion(q_prev, q_curr, q_next)
 
-    def interpolate_at_time(self, t: float) -> tuple[Quaternion, int]:  # noqa: PLR0911
+    def interpolate_at_time(self, t: float) -> tuple[Quaternion, int]:  # ruff: ignore[too-many-return-statements]
         """
         Quaternion interpolation at given time.
 
@@ -145,10 +143,7 @@ class QuaternionSpline:
                 if self.interpolation_method == Quaternion.SQUAD:
                     # Check if we have enough points for Squad
                     if len(times) < Quaternion.MIN_SQUAD_POINTS:
-                        print(
-                            "Warning: Not enough points for SQUAD interpolation, "
-                            "falling back to SLERP"
-                        )
+                        print("Warning: Not enough points for SQUAD interpolation, falling back to SLERP")
                         return Quaternion.Slerp(q0, q1, dt), 0
 
                     # For boundary segments in SQUAD, we still need special handling
@@ -265,7 +260,7 @@ class QuaternionSpline:
         print("QuaternionSpline::interpolate_slerp: t not in range.")
         return Quaternion.identity(), -3
 
-    def interpolate_squad(self, t: float) -> tuple[Quaternion, int]:  # noqa: PLR0911
+    def interpolate_squad(self, t: float) -> tuple[Quaternion, int]:  # ruff: ignore[too-many-return-statements]
         """
         Force SQUAD interpolation at given time, regardless of current method setting.
 

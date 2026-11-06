@@ -76,7 +76,7 @@ def _canonicalize_double_cover(quaternions: list[Quaternion]) -> None:
             quaternions[i] = -quaternions[i]
 
 
-def _omega_alpha(  # noqa: PLR0913
+def _omega_alpha(  # ruff: ignore[too-many-arguments]
     theta: float,
     theta_dot: float,
     theta_ddot: float,
@@ -134,7 +134,7 @@ class LogQuaternionInterpolation:
     EPSILON = _EPSILON
     DEFAULT_DEGREE = _DEFAULT_DEGREE
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # ruff: ignore[too-many-arguments]
         self,
         time_points: list | np.ndarray,
         quaternions: list[Quaternion],
@@ -186,9 +186,7 @@ class LogQuaternionInterpolation:
 
         for i in range(1, n):
             q_neg = -self.quaternions[i]
-            if self.quaternions[i - 1].dot_product(q_neg) > self.quaternions[i - 1].dot_product(
-                self.quaternions[i]
-            ):
+            if self.quaternions[i - 1].dot_product(q_neg) > self.quaternions[i - 1].dot_product(self.quaternions[i]):
                 self.quaternions[i] = q_neg
                 axes[i], angles[i] = _extract_axis_angle_raw(q_neg)
 
@@ -257,9 +255,7 @@ class LogQuaternionInterpolation:
         # tangent to the unit sphere.
         u = r / theta
         theta_dot = float(np.dot(r, r_dot)) / theta
-        theta_ddot = (
-            float(np.dot(r_dot, r_dot)) + float(np.dot(r, r_ddot)) - theta_dot * theta_dot
-        ) / theta
+        theta_ddot = (float(np.dot(r_dot, r_dot)) + float(np.dot(r, r_ddot)) - theta_dot * theta_dot) / theta
         u_dot = (r_dot - theta_dot * u) / theta
         u_ddot = (r_ddot - theta_ddot * u) / theta - 2.0 * theta_dot * u_dot / theta
 
@@ -295,7 +291,7 @@ class ModifiedLogQuaternionInterpolation:
     EPSILON = _EPSILON
     DEFAULT_DEGREE = _DEFAULT_DEGREE
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # ruff: ignore[too-many-arguments]
         self,
         time_points: list | np.ndarray,
         quaternions: list[Quaternion],
@@ -454,11 +450,7 @@ class ModifiedLogQuaternionInterpolation:
                 # sphere by removing the radial component.
                 u = u_raw / r
                 r_dot = float(np.dot(u, u_dot_raw))
-                r_ddot = (
-                    float(np.dot(u_dot_raw, u_dot_raw))
-                    + float(np.dot(u_raw, u_ddot_raw))
-                    - r_dot * r_dot
-                ) / r
+                r_ddot = (float(np.dot(u_dot_raw, u_dot_raw)) + float(np.dot(u_raw, u_ddot_raw)) - r_dot * r_dot) / r
                 u_dot = (u_dot_raw - r_dot * u) / r
                 u_ddot = (u_ddot_raw - 2.0 * r_dot * u_dot - r_ddot * u) / r
         else:

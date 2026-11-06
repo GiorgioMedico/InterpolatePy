@@ -170,10 +170,7 @@ class CubicSpline:
             rhs[i] = (
                 3
                 / (t_intervals[i] * t_intervals[i + 1])
-                * (
-                    t_intervals[i] ** 2 * (q[i + 2] - q[i + 1])
-                    + t_intervals[i + 1] ** 2 * (q[i + 1] - q[i])
-                )
+                * (t_intervals[i] ** 2 * (q[i + 2] - q[i + 1]) + t_intervals[i + 1] ** 2 * (q[i + 1] - q[i]))
             )
 
         # Adjust the right-hand side to account for known boundary velocities v0 and vn
@@ -187,7 +184,7 @@ class CubicSpline:
 
         # Solve the system for the intermediate velocities v1, ..., v(n-1)
         # Case n=2 means we have exactly one intermediate velocity to solve (1x1 system)
-        if n == 2:  # noqa: PLR2004
+        if n == 2:  # ruff: ignore[magic-value-comparison]
             # Special case: only one intermediate velocity to solve for
             # Simple division is sufficient (1x1 system)
             main_diag_value = 2 * (t_intervals[0] + t_intervals[1])
@@ -276,12 +273,8 @@ class CubicSpline:
             coeffs[k, 1] = v[k]  # ak1 = vk
 
             # Compute ak2 and ak3
-            coeffs[k, 2] = (1 / t_intervals[k]) * (
-                (3 * (q[k + 1] - q[k]) / t_intervals[k]) - 2 * v[k] - v[k + 1]
-            )
-            coeffs[k, 3] = (1 / t_intervals[k] ** 2) * (
-                (2 * (q[k] - q[k + 1]) / t_intervals[k]) + v[k] + v[k + 1]
-            )
+            coeffs[k, 2] = (1 / t_intervals[k]) * ((3 * (q[k + 1] - q[k]) / t_intervals[k]) - 2 * v[k] - v[k + 1])
+            coeffs[k, 3] = (1 / t_intervals[k] ** 2) * ((2 * (q[k] - q[k + 1]) / t_intervals[k]) + v[k] + v[k + 1])
 
             # Print detailed coefficient calculation if debug is enabled
             if self.debug:
@@ -452,7 +445,7 @@ class CubicSpline:
 
         The original waypoints are marked with red circles on the position plot.
         """
-        import matplotlib.pyplot as plt  # noqa: PLC0415
+        import matplotlib.pyplot as plt  # ruff: ignore[import-outside-top-level]
 
         t_min, t_max = self.t_points[0], self.t_points[-1]
         t = np.linspace(t_min, t_max, num_points)

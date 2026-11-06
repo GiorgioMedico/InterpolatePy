@@ -18,14 +18,10 @@ from typing import ClassVar
 
 import numpy as np
 import pytest
+from pytest_benchmark.fixture import BenchmarkFixture
 from numpy.typing import NDArray
 
 from interpolatepy.linalg import solve_tridiagonal
-
-
-# Type alias for pytest benchmark fixture
-if not hasattr(pytest, "FixtureFunction"):
-    pytest.FixtureFunction = Any
 
 
 class TestTridiagonalSolver:
@@ -160,9 +156,7 @@ class TestTridiagonalSolver:
             Random seed for reproducibility
         """
         # Generate well-conditioned test case
-        lower_diag, main_diag, upper_diag, rhs, true_sol, matrix = self.generate_tridiagonal_system(
-            size, seed=seed
-        )
+        lower_diag, main_diag, upper_diag, rhs, true_sol, matrix = self.generate_tridiagonal_system(size, seed=seed)
 
         # Solve using custom solver
         custom_solution = solve_tridiagonal(lower_diag, main_diag, upper_diag, rhs)
@@ -171,9 +165,7 @@ class TestTridiagonalSolver:
         numpy_solution = np.linalg.solve(matrix, rhs)
 
         # Verify against true solution and numpy solution
-        assert np.allclose(
-            custom_solution, true_sol, rtol=self.REGULAR_RTOL, atol=self.REGULAR_ATOL
-        )
+        assert np.allclose(custom_solution, true_sol, rtol=self.REGULAR_RTOL, atol=self.REGULAR_ATOL)
         assert np.allclose(
             custom_solution,
             numpy_solution,
@@ -191,9 +183,7 @@ class TestTridiagonalSolver:
         size : int
             Size of the system to test
         """
-        lower_diag, main_diag, upper_diag, rhs, expected = self.get_analytical_tridiagonal_system(
-            size
-        )
+        lower_diag, main_diag, upper_diag, rhs, expected = self.get_analytical_tridiagonal_system(size)
 
         # Solve with custom solver
         solution = solve_tridiagonal(lower_diag, main_diag, upper_diag, rhs)
@@ -205,8 +195,8 @@ class TestTridiagonalSolver:
         """Test the solver's stability with ill-conditioned matrices."""
         for size in [10, 50]:
             # Generate an ill-conditioned test case
-            lower_diag, main_diag, upper_diag, rhs, true_sol, matrix = (
-                self.generate_tridiagonal_system(size, condition="ill")
+            lower_diag, main_diag, upper_diag, rhs, true_sol, matrix = self.generate_tridiagonal_system(
+                size, condition="ill"
             )
 
             # Solve using custom solver
@@ -275,7 +265,7 @@ class TestTridiagonalSolver:
             )
 
     @pytest.mark.parametrize("size", SIZES)
-    def test_custom_solver_benchmark(self, size: int, benchmark: pytest.FixtureFunction) -> None:
+    def test_custom_solver_benchmark(self, size: int, benchmark: BenchmarkFixture) -> None:
         """
         Benchmark the custom tridiagonal solver.
 
@@ -283,7 +273,7 @@ class TestTridiagonalSolver:
         ----------
         size : int
             Size of the system to benchmark
-        benchmark : pytest.FixtureFunction
+        benchmark : BenchmarkFixture
             pytest-benchmark fixture for measuring performance
         """
         # Generate test case
@@ -296,7 +286,7 @@ class TestTridiagonalSolver:
         assert np.allclose(result, true_sol, rtol=self.REGULAR_RTOL, atol=self.REGULAR_ATOL)
 
     @pytest.mark.parametrize("size", SIZES)
-    def test_numpy_solver_benchmark(self, size: int, benchmark: pytest.FixtureFunction) -> None:
+    def test_numpy_solver_benchmark(self, size: int, benchmark: BenchmarkFixture) -> None:
         """
         Benchmark NumPy's general solver for comparison.
 
@@ -304,7 +294,7 @@ class TestTridiagonalSolver:
         ----------
         size : int
             Size of the system to benchmark
-        benchmark : pytest.FixtureFunction
+        benchmark : BenchmarkFixture
             pytest-benchmark fixture for measuring performance
         """
         # Generate test case
@@ -324,9 +314,7 @@ class TestTridiagonalSolver:
 
         for size in sizes:
             # Generate test case
-            lower_diag, main_diag, upper_diag, rhs, _, matrix = self.generate_tridiagonal_system(
-                size
-            )
+            lower_diag, main_diag, upper_diag, rhs, _, matrix = self.generate_tridiagonal_system(size)
 
             # Time the custom solver
             repetitions = max(1, int(10000 / size))  # Adjust repetitions based on size
@@ -353,10 +341,7 @@ class TestTridiagonalSolver:
 
             # Print comparison
             speedup = numpy_time / custom_time
-            print(
-                f"Size {size}x{size}: Custom={custom_time:.6f}s, NumPy={numpy_time:.6f}s, "
-                f"Speedup={speedup:.2f}x"
-            )
+            print(f"Size {size}x{size}: Custom={custom_time:.6f}s, NumPy={numpy_time:.6f}s, Speedup={speedup:.2f}x")
 
         # Check larger size scaling patterns
         # For a proper O(n) algorithm, we expect roughly linear scaling,
@@ -367,10 +352,7 @@ class TestTridiagonalSolver:
             time_ratio = custom_times[i] / custom_times[i - 1]
 
             # Log the scaling behavior
-            print(
-                f"Size increase {sizes[i - 1]} → {sizes[i]} ({size_ratio:.1f}x): "
-                f"Time increase {time_ratio:.2f}x"
-            )
+            print(f"Size increase {sizes[i - 1]} → {sizes[i]} ({size_ratio:.1f}x): Time increase {time_ratio:.2f}x")
 
             # For very large matrices, we should see closer to linear scaling
             # Allow more variation for smaller matrices

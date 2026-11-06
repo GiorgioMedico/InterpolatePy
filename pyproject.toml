@@ -65,7 +65,7 @@ test = [
 ]
 dev = [
     "matplotlib>=3.6",
-    "ruff>=0.12.8",
+    "ruff==0.17.3",
     "mypy>=1.17.0",
     "pre-commit>=4.2.0",
     "pyright>=1.1.400",
@@ -182,24 +182,24 @@ extend-select = [
     "RUF",
 ]
 ignore = [
-    "I001",
-    "ANN401",
-    "SIM300",
-    "PERF203",
-    "B905",
-    "NPY002",
-    "COM812",
-    "N999",
+    "unsorted-imports",
+    "any-type",
+    "yoda-conditions",
+    "try-except-in-loop",
+    "zip-without-explicit-strict",
+    "numpy-legacy-random",
+    "missing-trailing-comma",
+    "invalid-module-name",
     "PTH",
-    "INP001",
-    "TRY003",
-    "PLW1641",
-    "PLR0914", # Too many local variables
-    "PLR0915", # Too many statements
-    "PLR0917", # Too many arguments
-    "PLR0904", # Too many public methods
-    "C901",
-    "PLR0912",
+    "implicit-namespace-package",
+    "raise-vanilla-args",
+    "eq-without-hash",
+    "too-many-locals", # Too many local variables
+    "too-many-statements", # Too many statements
+    "too-many-positional-arguments", # Too many arguments
+    "too-many-public-methods", # Too many public methods
+    "complex-structure",
+    "too-many-branches",
 ]
 fixable = [
     "W",
@@ -270,33 +270,33 @@ allow-star-arg-any = false
 ignore-fully-untyped = false
 
 [tool.ruff.lint.per-file-ignores]
-"src/interpolatepy/**/__init__.py" = ["RUF067"]
+"src/interpolatepy/**/__init__.py" = ["non-empty-init-module"]
 "tests/**/*.py" = [
-    "ANN202",
-    "ARG001",
-    "BLE001",
-    "E226",
-    "F401",
-    "F841",
-    "N806",
-    "PLC0415",
-    "PLC2701",
-    "PLR2004",
-    "PLR6201",
-    "PLR6301",
-    "PLW0127",
-    "PLW0128",
-    "PT001",
-    "PT012",
-    "PT013",
-    "PT019",
-    "PT031",
-    "RUF043",
-    "RUF059",
-    "RUF069",
-    "RET504",
-    "SIM108",
-    "SLF001",
+    "missing-return-type-private-function",
+    "unused-function-argument",
+    "blind-except",
+    "missing-whitespace-around-arithmetic-operator",
+    "unused-import",
+    "unused-variable",
+    "non-lowercase-variable-in-function",
+    "import-outside-top-level",
+    "import-private-name",
+    "magic-value-comparison",
+    "literal-membership",
+    "no-self-use",
+    "self-assigning-variable",
+    "redeclared-assigned-name",
+    "pytest-fixture-incorrect-parentheses-style",
+    "pytest-raises-with-multiple-statements",
+    "pytest-incorrect-pytest-import",
+    "pytest-fixture-param-without-value",
+    "pytest-warns-with-multiple-statements",
+    "pytest-raises-ambiguous-pattern",
+    "unused-unpacked-variable",
+    "float-equality-comparison",
+    "unnecessary-assign",
+    "if-else-block-instead-of-if-exp",
+    "private-member-access",
 ]
 
 # Ruff formatter (replaces black)
@@ -310,7 +310,7 @@ docstring-code-format = false
 docstring-code-line-length = "dynamic"
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.11"
 ignore_missing_imports = true
 follow_imports = "silent"
 no_implicit_optional = true

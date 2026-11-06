@@ -105,9 +105,7 @@ class ParabolicBlendTrajectory:
 
             # Calculate position at start of constant velocity segment
             dt0 = t0_c - reg_t0[reg_idx - 1]
-            q0_c = (
-                reg_q0[reg_idx - 1] + reg_v0[reg_idx - 1] * dt0 + 0.5 * reg_a[reg_idx - 1] * dt0**2
-            )
+            q0_c = reg_q0[reg_idx - 1] + reg_v0[reg_idx - 1] * dt0 + 0.5 * reg_a[reg_idx - 1] * dt0**2
 
             # Store constant velocity segment
             reg_t0[reg_idx] = t0_c
@@ -207,7 +205,7 @@ class ParabolicBlendTrajectory:
         acc : ndarray, optional
             Acceleration samples; if None, generated from trajectory function.
         """
-        import matplotlib.pyplot as plt  # noqa: PLC0415
+        import matplotlib.pyplot as plt  # ruff: ignore[import-outside-top-level]
 
         if times is None or pos is None or vel is None or acc is None:
             traj_func, total_duration = self.generate()

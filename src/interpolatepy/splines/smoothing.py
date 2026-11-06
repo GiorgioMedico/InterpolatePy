@@ -71,12 +71,12 @@ class CubicSmoothingSpline:
     HIGH_CONDITION_THRESHOLD = 1e12
     REGULARIZATION_FACTOR = 1e-8
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # ruff: ignore[too-many-arguments]
         self,
-        t_points: list[float],
-        q_points: list[float],
+        t_points: list[float] | np.ndarray,
+        q_points: list[float] | np.ndarray,
         mu: float = 0.5,
-        weights: list[float] | None = None,
+        weights: list[float] | np.ndarray | None = None,
         v0: float = 0.0,
         vn: float = 0.0,
         debug: bool = False,
@@ -151,9 +151,7 @@ class CubicSmoothingSpline:
             self.w = np.ones(self.n)
         else:
             if len(weights) != self.n:
-                raise ValueError(
-                    "Weights array must have the same length as time and position arrays"
-                )
+                raise ValueError("Weights array must have the same length as time and position arrays")
             self.w = np.array(weights, dtype=float)
 
         # Handle infinite weights (fixed points)
@@ -272,7 +270,7 @@ class CubicSmoothingSpline:
         n = self.n
 
         # For pure interpolation (μ = 1): Aω = c (equation 4.22)
-        if self.mu == 1.0:  # noqa: RUF069  — mu is user-provided, not computed
+        if self.mu == 1.0:  # ruff: ignore[float-equality-comparison]  — mu is user-provided, not computed
             # Construct the vector c according to equation (4.24)
             c = np.zeros(n)
 
@@ -357,7 +355,7 @@ class CubicSmoothingSpline:
         For smoothing spline (0<μ<1): s = q - λW⁻¹Cᵀω (equation 4.36)
         """
         # For pure interpolation (μ = 1), s = q (exact fit)
-        if self.mu == 1.0:  # noqa: RUF069  — mu is user-provided, not computed
+        if self.mu == 1.0:  # ruff: ignore[float-equality-comparison]  — mu is user-provided, not computed
             return self.q.copy()
 
         # For smoothing spline (0 < μ < 1), s = q - λW⁻¹Cᵀω (equation 4.36)
@@ -403,9 +401,9 @@ class CubicSmoothingSpline:
             coeffs[k, 0] = self.s[k]
 
             # Velocity coefficient - corrected formula from standard cubic spline theory
-            coeffs[k, 1] = (self.s[k + 1] - self.s[k]) / self.time_intervals[k] - (
-                self.time_intervals[k] / 6
-            ) * (self.omega[k + 1] + 2 * self.omega[k])
+            coeffs[k, 1] = (self.s[k + 1] - self.s[k]) / self.time_intervals[k] - (self.time_intervals[k] / 6) * (
+                self.omega[k + 1] + 2 * self.omega[k]
+            )
 
             # Acceleration coefficient
             coeffs[k, 2] = self.omega[k] / 2
@@ -574,7 +572,7 @@ class CubicSmoothingSpline:
         - Middle panel: velocity profile
         - Bottom panel: acceleration profile
         """
-        import matplotlib.pyplot as plt  # noqa: PLC0415
+        import matplotlib.pyplot as plt  # ruff: ignore[import-outside-top-level]
 
         # Generate evaluation points
         t_eval = np.linspace(self.t[0], self.t[-1], num_points)

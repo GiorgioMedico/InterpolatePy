@@ -39,14 +39,14 @@ def create_simple_trajectory() -> tuple[list[float], list[Quaternion]]:
     return time_points, quaternions
 
 
-def plot_individual_methods(  # noqa: PLR0913
+def plot_individual_methods(  # ruff: ignore[too-many-arguments]
     squad_trajectory: list[Quaternion],
     squad_c2_trajectory: list[Quaternion],
     slerp_trajectory: list[Quaternion],
     eval_times: NDArray[np.floating],
     visualizer: QuaternionTrajectoryVisualizer,
     waypoints: list[Quaternion],
-    waypoint_times: list[float]
+    waypoint_times: list[float],
 ) -> None:
     """Plot individual method analysis with separate plots for each interpolation method.
 
@@ -67,15 +67,9 @@ def plot_individual_methods(  # noqa: PLR0913
 
     # Compute velocity magnitudes
     eval_times_list = eval_times.tolist()
-    squad_times, squad_velocities = visualizer.compute_velocity_magnitudes(
-        squad_trajectory, eval_times_list
-    )
-    squad_c2_times, squad_c2_velocities = visualizer.compute_velocity_magnitudes(
-        squad_c2_trajectory, eval_times_list
-    )
-    slerp_times, slerp_velocities = visualizer.compute_velocity_magnitudes(
-        slerp_trajectory, eval_times_list
-    )
+    squad_times, squad_velocities = visualizer.compute_velocity_magnitudes(squad_trajectory, eval_times_list)
+    squad_c2_times, squad_c2_velocities = visualizer.compute_velocity_magnitudes(squad_c2_trajectory, eval_times_list)
+    slerp_times, slerp_velocities = visualizer.compute_velocity_magnitudes(slerp_trajectory, eval_times_list)
 
     # Create figure for individual method plots
     fig = plt.figure(figsize=(15, 10))
@@ -83,12 +77,29 @@ def plot_individual_methods(  # noqa: PLR0913
     # SQUAD plot with waypoints
     ax1 = fig.add_subplot(2, 3, 1, projection="3d")
     if len(projected_squad) > 0:
-        ax1.plot(projected_squad[:, 0], projected_squad[:, 1], projected_squad[:, 2],
-                color="red", linewidth=3, alpha=0.8, label="SQUAD")
+        ax1.plot(
+            projected_squad[:, 0],
+            projected_squad[:, 1],
+            projected_squad[:, 2],
+            color="red",
+            linewidth=3,
+            alpha=0.8,
+            label="SQUAD",
+        )
     if len(projected_waypoints) > 0:
-        ax1.scatter(projected_waypoints[:, 0], projected_waypoints[:, 1], projected_waypoints[:, 2],
-                   color="black", s=60, marker="D", alpha=0.9, edgecolors="white",
-                   linewidth=1, label="Waypoints", zorder=10)
+        ax1.scatter(
+            projected_waypoints[:, 0],
+            projected_waypoints[:, 1],
+            projected_waypoints[:, 2],
+            color="black",
+            s=60,
+            marker="D",
+            alpha=0.9,
+            edgecolors="white",
+            linewidth=1,
+            label="Waypoints",
+            zorder=10,
+        )
     ax1.set_title("SQUAD with Waypoints")
     ax1.set_xlabel("MRP X")
     ax1.set_ylabel("MRP Y")
@@ -99,12 +110,29 @@ def plot_individual_methods(  # noqa: PLR0913
     # SQUAD C2 plot with waypoints
     ax2 = fig.add_subplot(2, 3, 2, projection="3d")
     if len(projected_squad_c2) > 0:
-        ax2.plot(projected_squad_c2[:, 0], projected_squad_c2[:, 1], projected_squad_c2[:, 2],
-                color="blue", linewidth=3, alpha=0.8, label="SQUAD C2")
+        ax2.plot(
+            projected_squad_c2[:, 0],
+            projected_squad_c2[:, 1],
+            projected_squad_c2[:, 2],
+            color="blue",
+            linewidth=3,
+            alpha=0.8,
+            label="SQUAD C2",
+        )
     if len(projected_waypoints) > 0:
-        ax2.scatter(projected_waypoints[:, 0], projected_waypoints[:, 1], projected_waypoints[:, 2],
-                   color="black", s=60, marker="D", alpha=0.9, edgecolors="white",
-                   linewidth=1, label="Waypoints", zorder=10)
+        ax2.scatter(
+            projected_waypoints[:, 0],
+            projected_waypoints[:, 1],
+            projected_waypoints[:, 2],
+            color="black",
+            s=60,
+            marker="D",
+            alpha=0.9,
+            edgecolors="white",
+            linewidth=1,
+            label="Waypoints",
+            zorder=10,
+        )
     ax2.set_title("SQUAD C2 with Waypoints")
     ax2.set_xlabel("MRP X")
     ax2.set_ylabel("MRP Y")
@@ -115,12 +143,29 @@ def plot_individual_methods(  # noqa: PLR0913
     # SLERP plot with waypoints
     ax3 = fig.add_subplot(2, 3, 3, projection="3d")
     if len(projected_slerp) > 0:
-        ax3.plot(projected_slerp[:, 0], projected_slerp[:, 1], projected_slerp[:, 2],
-                color="green", linewidth=3, alpha=0.8, label="SLERP")
+        ax3.plot(
+            projected_slerp[:, 0],
+            projected_slerp[:, 1],
+            projected_slerp[:, 2],
+            color="green",
+            linewidth=3,
+            alpha=0.8,
+            label="SLERP",
+        )
     if len(projected_waypoints) > 0:
-        ax3.scatter(projected_waypoints[:, 0], projected_waypoints[:, 1], projected_waypoints[:, 2],
-                   color="black", s=60, marker="D", alpha=0.9, edgecolors="white",
-                   linewidth=1, label="Waypoints", zorder=10)
+        ax3.scatter(
+            projected_waypoints[:, 0],
+            projected_waypoints[:, 1],
+            projected_waypoints[:, 2],
+            color="black",
+            s=60,
+            marker="D",
+            alpha=0.9,
+            edgecolors="white",
+            linewidth=1,
+            label="Waypoints",
+            zorder=10,
+        )
     ax3.set_title("SLERP with Waypoints")
     ax3.set_xlabel("MRP X")
     ax3.set_ylabel("MRP Y")
@@ -211,7 +256,7 @@ def main() -> None:
         eval_times,
         visualizer,
         waypoints=quaternions,
-        waypoint_times=time_points
+        waypoint_times=time_points,
     )
 
     # Print summary

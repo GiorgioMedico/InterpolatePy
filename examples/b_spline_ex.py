@@ -224,16 +224,14 @@ def create_simple_3d_bspline() -> BSpline:
     degree = 3
 
     # Define simple 3D control points for a curve
-    control_points = np.array(
-        [
-            [0, 0, 0],  # Start point
-            [1, 1, 2],
-            [2, -1, 1],
-            [3, 0, 3],
-            [4, 2, 0],
-            [5, 0, 1],  # End point
-        ]
-    )
+    control_points = np.array([
+        [0, 0, 0],  # Start point
+        [1, 1, 2],
+        [2, -1, 1],
+        [3, 0, 3],
+        [4, 2, 0],
+        [5, 0, 1],  # End point
+    ])
 
     # Create a uniform knot vector
     knots = BSpline.create_uniform_knots(degree, len(control_points))
@@ -275,9 +273,7 @@ def demonstrate_3d_bspline() -> None:
 
     # Evaluate a point in the middle of the curve
     mid_point = bspline.evaluate((bspline.u_min + bspline.u_max) / 2)
-    print(
-        f"\nPoint at middle of curve: ({mid_point[0]:.2f}, {mid_point[1]:.2f}, {mid_point[2]:.2f})"
-    )
+    print(f"\nPoint at middle of curve: ({mid_point[0]:.2f}, {mid_point[1]:.2f}, {mid_point[2]:.2f})")
 
 
 if __name__ == "__main__":

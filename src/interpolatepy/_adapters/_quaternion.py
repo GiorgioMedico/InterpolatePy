@@ -132,10 +132,7 @@ class QuaternionSpline(_CppQuaternionSpline):  # type: ignore[valid-type, misc]
         count = len(self._py_quaternions)
         if count == 0:
             return f"QuaternionSpline(empty, method={method})"
-        return (
-            f"QuaternionSpline({count} points, "
-            f"t=[{self.t_min:.3f}, {self.t_max:.3f}], method={method})"
-        )
+        return f"QuaternionSpline({count} points, t=[{self.t_min:.3f}, {self.t_max:.3f}], method={method})"
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -167,10 +164,7 @@ class SquadC2(_CppSquadC2):  # type: ignore[valid-type, misc]
 
     def __str__(self) -> str:
         t_min, t_max = self.get_time_range()
-        return (
-            f"SquadC2({self._n_original} original waypoints, "
-            f"t=[{t_min:.3f}, {t_max:.3f}])"
-        )
+        return f"SquadC2({self._n_original} original waypoints, t=[{t_min:.3f}, {t_max:.3f}])"
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -179,7 +173,7 @@ class SquadC2(_CppSquadC2):  # type: ignore[valid-type, misc]
 class LogQuaternionInterpolation(_CppLogQuaternionInterpolation):  # type: ignore[valid-type, misc]
     """C++-backed LogQuaternionInterpolation returning Python Quaternions."""
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # ruff: ignore[too-many-arguments]
         self,
         time_points: list[float] | np.ndarray,
         quaternions: list[_PyQuaternion],
@@ -199,9 +193,7 @@ class LogQuaternionInterpolation(_CppLogQuaternionInterpolation):  # type: ignor
         self._initial_acceleration = initial_acceleration
         self._final_acceleration = final_acceleration
         self._python_impl: _PyLogQuaternionInterpolation | None = None
-        self._use_python_evaluation = (
-            initial_acceleration is not None or final_acceleration is not None
-        )
+        self._use_python_evaluation = initial_acceleration is not None or final_acceleration is not None
 
     def _get_python_impl(self) -> _PyLogQuaternionInterpolation:
         if self._python_impl is None:
@@ -246,9 +238,9 @@ class LogQuaternionInterpolation(_CppLogQuaternionInterpolation):  # type: ignor
 class ModifiedLogQuaternionInterpolation(_CppModifiedLogQuaternionInterpolation):  # type: ignore[valid-type, misc]
     """C++-backed ModifiedLogQuaternionInterpolation returning Python Quaternions."""
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # ruff: ignore[too-many-arguments]
         self,
-        time_points: list[float],
+        time_points: list[float] | np.ndarray,
         quaternions: list[_PyQuaternion],
         degree: int = 3,
         normalize_axis: bool = True,
@@ -258,9 +250,7 @@ class ModifiedLogQuaternionInterpolation(_CppModifiedLogQuaternionInterpolation)
         final_acceleration: list | np.ndarray | None = None,
     ) -> None:
         cpp_quats = [_py_to_cpp(q) for q in quaternions]
-        super().__init__(
-            time_points, cpp_quats, degree, normalize_axis, initial_velocity, final_velocity
-        )
+        super().__init__(time_points, cpp_quats, degree, normalize_axis, initial_velocity, final_velocity)
         self.time_points = np.asarray(time_points, dtype=np.float64)
         self.quaternions = list(quaternions)
         self.degree = degree
@@ -270,9 +260,7 @@ class ModifiedLogQuaternionInterpolation(_CppModifiedLogQuaternionInterpolation)
         self._initial_acceleration = initial_acceleration
         self._final_acceleration = final_acceleration
         self._python_impl: _PyModifiedLogQuaternionInterpolation | None = None
-        self._use_python_evaluation = (
-            initial_acceleration is not None or final_acceleration is not None
-        )
+        self._use_python_evaluation = initial_acceleration is not None or final_acceleration is not None
 
     def _get_python_impl(self) -> _PyModifiedLogQuaternionInterpolation:
         if self._python_impl is None:

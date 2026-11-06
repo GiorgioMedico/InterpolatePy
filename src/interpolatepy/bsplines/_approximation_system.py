@@ -147,7 +147,7 @@ def _solve_weighted_system(
         result = np.linalg.solve(normal_matrix, normal_right_hand_side)
         if approximation.debug:
             print("    Used np.linalg.solve (direct solution)")
-        return result  # noqa: TRY300
+        return result  # ruff: ignore[try-consider-else]
     except np.linalg.LinAlgError:
         if approximation.debug:
             print("    Used np.linalg.pinv (matrix was singular or poorly conditioned)")

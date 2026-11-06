@@ -14,7 +14,7 @@ This file showcases four protocol families:
 
 import matplotlib.pyplot as plt
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
+from mpl_toolkits.mplot3d import Axes3D  # ruff: ignore[unused-import]
 
 from interpolatepy import (
     # Protocols
@@ -310,9 +310,16 @@ def example_geometric_path() -> None:
     ax1.plot(pos_lin[:, 0], pos_lin[:, 1], pos_lin[:, 2], "b-", linewidth=2, label="Path")
     step = max(1, len(pos_lin) // 10)
     ax1.quiver(
-        pos_lin[::step, 0], pos_lin[::step, 1], pos_lin[::step, 2],
-        vel_lin[::step, 0], vel_lin[::step, 1], vel_lin[::step, 2],
-        length=0.5, color="green", arrow_length_ratio=0.3, label="Velocity",
+        pos_lin[::step, 0],
+        pos_lin[::step, 1],
+        pos_lin[::step, 2],
+        vel_lin[::step, 0],
+        vel_lin[::step, 1],
+        vel_lin[::step, 2],
+        length=0.5,
+        color="green",
+        arrow_length_ratio=0.3,
+        label="Velocity",
     )
     ax1.set_title("LinearPath")
     ax1.set_xlabel("X")
@@ -325,14 +332,28 @@ def example_geometric_path() -> None:
     ax2.plot(pos_cir[:, 0], pos_cir[:, 1], pos_cir[:, 2], "r-", linewidth=2, label="Path")
     step = max(1, len(pos_cir) // 12)
     ax2.quiver(
-        pos_cir[::step, 0], pos_cir[::step, 1], pos_cir[::step, 2],
-        vel_cir[::step, 0], vel_cir[::step, 1], vel_cir[::step, 2],
-        length=0.8, color="green", arrow_length_ratio=0.3, label="Velocity",
+        pos_cir[::step, 0],
+        pos_cir[::step, 1],
+        pos_cir[::step, 2],
+        vel_cir[::step, 0],
+        vel_cir[::step, 1],
+        vel_cir[::step, 2],
+        length=0.8,
+        color="green",
+        arrow_length_ratio=0.3,
+        label="Velocity",
     )
     ax2.quiver(
-        pos_cir[::step, 0], pos_cir[::step, 1], pos_cir[::step, 2],
-        acc_cir[::step, 0], acc_cir[::step, 1], acc_cir[::step, 2],
-        length=0.8, color="orange", arrow_length_ratio=0.3, label="Acceleration",
+        pos_cir[::step, 0],
+        pos_cir[::step, 1],
+        pos_cir[::step, 2],
+        acc_cir[::step, 0],
+        acc_cir[::step, 1],
+        acc_cir[::step, 2],
+        length=0.8,
+        color="orange",
+        arrow_length_ratio=0.3,
+        label="Acceleration",
     )
     ax2.set_title("CircularPath")
     ax2.set_xlabel("X")

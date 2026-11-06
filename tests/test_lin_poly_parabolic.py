@@ -24,13 +24,9 @@ from unittest.mock import patch
 
 import numpy as np
 import pytest
+from pytest_benchmark.fixture import BenchmarkFixture
 
 from interpolatepy.motion.parabolic import ParabolicBlendTrajectory
-
-
-# Type alias for pytest benchmark fixture
-if not hasattr(pytest, "FixtureFunction"):
-    pytest.FixtureFunction = Any
 
 
 class TestParabolicBlendTrajectoryConstruction:
@@ -191,8 +187,8 @@ class TestParabolicBlendTrajectoryGeneration:
             positions.append(pos)
 
         # Check no sudden jumps in position (derivative test)
-        positions = np.array(positions)
-        pos_diff = np.diff(positions)
+        positions_arr = np.array(positions)
+        pos_diff = np.diff(positions_arr)
         dt_sample = duration / (len(times) - 1)
         velocities_approx = pos_diff / dt_sample
 
@@ -305,10 +301,10 @@ class TestParabolicBlendTrajectoryMathematicalProperties:
             _, vel, _ = traj_func(t_sample)
             velocities.append(vel)
 
-        velocities = np.array(velocities)
+        velocities_arr = np.array(velocities)
 
         # Check that velocity doesn't have unreasonable jumps
-        vel_diff = np.diff(velocities)
+        vel_diff = np.diff(velocities_arr)
         max_vel_jump = np.max(np.abs(vel_diff))
 
         # This is a heuristic check - adjust threshold if needed
@@ -332,12 +328,10 @@ class TestParabolicBlendTrajectoryMathematicalProperties:
             accelerations.append(acc)
 
         # We expect some non-zero accelerations (in blend regions)
-        accelerations = np.array(accelerations)
-        has_nonzero_acc = np.any(np.abs(accelerations) > 1e-10)
+        accelerations_arr = np.array(accelerations)
+        has_nonzero_acc = np.any(np.abs(accelerations_arr) > 1e-10)
 
-        assert has_nonzero_acc, (
-            "Trajectory should have some non-zero accelerations in blend regions"
-        )
+        assert has_nonzero_acc, "Trajectory should have some non-zero accelerations in blend regions"
 
     def test_energy_and_smoothness_properties(self) -> None:
         """Test energy-related properties of the trajectory."""
@@ -360,17 +354,17 @@ class TestParabolicBlendTrajectoryMathematicalProperties:
             velocities.append(vel)
             accelerations.append(acc)
 
-        positions = np.array(positions)
-        velocities = np.array(velocities)
-        accelerations = np.array(accelerations)
+        positions_arr = np.array(positions)
+        velocities_arr = np.array(velocities)
+        accelerations_arr = np.array(accelerations)
 
         # Check finite values
-        assert np.all(np.isfinite(positions))
-        assert np.all(np.isfinite(velocities))
-        assert np.all(np.isfinite(accelerations))
+        assert np.all(np.isfinite(positions_arr))
+        assert np.all(np.isfinite(velocities_arr))
+        assert np.all(np.isfinite(accelerations_arr))
 
         # Kinetic energy should be reasonable (not excessively high)
-        kinetic_energy = 0.5 * velocities**2
+        kinetic_energy = 0.5 * velocities_arr**2
         max_kinetic = np.max(kinetic_energy)
 
         assert max_kinetic < 100.0, f"Maximum kinetic energy too high: {max_kinetic}"
@@ -527,7 +521,7 @@ class TestParabolicBlendTrajectoryPlotting:
 class TestParabolicBlendTrajectoryPerformance:
     """Test suite for performance benchmarks."""
 
-    def test_construction_performance(self, benchmark: pytest.FixtureFunction) -> None:
+    def test_construction_performance(self, benchmark: BenchmarkFixture) -> None:
         """Benchmark trajectory construction."""
         q = np.random.randn(10)
         t = np.linspace(0, 10, 10)
@@ -539,7 +533,7 @@ class TestParabolicBlendTrajectoryPerformance:
         result = benchmark(construct_trajectory)
         assert isinstance(result, ParabolicBlendTrajectory)
 
-    def test_generation_performance(self, benchmark: pytest.FixtureFunction) -> None:
+    def test_generation_performance(self, benchmark: BenchmarkFixture) -> None:
         """Benchmark trajectory generation."""
         q = np.random.randn(20)
         t = np.linspace(0, 20, 20)
@@ -554,7 +548,7 @@ class TestParabolicBlendTrajectoryPerformance:
         assert callable(traj_func)
         assert duration > 0.0
 
-    def test_evaluation_performance(self, benchmark: pytest.FixtureFunction) -> None:
+    def test_evaluation_performance(self, benchmark: BenchmarkFixture) -> None:
         """Benchmark trajectory evaluation."""
         q = np.random.randn(15)
         t = np.linspace(0, 15, 15)
@@ -571,7 +565,7 @@ class TestParabolicBlendTrajectoryPerformance:
         assert np.isfinite(vel)
         assert np.isfinite(acc)
 
-    def test_large_waypoint_trajectory(self, benchmark: pytest.FixtureFunction) -> None:
+    def test_large_waypoint_trajectory(self, benchmark: BenchmarkFixture) -> None:
         """Benchmark trajectory with many waypoints."""
         n_points = 100
         q = np.random.randn(n_points)
