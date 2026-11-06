@@ -22,20 +22,12 @@ from unittest.mock import patch
 
 import numpy as np
 import pytest
+from pytest_benchmark.fixture import BenchmarkFixture
 
 from interpolatepy.quaternion.core import Quaternion
 from interpolatepy.quaternion.spline import QuaternionSpline
 from interpolatepy.visualization.quaternion import PlotStyle
 from interpolatepy.visualization.quaternion import QuaternionTrajectoryVisualizer
-
-
-# Type alias for pytest benchmark fixture
-try:
-    from pytest import FixtureFunction
-except (ImportError, AttributeError):
-    # Fallback for pytest versions without FixtureFunction
-    from collections.abc import Callable
-    FixtureFunction = Callable[..., Any]
 
 
 class TestPlotStyle:
@@ -48,23 +40,19 @@ class TestPlotStyle:
         assert style.color == "blue"
         assert style.line_width == 2.0
         assert style.point_size == 20.0
-        assert style.figsize == (10, 8)
+        assert style.figsize == (10.0, 8.0)
         assert style.title == "Quaternion Plot"
 
     def test_custom_initialization(self) -> None:
         """Test PlotStyle initialization with custom values."""
         style = PlotStyle(
-            color="red",
-            line_width=1.5,
-            point_size=30.0,
-            figsize=(12, 10),
-            title="Custom Quaternion Plot"
+            color="red", line_width=1.5, point_size=30.0, figsize=(12, 10), title="Custom Quaternion Plot"
         )
 
         assert style.color == "red"
         assert style.line_width == 1.5
         assert style.point_size == 30.0
-        assert style.figsize == (12, 10)
+        assert style.figsize == (12.0, 10.0)
         assert style.title == "Custom Quaternion Plot"
 
     def test_partial_initialization(self) -> None:
@@ -74,7 +62,7 @@ class TestPlotStyle:
         assert style.color == "green"
         assert style.line_width == 3.0
         assert style.point_size == 20.0  # default
-        assert style.figsize == (10, 8)  # default
+        assert style.figsize == (10.0, 8.0)  # default
         assert style.title == "Quaternion Plot"  # default
 
 
@@ -122,13 +110,16 @@ class TestStereographicProjection:
         expected = np.array([0.0, 0.0, 0.0])
         assert np.allclose(mrp, expected, atol=self.NUMERICAL_ATOL)
 
-    @pytest.mark.parametrize("angle", [np.pi/4, np.pi/2, 3*np.pi/4])
-    @pytest.mark.parametrize("axis", [
-        [1.0, 0.0, 0.0],  # X-axis
-        [0.0, 1.0, 0.0],  # Y-axis
-        [0.0, 0.0, 1.0],  # Z-axis
-        [1.0, 1.0, 1.0],  # Diagonal
-    ])
+    @pytest.mark.parametrize("angle", [np.pi / 4, np.pi / 2, 3 * np.pi / 4])
+    @pytest.mark.parametrize(
+        "axis",
+        [
+            [1.0, 0.0, 0.0],  # X-axis
+            [0.0, 1.0, 0.0],  # Y-axis
+            [0.0, 0.0, 1.0],  # Z-axis
+            [1.0, 1.0, 1.0],  # Diagonal
+        ],
+    )
     def test_stereographic_projection_basic(self, angle: float, axis: list[float]) -> None:
         """Test stereographic projection with various quaternions."""
         axis_array = np.array(axis)
@@ -143,12 +134,12 @@ class TestStereographicProjection:
     def test_stereographic_projection_mathematical_correctness(self) -> None:
         """Test mathematical correctness of stereographic projection."""
         # Test known case: 90° rotation around Z-axis
-        q = Quaternion.from_angle_axis(np.pi/2, np.array([0.0, 0.0, 1.0]))
+        q = Quaternion.from_angle_axis(np.pi / 2, np.array([0.0, 0.0, 1.0]))
         mrp = QuaternionTrajectoryVisualizer.stereographic_projection(q)
 
         # For 90° rotation around Z: q = [cos(π/4), 0, 0, sin(π/4)] = [√2/2, 0, 0, √2/2]
         # MRP = [x/(1+w), y/(1+w), z/(1+w)] = [0, 0, (√2/2)/(1+√2/2)]
-        expected_z = np.sqrt(2)/2 / (1 + np.sqrt(2)/2)
+        expected_z = np.sqrt(2) / 2 / (1 + np.sqrt(2) / 2)
         expected = np.array([0.0, 0.0, expected_z])
 
         assert np.allclose(mrp, expected, atol=self.NUMERICAL_ATOL)
@@ -203,13 +194,16 @@ class TestInverseStereographicProjection:
         assert abs(q.s() - q_identity.s()) < self.NUMERICAL_ATOL
         assert np.allclose(q.v(), q_identity.v(), atol=self.NUMERICAL_ATOL)
 
-    @pytest.mark.parametrize("mrp_point", [
-        [0.5, 0.0, 0.0],
-        [0.0, 0.5, 0.0],
-        [0.0, 0.0, 0.5],
-        [0.1, 0.2, 0.3],
-        [1.0, 1.0, 1.0],
-    ])
+    @pytest.mark.parametrize(
+        "mrp_point",
+        [
+            [0.5, 0.0, 0.0],
+            [0.0, 0.5, 0.0],
+            [0.0, 0.0, 0.5],
+            [0.1, 0.2, 0.3],
+            [1.0, 1.0, 1.0],
+        ],
+    )
     def test_inverse_projection_basic(self, mrp_point: list[float]) -> None:
         """Test inverse projection with various MRP points."""
         mrp = np.array(mrp_point)
@@ -223,9 +217,9 @@ class TestInverseStereographicProjection:
         # Start with various quaternions
         test_quaternions = [
             Quaternion.identity(),
-            Quaternion.from_angle_axis(np.pi/4, np.array([1.0, 0.0, 0.0])),
-            Quaternion.from_angle_axis(np.pi/3, np.array([0.0, 1.0, 0.0])),
-            Quaternion.from_angle_axis(np.pi/6, np.array([1.0, 1.0, 1.0])),
+            Quaternion.from_angle_axis(np.pi / 4, np.array([1.0, 0.0, 0.0])),
+            Quaternion.from_angle_axis(np.pi / 3, np.array([0.0, 1.0, 0.0])),
+            Quaternion.from_angle_axis(np.pi / 6, np.array([1.0, 1.0, 1.0])),
             Quaternion.from_euler_angles(0.1, 0.2, 0.3),
         ]
 
@@ -279,9 +273,9 @@ class TestTrajectoryProjection:
         """Test trajectory projection with multiple quaternions."""
         quaternions = [
             Quaternion.identity(),
-            Quaternion.from_angle_axis(np.pi/4, np.array([1.0, 0.0, 0.0])),
-            Quaternion.from_angle_axis(np.pi/2, np.array([0.0, 1.0, 0.0])),
-            Quaternion.from_angle_axis(np.pi/3, np.array([0.0, 0.0, 1.0])),
+            Quaternion.from_angle_axis(np.pi / 4, np.array([1.0, 0.0, 0.0])),
+            Quaternion.from_angle_axis(np.pi / 2, np.array([0.0, 1.0, 0.0])),
+            Quaternion.from_angle_axis(np.pi / 3, np.array([0.0, 0.0, 1.0])),
         ]
 
         projected = self.visualizer.project_trajectory(quaternions)
@@ -295,7 +289,7 @@ class TestTrajectoryProjection:
         quaternions = [
             Quaternion.identity(),
             Quaternion(-1.0 + 1e-8, 0.1, 0.0, 0.0).unit(),  # Near singularity
-            Quaternion.from_angle_axis(np.pi/4, np.array([1.0, 0.0, 0.0])),
+            Quaternion.from_angle_axis(np.pi / 4, np.array([1.0, 0.0, 0.0])),
         ]
 
         # Should handle singularities gracefully
@@ -337,8 +331,8 @@ class TestVelocityAnalysis:
         """Test basic velocity magnitude computation."""
         quaternions = [
             Quaternion.identity(),
-            Quaternion.from_angle_axis(np.pi/4, np.array([1.0, 0.0, 0.0])),
-            Quaternion.from_angle_axis(np.pi/2, np.array([1.0, 0.0, 0.0])),
+            Quaternion.from_angle_axis(np.pi / 4, np.array([1.0, 0.0, 0.0])),
+            Quaternion.from_angle_axis(np.pi / 2, np.array([1.0, 0.0, 0.0])),
         ]
 
         times, velocities = self.visualizer.compute_velocity_magnitudes(quaternions)
@@ -351,8 +345,8 @@ class TestVelocityAnalysis:
         """Test velocity computation with custom time points."""
         quaternions = [
             Quaternion.identity(),
-            Quaternion.from_angle_axis(np.pi/4, np.array([1.0, 0.0, 0.0])),
-            Quaternion.from_angle_axis(np.pi/2, np.array([1.0, 0.0, 0.0])),
+            Quaternion.from_angle_axis(np.pi / 4, np.array([1.0, 0.0, 0.0])),
+            Quaternion.from_angle_axis(np.pi / 2, np.array([1.0, 0.0, 0.0])),
         ]
         time_points = [0.0, 1.0, 2.0]
 
@@ -372,7 +366,7 @@ class TestVelocityAnalysis:
         """Test velocity computation with mismatched time points length."""
         quaternions = [
             Quaternion.identity(),
-            Quaternion.from_angle_axis(np.pi/4, np.array([1.0, 0.0, 0.0])),
+            Quaternion.from_angle_axis(np.pi / 4, np.array([1.0, 0.0, 0.0])),
         ]
         time_points = [0.0, 1.0, 2.0]  # Wrong length
 
@@ -381,7 +375,7 @@ class TestVelocityAnalysis:
 
     def test_velocity_computation_identical_quaternions(self) -> None:
         """Test velocity computation with identical quaternions."""
-        q = Quaternion.from_angle_axis(np.pi/4, np.array([1.0, 0.0, 0.0]))
+        q = Quaternion.from_angle_axis(np.pi / 4, np.array([1.0, 0.0, 0.0]))
         quaternions = [q, q, q]
 
         times, velocities = self.visualizer.compute_velocity_magnitudes(quaternions)
@@ -392,7 +386,7 @@ class TestVelocityAnalysis:
     def test_quaternion_distance_method(self) -> None:
         """Test private quaternion distance method."""
         q1 = Quaternion.identity()
-        q2 = Quaternion.from_angle_axis(np.pi/2, np.array([1.0, 0.0, 0.0]))
+        q2 = Quaternion.from_angle_axis(np.pi / 2, np.array([1.0, 0.0, 0.0]))
 
         distance = self.visualizer._quaternion_distance(q1, q2)
 
@@ -401,7 +395,7 @@ class TestVelocityAnalysis:
 
     def test_quaternion_distance_identical(self) -> None:
         """Test quaternion distance with identical quaternions."""
-        q = Quaternion.from_angle_axis(np.pi/4, np.array([1.0, 0.0, 0.0]))
+        q = Quaternion.from_angle_axis(np.pi / 4, np.array([1.0, 0.0, 0.0]))
 
         distance = self.visualizer._quaternion_distance(q, q)
 
@@ -416,9 +410,9 @@ class TestPlottingFunctionality:
         self.visualizer = QuaternionTrajectoryVisualizer()
         self.test_quaternions = [
             Quaternion.identity(),
-            Quaternion.from_angle_axis(np.pi/4, np.array([1.0, 0.0, 0.0])),
-            Quaternion.from_angle_axis(np.pi/2, np.array([0.0, 1.0, 0.0])),
-            Quaternion.from_angle_axis(np.pi/3, np.array([0.0, 0.0, 1.0])),
+            Quaternion.from_angle_axis(np.pi / 4, np.array([1.0, 0.0, 0.0])),
+            Quaternion.from_angle_axis(np.pi / 2, np.array([0.0, 1.0, 0.0])),
+            Quaternion.from_angle_axis(np.pi / 3, np.array([0.0, 0.0, 1.0])),
         ]
 
     @patch("matplotlib.pyplot.tight_layout")
@@ -444,9 +438,7 @@ class TestPlottingFunctionality:
 
     @patch("matplotlib.pyplot.tight_layout")
     @patch("matplotlib.pyplot.figure")
-    def test_plot_3d_trajectory_with_options(
-        self, mock_figure: Mock, _mock_tight_layout: Mock
-    ) -> None:
+    def test_plot_3d_trajectory_with_options(self, mock_figure: Mock, _mock_tight_layout: Mock) -> None:
         """Test 3D trajectory plotting with custom options."""
         mock_fig = MagicMock()
         mock_ax = MagicMock()
@@ -461,7 +453,7 @@ class TestPlottingFunctionality:
             line_width=3.0,
             point_size=50.0,
             show_points=False,
-            figsize=(12, 10)
+            figsize=(12, 10),
         )
 
         # Verify custom figsize was used
@@ -537,7 +529,7 @@ class TestPlottingFunctionality:
             title="Custom Combined Plot",
             trajectory_color="green",
             velocity_color="orange",
-            figsize=(16, 8)
+            figsize=(16, 8),
         )
 
         mock_figure.assert_called_once_with(figsize=(16, 8))
@@ -573,7 +565,7 @@ class TestEdgeCasesAndErrorHandling:
 
     def test_large_angle_rotations(self) -> None:
         """Test handling of large angle rotations."""
-        large_angles = [2*np.pi, 4*np.pi, 10*np.pi]
+        large_angles = [2 * np.pi, 4 * np.pi, 10 * np.pi]
 
         for angle in large_angles:
             q = Quaternion.from_angle_axis(angle, np.array([0.0, 0.0, 1.0]))
@@ -672,9 +664,7 @@ class TestIntegrationWithQuaternionTrajectories:
                 interpolated_quaternions.append(q_interp)
 
         # Analyze velocity
-        times, velocities = self.visualizer.compute_velocity_magnitudes(
-            interpolated_quaternions, eval_times.tolist()
-        )
+        times, velocities = self.visualizer.compute_velocity_magnitudes(interpolated_quaternions, eval_times.tolist())
 
         assert len(times) == len(interpolated_quaternions)
         assert len(velocities) == len(interpolated_quaternions)
@@ -713,15 +703,10 @@ class TestPerformanceAndBenchmarks:
         self.visualizer = QuaternionTrajectoryVisualizer()
 
     @pytest.mark.parametrize("num_quaternions", [100, 1000])
-    def test_projection_performance(
-        self, num_quaternions: int, benchmark: FixtureFunction
-    ) -> None:
+    def test_projection_performance(self, num_quaternions: int, benchmark: BenchmarkFixture) -> None:
         """Benchmark trajectory projection performance."""
         # Create test trajectory
-        quaternions = [
-            Quaternion.from_euler_angles(0.01 * i, 0.02 * i, 0.03 * i)
-            for i in range(num_quaternions)
-        ]
+        quaternions = [Quaternion.from_euler_angles(0.01 * i, 0.02 * i, 0.03 * i) for i in range(num_quaternions)]
 
         def run_projection() -> None:
             _ = self.visualizer.project_trajectory(quaternions)
@@ -729,28 +714,18 @@ class TestPerformanceAndBenchmarks:
         benchmark(run_projection)
 
     @pytest.mark.parametrize("num_quaternions", [100, 1000])
-    def test_velocity_computation_performance(
-        self, num_quaternions: int, benchmark: FixtureFunction
-    ) -> None:
+    def test_velocity_computation_performance(self, num_quaternions: int, benchmark: BenchmarkFixture) -> None:
         """Benchmark velocity computation performance."""
-        quaternions = [
-            Quaternion.from_euler_angles(0.01 * i, 0.02 * i, 0.03 * i)
-            for i in range(num_quaternions)
-        ]
+        quaternions = [Quaternion.from_euler_angles(0.01 * i, 0.02 * i, 0.03 * i) for i in range(num_quaternions)]
 
         def run_velocity_computation() -> None:
             _ = self.visualizer.compute_velocity_magnitudes(quaternions)
 
         benchmark(run_velocity_computation)
 
-    def test_stereographic_projection_performance(
-        self, benchmark: FixtureFunction
-    ) -> None:
+    def test_stereographic_projection_performance(self, benchmark: BenchmarkFixture) -> None:
         """Benchmark stereographic projection performance."""
-        quaternions = [
-            Quaternion.from_euler_angles(0.01 * i, 0.02 * i, 0.03 * i)
-            for i in range(1000)
-        ]
+        quaternions = [Quaternion.from_euler_angles(0.01 * i, 0.02 * i, 0.03 * i) for i in range(1000)]
 
         def run_projections() -> None:
             for q in quaternions:

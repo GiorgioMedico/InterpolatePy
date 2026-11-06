@@ -23,6 +23,7 @@ from typing import Any
 
 import numpy as np
 import pytest
+from pytest_benchmark.fixture import BenchmarkFixture
 
 import interpolatepy
 from interpolatepy.bsplines.approximation import ApproximationBSpline
@@ -31,11 +32,6 @@ from interpolatepy.bsplines.cubic import CubicBSplineInterpolation
 from interpolatepy.bsplines.interpolation import BSplineInterpolator
 from interpolatepy.bsplines.smoothing import BSplineParams
 from interpolatepy.bsplines.smoothing import SmoothingCubicBSpline
-
-
-# Type alias for pytest benchmark fixture
-if not hasattr(pytest, "FixtureFunction"):
-    pytest.FixtureFunction = Any
 
 
 class TestBSplineParams:
@@ -53,9 +49,7 @@ class TestBSplineParams:
     def test_bspline_params_with_values(self) -> None:
         """Test BSplineParams creation with specified values."""
         # Use actual BSplineParams API
-        params = BSplineParams(
-            mu=0.7, method="centripetal", enforce_endpoints=True, auto_derivatives=True
-        )
+        params = BSplineParams(mu=0.7, method="centripetal", enforce_endpoints=True, auto_derivatives=True)
         assert params.mu == 0.7
         assert params.method == "centripetal"
         assert params.enforce_endpoints is True
@@ -160,7 +154,7 @@ class TestCubicBSplineInterpolation:
         assert spline.degree == 3
 
         # Should be able to evaluate derivatives up to degree
-        try:
+        try:  # ruff: ignore[too-many-statements-in-try-clause]
             u_mid = (spline.u_min + spline.u_max) / 2
 
             # Test derivatives
@@ -365,14 +359,10 @@ class TestCubicBSplineInterpolation:
         rng = np.random.default_rng(0)
         for _ in range(20):
             points = rng.uniform(-0.5, 0.5, (n_points, 3))
-            spline = CubicBSplineInterpolation(
-                points=points, v0=np.zeros(3), vn=np.zeros(3), method="chord_length"
-            )
+            spline = CubicBSplineInterpolation(points=points, v0=np.zeros(3), vn=np.zeros(3), method="chord_length")
             for i, u_bar in enumerate(np.asarray(spline.u_bars)):
                 evaluated = np.asarray(spline.evaluate(float(u_bar)))
-                assert np.linalg.norm(evaluated - points[i]) == pytest.approx(
-                    0.0, abs=1e-9
-                )
+                assert np.linalg.norm(evaluated - points[i]) == pytest.approx(0.0, abs=1e-9)
 
 
 class TestApproximationBSpline:
@@ -534,7 +524,7 @@ class TestBSplineInterpolator:
 
         # Test the knot generation for even degree directly
         times = np.array([0.0, 1.0, 2.0, 3.0, 4.0])  # 5 time points
-        try:
+        try:  # ruff: ignore[too-many-statements-in-try-clause]
             # This should exercise the even degree path (line 168-178)
             # Create some dummy points to match the times
             dummy_points = np.array([[i, i] for i in range(len(times))])
@@ -557,9 +547,7 @@ class TestBSplineInterpolator:
         # Test with initial and final velocities (degree 3)
         initial_vel = [1.0, 2.0]
         final_vel = [1.0, 2.0]  # Keep consistent with linear slope
-        spline = BSplineInterpolator(
-            3, data_points, initial_velocity=initial_vel, final_velocity=final_vel
-        )
+        spline = BSplineInterpolator(3, data_points, initial_velocity=initial_vel, final_velocity=final_vel)
 
         # Should evaluate successfully
         point = spline.evaluate(0.5)
@@ -670,15 +658,11 @@ class TestApproximationBSplineAdvanced:
             ApproximationBSpline(points, 5, degree=0)
 
         # Test control points validation
-        with pytest.raises(
-            ValueError, match="Number of control points must be greater than the degree"
-        ):
+        with pytest.raises(ValueError, match="Number of control points must be greater than the degree"):
             ApproximationBSpline(points, 2, degree=3)
 
         # Test points count validation
-        with pytest.raises(
-            ValueError, match="Number of points must be greater than number of control points"
-        ):
+        with pytest.raises(ValueError, match="Number of points must be greater than number of control points"):
             ApproximationBSpline([[0, 0], [1, 1]], 5, degree=3)
 
     def test_different_degrees(self) -> None:
@@ -1089,9 +1073,7 @@ class TestBSplineVariantsPerformance:
             BSplineInterpolator,
         ],
     )
-    def test_construction_performance(
-        self, variant_class: type, benchmark: pytest.FixtureFunction
-    ) -> None:
+    def test_construction_performance(self, variant_class: type, benchmark: BenchmarkFixture) -> None:
         """Benchmark construction performance for different variants."""
         data_points = [[i, i**2] for i in range(20)]
         degree = 3
@@ -1115,7 +1097,7 @@ class TestBSplineVariantsPerformance:
         variant = benchmark(construct_variant)
         assert isinstance(variant, variant_class)
 
-    def test_evaluation_performance(self, benchmark: pytest.FixtureFunction) -> None:
+    def test_evaluation_performance(self, benchmark: BenchmarkFixture) -> None:
         """Benchmark evaluation performance across variants."""
         data_points = [[i, np.sin(i)] for i in np.linspace(0, 2 * np.pi, 15)]
         degree = 3
@@ -1148,9 +1130,7 @@ if __name__ == "__main__":
         {"cyclic": True},
     ],
 )
-def test_public_api_interpolates_from_two_points(
-    degree: int, num_points: int, constraints: dict[str, Any]
-) -> None:
+def test_public_api_interpolates_from_two_points(degree: int, num_points: int, constraints: dict[str, Any]) -> None:
     """Any degree interpolates down to two points, on whichever backend is active.
 
     Runs against ``interpolatepy.BSplineInterpolator``, which resolves to the C++
@@ -1176,9 +1156,7 @@ def test_public_api_interpolates_from_two_points(
         {"final_velocity": [1.0, 0.0], "final_acceleration": [0.5, -0.5]},
     ],
 )
-def test_acceleration_constraints_are_honoured(
-    degree: int, constraints: dict[str, Any]
-) -> None:
+def test_acceleration_constraints_are_honoured(degree: int, constraints: dict[str, Any]) -> None:
     """Explicit accelerations must not collide with the generated natural rows.
 
     The fallback boundary rows start at the second derivative, so they have to skip
@@ -1197,6 +1175,6 @@ def test_acceleration_constraints_are_honoured(
     orders = {"velocity": 1, "acceleration": 2}
     for name, value in constraints.items():
         when, _, what = name.partition("_")
-        assert np.allclose(
-            spline.evaluate_derivative(endpoints[when], orders[what]), value, atol=1e-6
-        ), f"{name} not satisfied for degree {degree}"
+        assert np.allclose(spline.evaluate_derivative(endpoints[when], orders[what]), value, atol=1e-6), (
+            f"{name} not satisfied for degree {degree}"
+        )

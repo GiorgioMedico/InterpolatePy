@@ -134,9 +134,7 @@ class Quaternion:
             j = s_i_next[i]
             k = s_i_next[j]
 
-            f_root = np.sqrt(
-                rotation_matrix[i, i] - rotation_matrix[j, j] - rotation_matrix[k, k] + 1.0
-            )
+            f_root = np.sqrt(rotation_matrix[i, i] - rotation_matrix[j, j] - rotation_matrix[k, k] + 1.0)
 
             v = np.zeros(3)
             v[i] = 0.5 * f_root
@@ -270,7 +268,7 @@ class Quaternion:
 
         return Quaternion(s, v[0], v[1], v[2])
 
-    def Log(self) -> "Quaternion":  # noqa: N802
+    def Log(self) -> "Quaternion":  # ruff: ignore[invalid-function-name]
         """
         Quaternion logarithm for unit quaternions.
 
@@ -340,7 +338,7 @@ class Quaternion:
 
         return Quaternion(s_dot, v_dot[0], v_dot[1], v_dot[2])
 
-    def E(self, sign: int) -> np.ndarray:  # noqa: N802
+    def E(self, sign: int) -> np.ndarray:  # ruff: ignore[invalid-function-name]
         """
         Matrix E for quaternion dynamics.
 
@@ -368,7 +366,7 @@ class Quaternion:
         return np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
 
     @staticmethod
-    def Omega(q: "Quaternion", q_dot: "Quaternion") -> np.ndarray:  # noqa: N802
+    def Omega(q: "Quaternion", q_dot: "Quaternion") -> np.ndarray:  # ruff: ignore[invalid-function-name]
         """
         Return angular velocity from quaternion and its time derivative.
 
@@ -392,7 +390,7 @@ class Quaternion:
     # ==================== NUMERICAL INTEGRATION ====================
 
     @staticmethod
-    def Integ_quat(  # noqa: N802
+    def Integ_quat(  # ruff: ignore[invalid-function-name]
         dquat_present: "Quaternion",
         dquat_past: "Quaternion",
         quat: "Quaternion",
@@ -415,9 +413,7 @@ class Quaternion:
 
         # Apply quaternion algebraic constraint for numerical stability
         k_lambda = 0.5 * (1 - quat.norm_squared())
-        corrected_dquat = Quaternion(
-            dquat_present.s_ + k_lambda * quat.s_, *(dquat_present.v_ + k_lambda * quat.v_)
-        )
+        corrected_dquat = Quaternion(dquat_present.s_ + k_lambda * quat.s_, *(dquat_present.v_ + k_lambda * quat.v_))
 
         # Integrate using trapezoidal rule
         s_integrated = Quaternion.integ_trap_quat_s(corrected_dquat, dquat_past, dt)
@@ -454,7 +450,7 @@ class Quaternion:
 
     # ==================== CONVERSION METHODS ====================
 
-    def R(self) -> np.ndarray:  # noqa: N802
+    def R(self) -> np.ndarray:  # ruff: ignore[invalid-function-name]
         """
         Rotation matrix from unit quaternion.
 
@@ -463,31 +459,29 @@ class Quaternion:
         s, v = self.s_, self.v_
         v1, v2, v3 = v[0], v[1], v[2]
 
-        return np.array(
+        return np.array([
             [
-                [
-                    s**2 + v1**2 - v2**2 - v3**2,
-                    2 * v1 * v2 - 2 * s * v3,
-                    2 * v1 * v3 + 2 * s * v2,
-                ],
-                [
-                    2 * v1 * v2 + 2 * s * v3,
-                    s**2 - v1**2 + v2**2 - v3**2,
-                    2 * v2 * v3 - 2 * s * v1,
-                ],
-                [
-                    2 * v1 * v3 - 2 * s * v2,
-                    2 * v2 * v3 + 2 * s * v1,
-                    s**2 - v1**2 - v2**2 + v3**2,
-                ],
-            ]
-        )
+                s**2 + v1**2 - v2**2 - v3**2,
+                2 * v1 * v2 - 2 * s * v3,
+                2 * v1 * v3 + 2 * s * v2,
+            ],
+            [
+                2 * v1 * v2 + 2 * s * v3,
+                s**2 - v1**2 + v2**2 - v3**2,
+                2 * v2 * v3 - 2 * s * v1,
+            ],
+            [
+                2 * v1 * v3 - 2 * s * v2,
+                2 * v2 * v3 + 2 * s * v1,
+                s**2 - v1**2 - v2**2 + v3**2,
+            ],
+        ])
 
     def to_rotation_matrix(self) -> np.ndarray:
         """Alias for R() method"""
         return self.R()
 
-    def T(self) -> np.ndarray:  # noqa: N802
+    def T(self) -> np.ndarray:  # ruff: ignore[invalid-function-name]
         """
         Transformation matrix from quaternion.
         """
@@ -560,7 +554,7 @@ class Quaternion:
         return self * (self.i() * (-other)).power(t)
 
     @staticmethod
-    def Slerp(q0: "Quaternion", q1: "Quaternion", t: float) -> "Quaternion":  # noqa: N802
+    def Slerp(q0: "Quaternion", q1: "Quaternion", t: float) -> "Quaternion":  # ruff: ignore[invalid-function-name]
         return q0.slerp(q1, t)
 
     def slerp_prime(self, other: "Quaternion", t: float) -> "Quaternion":
@@ -575,12 +569,12 @@ class Quaternion:
         return self.slerp(other, t) * q_rel.Log()
 
     @staticmethod
-    def Slerp_prime(q0: "Quaternion", q1: "Quaternion", t: float) -> "Quaternion":  # noqa: N802
+    def Slerp_prime(q0: "Quaternion", q1: "Quaternion", t: float) -> "Quaternion":  # ruff: ignore[invalid-function-name]
         """Static version of slerp_prime"""
         return q0.slerp_prime(q1, t)
 
     @staticmethod
-    def Squad(  # noqa: N802
+    def Squad(  # ruff: ignore[invalid-function-name]
         p: "Quaternion", a: "Quaternion", b: "Quaternion", q: "Quaternion", t: float
     ) -> "Quaternion":
         """
@@ -589,12 +583,10 @@ class Quaternion:
         # Clamp t to valid range without printing warning
         t = max(0.0, min(1.0, t))
 
-        return Quaternion.Slerp(
-            Quaternion.Slerp(p, q, t), Quaternion.Slerp(a, b, t), 2 * t * (1 - t)
-        )
+        return Quaternion.Slerp(Quaternion.Slerp(p, q, t), Quaternion.Slerp(a, b, t), 2 * t * (1 - t))
 
     @staticmethod
-    def Squad_prime(  # noqa: N802
+    def Squad_prime(  # ruff: ignore[invalid-function-name]
         p: "Quaternion", a: "Quaternion", b: "Quaternion", q: "Quaternion", t: float
     ) -> "Quaternion":
         """
@@ -673,10 +665,7 @@ class Quaternion:
 
     def __str__(self) -> str:
         """String representation"""
-        return (
-            f"Quaternion(w={self.s_:.6f}, x={self.v_[0]:.6f}, "
-            f"y={self.v_[1]:.6f}, z={self.v_[2]:.6f})"
-        )
+        return f"Quaternion(w={self.s_:.6f}, x={self.v_[0]:.6f}, y={self.v_[1]:.6f}, z={self.v_[2]:.6f})"
 
     def __repr__(self) -> str:
         """Detailed string representation"""
@@ -686,6 +675,4 @@ class Quaternion:
         """Equality comparison with epsilon tolerance"""
         if not isinstance(other, Quaternion):
             return NotImplemented
-        return abs(self.s_ - other.s_) < self.EPSILON and np.allclose(
-            self.v_, other.v_, atol=self.EPSILON
-        )
+        return abs(self.s_ - other.s_) < self.EPSILON and np.allclose(self.v_, other.v_, atol=self.EPSILON)

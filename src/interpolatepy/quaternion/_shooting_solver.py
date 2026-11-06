@@ -210,7 +210,7 @@ def matching_system(
     return residual, matrix.tocsc()
 
 
-def newton_solve(  # noqa: PLR0913
+def newton_solve(  # ruff: ignore[too-many-arguments]
     parameters: np.ndarray,
     quaternions: np.ndarray,
     durations: np.ndarray,

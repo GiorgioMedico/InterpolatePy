@@ -12,7 +12,7 @@ _COMPONENTS = 4
 _BAND_ROWS = 12
 
 
-def normal_matrix(  # noqa: PLR0913
+def normal_matrix(  # ruff: ignore[too-many-arguments]
     frames: np.ndarray,
     weights: np.ndarray,
     norm_penalty: float,

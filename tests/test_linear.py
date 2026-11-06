@@ -16,13 +16,9 @@ from typing import Any
 
 import numpy as np
 import pytest
+from pytest_benchmark.fixture import BenchmarkFixture
 
 from interpolatepy.paths.linear import linear_traj
-
-
-# Type alias for pytest benchmark fixture
-if not hasattr(pytest, "FixtureFunction"):
-    pytest.FixtureFunction = Any
 
 
 class TestLinearTrajectoryScalar:
@@ -443,9 +439,7 @@ class TestLinearTrajectoryMathematicalProperties:
         # Combined trajectory
         p0_combined = [p0_x, p0_y]
         p1_combined = [p1_x, p1_y]
-        pos_combined, vel_combined, acc_combined = linear_traj(
-            p0_combined, p1_combined, t0, t1, time_array
-        )
+        pos_combined, vel_combined, acc_combined = linear_traj(p0_combined, p1_combined, t0, t1, time_array)
 
         # Should satisfy superposition
         assert np.allclose(pos_combined[:, 0], pos_x, atol=self.NUMERICAL_ATOL)
@@ -458,9 +452,7 @@ class TestLinearTrajectoryPerformance:
     """Test suite for performance benchmarks."""
 
     @pytest.mark.parametrize("n_points", [100, 1000, 10000])
-    def test_scalar_trajectory_performance(
-        self, n_points: int, benchmark: pytest.FixtureFunction
-    ) -> None:
+    def test_scalar_trajectory_performance(self, n_points: int, benchmark: BenchmarkFixture) -> None:
         """Benchmark scalar trajectory performance."""
         p0, p1 = 0.0, 100.0
         t0, t1 = 0.0, 10.0
@@ -473,9 +465,7 @@ class TestLinearTrajectoryPerformance:
         assert len(positions) == n_points
 
     @pytest.mark.parametrize("dimension", [2, 3, 10])
-    def test_vector_trajectory_performance(
-        self, dimension: int, benchmark: pytest.FixtureFunction
-    ) -> None:
+    def test_vector_trajectory_performance(self, dimension: int, benchmark: BenchmarkFixture) -> None:
         """Benchmark vector trajectory performance."""
         p0 = np.zeros(dimension)
         p1 = np.ones(dimension) * 10.0
@@ -488,7 +478,7 @@ class TestLinearTrajectoryPerformance:
         positions, velocities, accelerations = benchmark(compute_trajectory)
         assert positions.shape == (1000, dimension)
 
-    def test_large_dataset_performance(self, benchmark: pytest.FixtureFunction) -> None:
+    def test_large_dataset_performance(self, benchmark: BenchmarkFixture) -> None:
         """Benchmark performance with large datasets."""
         p0 = np.random.rand(100)  # 100D trajectory
         p1 = np.random.rand(100) * 10

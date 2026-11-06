@@ -51,9 +51,7 @@ class LinearPath(_CppLinearPath):  # type: ignore[valid-type, misc]
         """Alias for ``length`` property."""
         return self.length
 
-    def evaluate_at(
-        self, s_values: float | list[float] | np.ndarray
-    ) -> dict[str, np.ndarray]:
+    def evaluate_at(self, s_values: float | list[float] | np.ndarray) -> dict[str, np.ndarray]:
         """Evaluate position, velocity, acceleration at arc-length values."""
         s_arr = np.atleast_1d(np.asarray(s_values, dtype=float))
         s_clipped = np.clip(s_arr, 0, self.length)
@@ -104,9 +102,7 @@ class CircularPath(_CppCircularPath):  # type: ignore[valid-type, misc]
         """Point on the circle."""
         return self._pi
 
-    def evaluate_at(
-        self, s_values: float | list[float] | np.ndarray
-    ) -> dict[str, np.ndarray]:
+    def evaluate_at(self, s_values: float | list[float] | np.ndarray) -> dict[str, np.ndarray]:
         """Evaluate position, velocity, acceleration at arc-length values."""
         s_arr = np.atleast_1d(np.asarray(s_values, dtype=float))
         n = len(s_arr)

@@ -168,7 +168,9 @@ class TestScalarTrajectoryProtocol:
     def test_cubic_spline_functional(self, cubic_spline: CubicSpline) -> None:
         """CubicSpline methods should be callable through protocol."""
 
-        def use_scalar_trajectory(traj: ScalarTrajectory, t: float) -> tuple[float, float, float]:
+        def use_scalar_trajectory(
+            traj: ScalarTrajectory, t: float
+        ) -> tuple[float | np.ndarray, float | np.ndarray, float | np.ndarray]:
             pos = traj.evaluate(t)
             vel = traj.evaluate_velocity(t)
             acc = traj.evaluate_acceleration(t)
@@ -273,9 +275,7 @@ class TestQuaternionTrajectoryProtocol:
     def test_log_quat_isinstance(self, log_quat_interp: LogQuaternionInterpolation) -> None:
         assert isinstance(log_quat_interp, QuaternionTrajectory)
 
-    def test_modified_log_quat_isinstance(
-        self, modified_log_quat_interp: ModifiedLogQuaternionInterpolation
-    ) -> None:
+    def test_modified_log_quat_isinstance(self, modified_log_quat_interp: ModifiedLogQuaternionInterpolation) -> None:
         assert isinstance(modified_log_quat_interp, QuaternionTrajectory)
 
     def test_quaternion_spline_isinstance(self, quaternion_spline: QuaternionSpline) -> None:
@@ -345,5 +345,5 @@ class TestTrajectoryFunctionProtocol:
 
     def test_lambda_isinstance(self) -> None:
         """Lambda should also satisfy TrajectoryFunction."""
-        f = lambda t: (t, 0.0, 0.0)  # noqa: E731
+        f = lambda t: (t, 0.0, 0.0)  # ruff: ignore[lambda-assignment]
         assert isinstance(f, TrajectoryFunction)

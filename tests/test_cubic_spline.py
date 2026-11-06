@@ -18,13 +18,9 @@ from typing import Any
 
 import numpy as np
 import pytest
+from pytest_benchmark.fixture import BenchmarkFixture
 
 from interpolatepy.splines.cubic import CubicSpline
-
-
-# Type alias for pytest benchmark fixture
-if not hasattr(pytest, "FixtureFunction"):
-    pytest.FixtureFunction = Any
 
 
 class TestCubicSplineConstruction:
@@ -141,18 +137,18 @@ class TestCubicSplineMathematicalAccuracy:
 
         # Check at waypoints
         for _i, (t, q) in enumerate(zip(t_points, q_points)):
-            assert abs(spline.evaluate(t) - q) < self.REGULAR_ATOL
-            assert abs(spline.evaluate_velocity(t) - 2.0) < self.NUMERICAL_ATOL
-            assert abs(spline.evaluate_acceleration(t) - 0.0) < self.NUMERICAL_ATOL
+            assert np.abs(spline.evaluate(t) - q) < self.REGULAR_ATOL
+            assert np.abs(spline.evaluate_velocity(t) - 2.0) < self.NUMERICAL_ATOL
+            assert np.abs(spline.evaluate_acceleration(t) - 0.0) < self.NUMERICAL_ATOL
 
         # Check at intermediate points
         test_times = [0.5, 1.5, 2.5]
         expected_positions = [2.0, 4.0, 6.0]
 
         for t, expected_q in zip(test_times, expected_positions):
-            assert abs(spline.evaluate(t) - expected_q) < self.NUMERICAL_ATOL
-            assert abs(spline.evaluate_velocity(t) - 2.0) < self.NUMERICAL_ATOL
-            assert abs(spline.evaluate_acceleration(t) - 0.0) < self.NUMERICAL_ATOL
+            assert np.abs(spline.evaluate(t) - expected_q) < self.NUMERICAL_ATOL
+            assert np.abs(spline.evaluate_velocity(t) - 2.0) < self.NUMERICAL_ATOL
+            assert np.abs(spline.evaluate_acceleration(t) - 0.0) < self.NUMERICAL_ATOL
 
     def test_quadratic_function_representation(self) -> None:
         """Test spline representation of a quadratic function."""
@@ -169,12 +165,10 @@ class TestCubicSplineMathematicalAccuracy:
         expected_velocities = [1.0, 3.0, 5.0]
         expected_accelerations = [2.0, 2.0, 2.0]
 
-        for t, exp_q, exp_v, exp_a in zip(
-            test_times, expected_positions, expected_velocities, expected_accelerations
-        ):
-            assert abs(spline.evaluate(t) - exp_q) < self.NUMERICAL_ATOL
-            assert abs(spline.evaluate_velocity(t) - exp_v) < self.NUMERICAL_ATOL
-            assert abs(spline.evaluate_acceleration(t) - exp_a) < self.NUMERICAL_ATOL
+        for t, exp_q, exp_v, exp_a in zip(test_times, expected_positions, expected_velocities, expected_accelerations):
+            assert np.abs(spline.evaluate(t) - exp_q) < self.NUMERICAL_ATOL
+            assert np.abs(spline.evaluate_velocity(t) - exp_v) < self.NUMERICAL_ATOL
+            assert np.abs(spline.evaluate_acceleration(t) - exp_a) < self.NUMERICAL_ATOL
 
     def test_waypoint_interpolation_exact(self) -> None:
         """Test that spline passes exactly through all waypoints."""
@@ -184,7 +178,7 @@ class TestCubicSplineMathematicalAccuracy:
         spline = CubicSpline(t_points, q_points)
 
         for t, q in zip(t_points, q_points):
-            assert abs(spline.evaluate(t) - q) < self.REGULAR_ATOL
+            assert np.abs(spline.evaluate(t) - q) < self.REGULAR_ATOL
 
     def test_boundary_conditions_exact(self) -> None:
         """Test that boundary velocities are exactly satisfied."""
@@ -194,8 +188,8 @@ class TestCubicSplineMathematicalAccuracy:
 
         spline = CubicSpline(t_points, q_points, v0=v0, vn=vn)
 
-        assert abs(spline.evaluate_velocity(t_points[0]) - v0) < self.REGULAR_ATOL
-        assert abs(spline.evaluate_velocity(t_points[-1]) - vn) < self.REGULAR_ATOL
+        assert np.abs(spline.evaluate_velocity(t_points[0]) - v0) < self.REGULAR_ATOL
+        assert np.abs(spline.evaluate_velocity(t_points[-1]) - vn) < self.REGULAR_ATOL
 
     def test_symmetric_trajectory(self) -> None:
         """Test spline with symmetric trajectory."""
@@ -405,10 +399,10 @@ class TestCubicSplineEdgeCases:
         assert spline.coefficients.shape == (1, 4)
 
         # Should exactly match endpoints
-        assert abs(spline.evaluate(0.0) - 1.0) < self.NUMERICAL_ATOL
-        assert abs(spline.evaluate(1.0) - 2.0) < self.NUMERICAL_ATOL
-        assert abs(spline.evaluate_velocity(0.0) - 0.5) < self.NUMERICAL_ATOL
-        assert abs(spline.evaluate_velocity(1.0) - 1.5) < self.NUMERICAL_ATOL
+        assert np.abs(spline.evaluate(0.0) - 1.0) < self.NUMERICAL_ATOL
+        assert np.abs(spline.evaluate(1.0) - 2.0) < self.NUMERICAL_ATOL
+        assert np.abs(spline.evaluate_velocity(0.0) - 0.5) < self.NUMERICAL_ATOL
+        assert np.abs(spline.evaluate_velocity(1.0) - 1.5) < self.NUMERICAL_ATOL
 
     def test_identical_positions(self) -> None:
         """Test spline with some identical position values."""
@@ -420,7 +414,7 @@ class TestCubicSplineEdgeCases:
 
         # Should still pass through waypoints
         for t, q in zip(t_points, q_points):
-            assert abs(spline.evaluate(t) - q) < self.NUMERICAL_ATOL
+            assert np.abs(spline.evaluate(t) - q) < self.NUMERICAL_ATOL
 
     def test_large_time_intervals(self) -> None:
         """Test spline with very different time interval sizes."""
@@ -432,7 +426,7 @@ class TestCubicSplineEdgeCases:
         # Should handle large differences gracefully
         assert spline.n == 3
         for t, q in zip(t_points, q_points):
-            assert abs(spline.evaluate(t) - q) < self.NUMERICAL_ATOL
+            assert np.abs(spline.evaluate(t) - q) < self.NUMERICAL_ATOL
 
     def test_negative_time_values(self) -> None:
         """Test spline with negative time values."""
@@ -443,7 +437,7 @@ class TestCubicSplineEdgeCases:
 
         # Should work normally with negative times
         for t, q in zip(t_points, q_points):
-            assert abs(spline.evaluate(t) - q) < self.NUMERICAL_ATOL
+            assert np.abs(spline.evaluate(t) - q) < self.NUMERICAL_ATOL
 
     def test_zero_boundary_velocities(self) -> None:
         """Test natural spline (zero boundary velocities)."""
@@ -452,8 +446,8 @@ class TestCubicSplineEdgeCases:
 
         spline = CubicSpline(t_points, q_points, v0=0.0, vn=0.0)
 
-        assert abs(spline.evaluate_velocity(t_points[0])) < self.NUMERICAL_ATOL
-        assert abs(spline.evaluate_velocity(t_points[-1])) < self.NUMERICAL_ATOL
+        assert np.abs(spline.evaluate_velocity(t_points[0])) < self.NUMERICAL_ATOL
+        assert np.abs(spline.evaluate_velocity(t_points[-1])) < self.NUMERICAL_ATOL
 
 
 class TestCubicSplineNumericalStability:
@@ -472,7 +466,7 @@ class TestCubicSplineNumericalStability:
 
         # Should handle small values correctly
         for t, q in zip(t_points, q_points):
-            relative_error = abs(spline.evaluate(t) - q) / (abs(q) + 1e-15)
+            relative_error = np.abs(spline.evaluate(t) - q) / (np.abs(q) + 1e-15)
             assert relative_error < 1e-10
 
     def test_large_scale_values(self) -> None:
@@ -484,7 +478,7 @@ class TestCubicSplineNumericalStability:
 
         # Should handle large values correctly
         for t, q in zip(t_points, q_points):
-            relative_error = abs(spline.evaluate(t) - q) / abs(q)
+            relative_error = np.abs(spline.evaluate(t) - q) / np.abs(q)
             assert relative_error < 1e-10
 
     def test_convergence_with_increasing_points(self) -> None:
@@ -551,9 +545,7 @@ class TestCubicSplinePerformance:
     """Test suite for performance benchmarks."""
 
     @pytest.mark.parametrize("n_points", [10, 50, 100, 500])
-    def test_construction_performance(
-        self, n_points: int, benchmark: pytest.FixtureFunction
-    ) -> None:
+    def test_construction_performance(self, n_points: int, benchmark: BenchmarkFixture) -> None:
         """Benchmark spline construction performance."""
         t_points = np.linspace(0, 10, n_points)
         q_points = np.sin(t_points)
@@ -565,9 +557,7 @@ class TestCubicSplinePerformance:
         assert len(spline.t_points) == n_points
 
     @pytest.mark.parametrize("n_evaluations", [100, 1000, 10000])
-    def test_evaluation_performance(
-        self, n_evaluations: int, benchmark: pytest.FixtureFunction
-    ) -> None:
+    def test_evaluation_performance(self, n_evaluations: int, benchmark: BenchmarkFixture) -> None:
         """Benchmark spline evaluation performance."""
         t_points = np.linspace(0, 10, 20)
         q_points = np.sin(t_points)
@@ -575,13 +565,13 @@ class TestCubicSplinePerformance:
 
         t_eval = np.linspace(0, 10, n_evaluations)
 
-        def evaluate_spline() -> np.ndarray:
+        def evaluate_spline() -> float | np.ndarray:
             return spline.evaluate(t_eval)
 
         result = benchmark(evaluate_spline)
         assert len(result) == n_evaluations
 
-    def test_derivative_evaluation_performance(self, benchmark: pytest.FixtureFunction) -> None:
+    def test_derivative_evaluation_performance(self, benchmark: BenchmarkFixture) -> None:
         """Benchmark derivative evaluation performance."""
         t_points = np.linspace(0, 10, 50)
         q_points = np.sin(t_points)
@@ -589,7 +579,7 @@ class TestCubicSplinePerformance:
 
         t_eval = np.linspace(0, 10, 1000)
 
-        def evaluate_derivatives() -> tuple[np.ndarray, np.ndarray]:
+        def evaluate_derivatives() -> tuple[float | np.ndarray, float | np.ndarray]:
             v = spline.evaluate_velocity(t_eval)
             a = spline.evaluate_acceleration(t_eval)
             return v, a

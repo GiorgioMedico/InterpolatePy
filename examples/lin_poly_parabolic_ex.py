@@ -118,5 +118,5 @@ if __name__ == "__main__":
     out_of_bounds_time: float = duration + 1.0
     position, velocity, acceleration = traj_func(out_of_bounds_time)
     print(
-        f"At t={out_of_bounds_time:.2f}s (beyond duration): position={position:.4f}, velocity={velocity:.4f}, acceleration={acceleration:.4f}"  # noqa: E501
+        f"At t={out_of_bounds_time:.2f}s (beyond duration): position={position:.4f}, velocity={velocity:.4f}, acceleration={acceleration:.4f}"  # ruff: ignore[line-too-long]
     )

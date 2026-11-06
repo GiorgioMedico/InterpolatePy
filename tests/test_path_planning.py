@@ -24,15 +24,11 @@ from typing import Any
 
 import numpy as np
 import pytest
+from pytest_benchmark.fixture import BenchmarkFixture
 
 from interpolatepy.paths.frenet import compute_trajectory_frames
 from interpolatepy.paths.geometric import CircularPath
 from interpolatepy.paths.geometric import LinearPath
-
-
-# Type alias for pytest benchmark fixture
-if not hasattr(pytest, "FixtureFunction"):
-    pytest.FixtureFunction = Any
 
 
 class TestLinearPath:
@@ -347,7 +343,7 @@ class TestCircularPath:
 
         # Test beyond full circle (should wrap around)
         full_circle = 2 * np.pi * path.radius
-        pos_beyond = path.position(full_circle + np.pi / 2)
+        pos_beyond = path.position(float(full_circle + np.pi / 2))
         pos_quarter = path.position(np.pi / 2)
 
         # Should be the same due to periodicity
@@ -547,25 +543,19 @@ class TestCircularPathAdvanced:
 
         # Check specific positions on circle with radius 2
         # For radius=2, s=π means angle=π/2, s=2π means angle=π, etc.
-        expected_positions = np.array(
-            [
-                [2.0, 0.0, 0.0],  # s = 0, angle = 0
-                [0.0, 2.0, 0.0],  # s = π, angle = π/2
-                [-2.0, 0.0, 0.0],  # s = 2π, angle = π
-                [0.0, -2.0, 0.0],  # s = 3π, angle = 3π/2
-            ]
-        )
+        expected_positions = np.array([
+            [2.0, 0.0, 0.0],  # s = 0, angle = 0
+            [0.0, 2.0, 0.0],  # s = π, angle = π/2
+            [-2.0, 0.0, 0.0],  # s = 2π, angle = π
+            [0.0, -2.0, 0.0],  # s = 3π, angle = 3π/2
+        ])
 
         for i in range(4):
-            assert np.allclose(
-                result["position"][i], expected_positions[i], atol=self.NUMERICAL_ATOL
-            )
+            assert np.allclose(result["position"][i], expected_positions[i], atol=self.NUMERICAL_ATOL)
             # Velocity magnitude should be constant = 1 (unit tangent scaled by radius/radius = 1)
             assert np.isclose(np.linalg.norm(result["velocity"][i]), 1.0, atol=self.NUMERICAL_ATOL)
             # Acceleration magnitude should be constant = 1/radius = 1/2 = 0.5
-            assert np.isclose(
-                np.linalg.norm(result["acceleration"][i]), 0.5, atol=self.NUMERICAL_ATOL
-            )
+            assert np.isclose(np.linalg.norm(result["acceleration"][i]), 0.5, atol=self.NUMERICAL_ATOL)
 
     def test_evaluate_at_with_numpy_array(self) -> None:
         """Test evaluate_at method with numpy array input."""
@@ -649,9 +639,7 @@ class TestCircularPathAdvanced:
             acceleration_vec = result["acceleration"][i]
             expected_acc_direction = -radius_vec / np.linalg.norm(radius_vec)
             actual_acc_direction = acceleration_vec / np.linalg.norm(acceleration_vec)
-            assert np.allclose(
-                actual_acc_direction, expected_acc_direction, atol=self.NUMERICAL_ATOL
-            )
+            assert np.allclose(actual_acc_direction, expected_acc_direction, atol=self.NUMERICAL_ATOL)
 
     def test_position_array_evaluation(self) -> None:
         """Test position method with array input."""
@@ -668,14 +656,12 @@ class TestCircularPathAdvanced:
         assert positions.shape == (4, 3)
 
         # Check specific positions
-        expected_positions = np.array(
-            [
-                [1.0, 0.0, 0.0],  # s = 0
-                [0.0, 1.0, 0.0],  # s = π/2
-                [-1.0, 0.0, 0.0],  # s = π
-                [0.0, -1.0, 0.0],  # s = 3π/2
-            ]
-        )
+        expected_positions = np.array([
+            [1.0, 0.0, 0.0],  # s = 0
+            [0.0, 1.0, 0.0],  # s = π/2
+            [-1.0, 0.0, 0.0],  # s = π
+            [0.0, -1.0, 0.0],  # s = 3π/2
+        ])
 
         assert np.allclose(positions, expected_positions, atol=self.NUMERICAL_ATOL)
 
@@ -816,13 +802,11 @@ class TestFrenetFrames:
 
         # Check points
         assert points.shape == (3, 3)
-        expected_points = np.array(
-            [
-                [1.0, 0.0, 0.0],  # u = 0
-                [0.0, 1.0, 0.0],  # u = π/2
-                [-1.0, 0.0, 0.0],  # u = π
-            ]
-        )
+        expected_points = np.array([
+            [1.0, 0.0, 0.0],  # u = 0
+            [0.0, 1.0, 0.0],  # u = π/2
+            [-1.0, 0.0, 0.0],  # u = π
+        ])
         assert np.allclose(points, expected_points, atol=self.NUMERICAL_ATOL)
 
         # Check frames
@@ -850,9 +834,7 @@ class TestFrenetFrames:
         # Test with rotation angle
         tool_angle = np.pi / 4  # 45 degrees
 
-        points, frames = compute_trajectory_frames(
-            trajectory_func, u_values, tool_orientation=tool_angle
-        )
+        points, frames = compute_trajectory_frames(trajectory_func, u_values, tool_orientation=tool_angle)
 
         # Points should be the same
         assert np.allclose(points[0], pi, atol=self.NUMERICAL_ATOL)
@@ -878,9 +860,7 @@ class TestFrenetFrames:
         # Test with RPY angles
         rpy_angles = (np.pi / 6, np.pi / 4, np.pi / 3)  # Roll, pitch, yaw
 
-        points, frames = compute_trajectory_frames(
-            trajectory_func, u_values, tool_orientation=rpy_angles
-        )
+        points, frames = compute_trajectory_frames(trajectory_func, u_values, tool_orientation=rpy_angles)
 
         # Should produce valid frames
         assert points.shape == (1, 3)
@@ -972,9 +952,7 @@ class TestPathPlanningPerformance:
     """Test suite for performance benchmarks."""
 
     @pytest.mark.parametrize("path_type", ["linear", "circular"])
-    def test_path_construction_performance(
-        self, path_type: str, benchmark: pytest.FixtureFunction
-    ) -> None:
+    def test_path_construction_performance(self, path_type: str, benchmark: BenchmarkFixture) -> None:
         """Benchmark path construction performance."""
         if path_type == "linear":
 
@@ -982,6 +960,7 @@ class TestPathPlanningPerformance:
                 pi = np.array([0.0, 0.0, 0.0])
                 pf = np.array([10.0, 5.0, 3.0])
                 return LinearPath(pi, pf)
+
         else:  # circular
 
             def construct_path():
@@ -994,9 +973,7 @@ class TestPathPlanningPerformance:
         assert path is not None
 
     @pytest.mark.parametrize("n_evaluations", [100, 1000])
-    def test_path_evaluation_performance(
-        self, n_evaluations: int, benchmark: pytest.FixtureFunction
-    ) -> None:
+    def test_path_evaluation_performance(self, n_evaluations: int, benchmark: BenchmarkFixture) -> None:
         """Benchmark path evaluation performance."""
         pi = np.array([0.0, 0.0, 0.0])
         pf = np.array([10.0, 10.0, 0.0])
@@ -1010,7 +987,7 @@ class TestPathPlanningPerformance:
         positions = benchmark(evaluate_positions)
         assert len(positions) == n_evaluations
 
-    def test_frenet_frame_performance(self, benchmark: pytest.FixtureFunction) -> None:
+    def test_frenet_frame_performance(self, benchmark: BenchmarkFixture) -> None:
         """Benchmark Frenet frame computation performance."""
         center = np.array([0.0, 0.0, 0.0])
         radius = 2.0

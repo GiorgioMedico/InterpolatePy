@@ -39,8 +39,8 @@ def main() -> None:
     print("mLQI on a Cylindrical Helix with Frenet Frame Waypoints")
     print("=" * 60)
 
-    r = 1.0           # helix radius
-    d = 0.3           # vertical rise per radian
+    r = 1.0  # helix radius
+    d = 0.3  # vertical rise per radian
     u_min = 0.5
     u_max = 6.0 * np.pi
     n_waypoints = 1000
@@ -86,10 +86,7 @@ def main() -> None:
 
     _, dense_frames_truth = compute_trajectory_frames(helix_func, u_dense)
 
-    errors = np.array([
-        angular_error_deg(dense_frames_truth[i], dense_frames_mlqi[i])
-        for i in range(n_dense)
-    ])
+    errors = np.array([angular_error_deg(dense_frames_truth[i], dense_frames_mlqi[i]) for i in range(n_dense)])
     print(f"Mean angular error vs Frenet truth: {errors.mean():.3f} deg")
     print(f"Max  angular error vs Frenet truth: {errors.max():.3f} deg")
 
@@ -166,9 +163,7 @@ def main() -> None:
     waypoint_data = [theta_wp, xyz_wp[:, 0], xyz_wp[:, 1], xyz_wp[:, 2]]
     component_colors = ["tab:orange", "tab:red", "tab:green", "tab:blue"]
 
-    for ax, label, curve, wp_vals, c in zip(
-        axes3, component_labels, component_data, waypoint_data, component_colors
-    ):
+    for ax, label, curve, wp_vals, c in zip(axes3, component_labels, component_data, waypoint_data, component_colors):
         ax.plot(u_dense, curve, color=c, linewidth=2.0, label="mLQI")
         ax.scatter(times_shown, wp_vals, color="magenta", s=25, zorder=5, label="waypoints")
         ax.set_ylabel(label)
@@ -176,9 +171,7 @@ def main() -> None:
         ax.legend(loc="upper right", fontsize=8)
 
     axes3[-1].set_xlabel("Parameter u")
-    axes3[0].set_title(
-        r"mLQI internal state: angle $\theta(u)$ and unit-axis components $(X, Y, Z)(u)$"
-    )
+    axes3[0].set_title(r"mLQI internal state: angle $\theta(u)$ and unit-axis components $(X, Y, Z)(u)$")
     plt.tight_layout()
 
     omega_norm = np.linalg.norm(omega, axis=1)

@@ -78,9 +78,7 @@ class QuaternionTrajectoryVisualizer:
         Raises:
             ValueError: If quaternion is too close to the singularity at w = -1
         """
-        return _stereographic_projection(
-            q, QuaternionTrajectoryVisualizer.SINGULARITY_THRESHOLD
-        )
+        return _stereographic_projection(q, QuaternionTrajectoryVisualizer.SINGULARITY_THRESHOLD)
 
     @staticmethod
     def inverse_stereographic_projection(mrp: np.ndarray) -> Quaternion:
@@ -161,7 +159,7 @@ class QuaternionTrajectoryVisualizer:
             color=color,
             linewidth=line_width,
             alpha=0.8,
-            label="Trajectory"
+            label="Trajectory",
         )
 
         # Plot individual points if requested
@@ -174,7 +172,7 @@ class QuaternionTrajectoryVisualizer:
                 projected_points[:, 2],  # pyright: ignore[reportArgumentType]
                 c=colors,
                 s=point_size,
-                alpha=0.7
+                alpha=0.7,
             )
 
         # Plot waypoints if provided
@@ -192,7 +190,7 @@ class QuaternionTrajectoryVisualizer:
                     edgecolors="black",
                     linewidth=1.5,
                     label="Waypoints",
-                    zorder=10
+                    zorder=10,
                 )
 
                 # Add waypoint labels if requested
@@ -202,26 +200,22 @@ class QuaternionTrajectoryVisualizer:
                             label = f"t={waypoint_times[i]:.1f}"
                         else:
                             label = f"W{i}"
-                        ax.text(
-                            point[0], point[1], point[2],
-                            label,
-                            fontsize=8,
-                            ha="center",
-                            va="bottom"
-                        )
+                        ax.text(point[0], point[1], point[2], label, fontsize=8, ha="center", va="bottom")
 
         # Mark start and end points (only if no waypoints or waypoints don't cover start/end)
         if len(projected_points) > 1 and not (waypoints and show_waypoints):
             start_point = projected_points[0]
             end_point = projected_points[-1]
             ax.scatter(
-                start_point[0], start_point[1], start_point[2],
-                color="green", s=point_size * 2, marker="o", label="Start"
+                start_point[0],
+                start_point[1],
+                start_point[2],
+                color="green",
+                s=point_size * 2,
+                marker="o",
+                label="Start",
             )
-            ax.scatter(
-                end_point[0], end_point[1], end_point[2],
-                color="red", s=point_size * 2, marker="s", label="End"
-            )
+            ax.scatter(end_point[0], end_point[1], end_point[2], color="red", s=point_size * 2, marker="s", label="End")
 
         # Set labels and title
         ax.set_xlabel("MRP X")
@@ -284,7 +278,7 @@ class QuaternionTrajectoryVisualizer:
                 linewidth=1.5,
                 alpha=0.6,
                 linestyle="--",
-                label="Waypoint Connections"
+                label="Waypoint Connections",
             )
 
         # Plot waypoints
@@ -299,7 +293,7 @@ class QuaternionTrajectoryVisualizer:
             edgecolors="black",
             linewidth=2.0,
             label="Waypoints",
-            zorder=10
+            zorder=10,
         )
 
         # Add waypoint labels if requested
@@ -309,30 +303,37 @@ class QuaternionTrajectoryVisualizer:
                     label = f"t={waypoint_times[i]:.1f}"
                 else:
                     label = f"W{i}"
-                ax.text(
-                    point[0], point[1], point[2],
-                    label,
-                    fontsize=10,
-                    ha="center",
-                    va="bottom",
-                    weight="bold"
-                )
+                ax.text(point[0], point[1], point[2], label, fontsize=10, ha="center", va="bottom", weight="bold")
 
         # Highlight start and end waypoints
         if len(waypoint_points) > 1:
             start_point = waypoint_points[0]
             end_point = waypoint_points[-1]
             ax.scatter(
-                start_point[0], start_point[1], start_point[2],
-                color="green", s=waypoint_size * 1.5, marker="o",
-                alpha=0.8, edgecolors="darkgreen", linewidth=2,
-                label="Start", zorder=11
+                start_point[0],
+                start_point[1],
+                start_point[2],
+                color="green",
+                s=waypoint_size * 1.5,
+                marker="o",
+                alpha=0.8,
+                edgecolors="darkgreen",
+                linewidth=2,
+                label="Start",
+                zorder=11,
             )
             ax.scatter(
-                end_point[0], end_point[1], end_point[2],
-                color="red", s=waypoint_size * 1.5, marker="s",
-                alpha=0.8, edgecolors="darkred", linewidth=2,
-                label="End", zorder=11
+                end_point[0],
+                end_point[1],
+                end_point[2],
+                color="red",
+                s=waypoint_size * 1.5,
+                marker="s",
+                alpha=0.8,
+                edgecolors="darkred",
+                linewidth=2,
+                label="End",
+                zorder=11,
             )
 
         # Set labels and title
@@ -362,8 +363,7 @@ class QuaternionTrajectoryVisualizer:
 
     @staticmethod
     def compute_velocity_magnitudes(
-        quaternions: list[Quaternion],
-        time_points: list[float] | None = None
+        quaternions: list[Quaternion], time_points: list[float] | np.ndarray | None = None
     ) -> tuple[np.ndarray, np.ndarray]:
         """
         Compute velocity magnitudes using the formula: V(qi) = [||qi - qi-1|| + ||qi - qi+1||] / 2
@@ -417,8 +417,15 @@ class QuaternionTrajectoryVisualizer:
         min_points_for_peaks = 2
         if len(velocities) > min_points_for_peaks:
             max_idx = np.argmax(velocities)
-            ax.scatter(times[max_idx], velocities[max_idx], color="darkred", s=50, zorder=5,
-                      marker="^", label=f"Max: {velocities[max_idx]:.3f}")
+            ax.scatter(
+                times[max_idx],
+                velocities[max_idx],
+                color="darkred",
+                s=50,
+                zorder=5,
+                marker="^",
+                label=f"Max: {velocities[max_idx]:.3f}",
+            )
 
         ax.set_xlabel("Time" if time_points is not None else "Index")
         ax.set_ylabel("Velocity Magnitude")
@@ -475,7 +482,7 @@ class QuaternionTrajectoryVisualizer:
             color=trajectory_color,
             linewidth=2.0,
             alpha=0.8,
-            label="Trajectory"
+            label="Trajectory",
         )
 
         # Color points by progression
@@ -487,7 +494,7 @@ class QuaternionTrajectoryVisualizer:
                 projected_points[:, 2],  # pyright: ignore[reportArgumentType]
                 c=colors,
                 s=20,
-                alpha=0.7
+                alpha=0.7,
             )
 
         # Mark start and end
@@ -516,8 +523,15 @@ class QuaternionTrajectoryVisualizer:
         min_points_for_peaks = 2
         if len(velocities) > min_points_for_peaks:
             max_idx = np.argmax(velocities)
-            ax2.scatter(times[max_idx], velocities[max_idx], color="darkred", s=50, zorder=5,
-                       marker="^", label=f"Max: {velocities[max_idx]:.3f}")
+            ax2.scatter(
+                times[max_idx],
+                velocities[max_idx],
+                color="darkred",
+                s=50,
+                zorder=5,
+                marker="^",
+                label=f"Max: {velocities[max_idx]:.3f}",
+            )
 
         ax2.set_xlabel("Time" if time_points is not None else "Index")
         ax2.set_ylabel("Velocity Magnitude")

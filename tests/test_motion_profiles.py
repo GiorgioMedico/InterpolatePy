@@ -22,6 +22,7 @@ from typing import Any, cast
 
 import numpy as np
 import pytest
+from pytest_benchmark.fixture import BenchmarkFixture
 
 from interpolatepy.motion.double_s import DoubleSTrajectory
 from interpolatepy.motion.double_s import StateParams
@@ -30,11 +31,6 @@ from interpolatepy.motion.trapezoidal import CalculationParams
 from interpolatepy.motion.trapezoidal import InterpolationParams
 from interpolatepy.motion.trapezoidal import TrajectoryParams
 from interpolatepy.motion.trapezoidal import TrapezoidalTrajectory
-
-
-# Type alias for pytest benchmark fixture
-if not hasattr(pytest, "FixtureFunction"):
-    pytest.FixtureFunction = Any
 
 
 class TestTrajectoryBounds:
@@ -170,14 +166,14 @@ class TestDoubleSTrajectoryEvaluation:
 
         # Evaluate at start
         q, v, a, j = trajectory.evaluate_full(0.0)
-        assert abs(q - 0.0) < self.NUMERICAL_ATOL
-        assert abs(v - 0.0) < self.NUMERICAL_ATOL
+        assert np.abs(q - 0.0) < self.NUMERICAL_ATOL
+        assert np.abs(v - 0.0) < self.NUMERICAL_ATOL
 
         # Evaluate at end
         duration = trajectory.get_duration()
         q, v, a, j = trajectory.evaluate_full(duration)
-        assert abs(q - 10.0) < self.NUMERICAL_ATOL
-        assert abs(v - 0.0) < self.NUMERICAL_ATOL
+        assert np.abs(q - 10.0) < self.NUMERICAL_ATOL
+        assert np.abs(v - 0.0) < self.NUMERICAL_ATOL
 
     def test_evaluate_array_input(self) -> None:
         """Test trajectory evaluation with array inputs."""
@@ -208,14 +204,14 @@ class TestDoubleSTrajectoryEvaluation:
 
         # Check initial conditions
         q0, v0, a0, j0 = trajectory.evaluate_full(0.0)
-        assert abs(q0 - state_params.q_0) < self.NUMERICAL_ATOL
-        assert abs(v0 - state_params.v_0) < self.NUMERICAL_ATOL
+        assert np.abs(q0 - state_params.q_0) < self.NUMERICAL_ATOL
+        assert np.abs(v0 - state_params.v_0) < self.NUMERICAL_ATOL
 
         # Check final conditions
         duration = trajectory.get_duration()
         q1, v1, a1, j1 = trajectory.evaluate_full(duration)
-        assert abs(q1 - state_params.q_1) < self.NUMERICAL_ATOL
-        assert abs(v1 - state_params.v_1) < self.NUMERICAL_ATOL
+        assert np.abs(q1 - state_params.q_1) < self.NUMERICAL_ATOL
+        assert np.abs(v1 - state_params.v_1) < self.NUMERICAL_ATOL
 
     def test_velocity_bounds_satisfaction(self) -> None:
         """Test that velocity bounds are not exceeded."""
@@ -230,7 +226,7 @@ class TestDoubleSTrajectoryEvaluation:
 
         for t in t_samples:
             _, v, _, _ = trajectory.evaluate_full(t)
-            assert abs(v) <= bounds.v_bound + self.NUMERICAL_ATOL
+            assert np.abs(v) <= bounds.v_bound + self.NUMERICAL_ATOL
 
     def test_acceleration_bounds_satisfaction(self) -> None:
         """Test that acceleration bounds are not exceeded."""
@@ -245,7 +241,7 @@ class TestDoubleSTrajectoryEvaluation:
 
         for t in t_samples:
             _, _, a, _ = trajectory.evaluate_full(t)
-            assert abs(a) <= bounds.a_bound + self.NUMERICAL_ATOL
+            assert np.abs(a) <= bounds.a_bound + self.NUMERICAL_ATOL
 
     def test_jerk_bounds_satisfaction(self) -> None:
         """Test that jerk bounds are not exceeded (implicitly through S-curves)."""
@@ -314,7 +310,7 @@ class TestDoubleSTrajectoryEdgeCases:
 
         # Position should remain constant
         q, v, a, j = trajectory.evaluate_full(duration / 2)
-        assert abs(q - 5.0) < self.NUMERICAL_ATOL
+        assert np.abs(q - 5.0) < self.NUMERICAL_ATOL
 
     def test_small_displacement(self) -> None:
         """Test trajectory with very small displacement."""
@@ -329,7 +325,7 @@ class TestDoubleSTrajectoryEdgeCases:
 
         # Check final position
         q_final, _, _, _ = trajectory.evaluate_full(duration)
-        assert abs(q_final - 0.001) < self.NUMERICAL_ATOL
+        assert np.abs(q_final - 0.001) < self.NUMERICAL_ATOL
 
     def test_large_displacement(self) -> None:
         """Test trajectory with large displacement."""
@@ -344,7 +340,7 @@ class TestDoubleSTrajectoryEdgeCases:
 
         # Check final position
         q_final, _, _, _ = trajectory.evaluate_full(duration)
-        assert abs(q_final - 1000.0) < self.NUMERICAL_ATOL
+        assert np.abs(q_final - 1000.0) < self.NUMERICAL_ATOL
 
     def test_negative_displacement(self) -> None:
         """Test trajectory with negative displacement."""
@@ -359,7 +355,7 @@ class TestDoubleSTrajectoryEdgeCases:
 
         # Check final position
         q_final, _, _, _ = trajectory.evaluate_full(duration)
-        assert abs(q_final - 0.0) < self.NUMERICAL_ATOL
+        assert np.abs(q_final - 0.0) < self.NUMERICAL_ATOL
 
     def test_non_zero_initial_final_velocities(self) -> None:
         """Test trajectory with non-zero initial and final velocities."""
@@ -370,13 +366,13 @@ class TestDoubleSTrajectoryEdgeCases:
 
         # Check boundary conditions
         q0, v0, _, _ = trajectory.evaluate_full(0.0)
-        assert abs(q0 - 0.0) < self.NUMERICAL_ATOL
-        assert abs(v0 - 1.0) < self.NUMERICAL_ATOL
+        assert np.abs(q0 - 0.0) < self.NUMERICAL_ATOL
+        assert np.abs(v0 - 1.0) < self.NUMERICAL_ATOL
 
         duration = trajectory.get_duration()
         q1, v1, _, _ = trajectory.evaluate_full(duration)
-        assert abs(q1 - 10.0) < self.NUMERICAL_ATOL
-        assert abs(v1 - 2.0) < self.NUMERICAL_ATOL
+        assert np.abs(q1 - 10.0) < self.NUMERICAL_ATOL
+        assert np.abs(v1 - 2.0) < self.NUMERICAL_ATOL
 
 
 class TestDoubleSTrajectoryStaticMethods:
@@ -394,8 +390,8 @@ class TestDoubleSTrajectoryStaticMethods:
 
         # Test the returned function
         q, v, a, j = trajectory_func(0.0)
-        assert abs(q - 0.0) < 1e-6
-        assert abs(v - 0.0) < 1e-6
+        assert np.abs(q - 0.0) < 1e-6
+        assert np.abs(v - 0.0) < 1e-6
 
 
 class TestTrapezoidalTrajectoryParams:
@@ -536,9 +532,7 @@ class TestTrapezoidalWaypointInterpolation:
 
     def test_waypoint_interpolation_continuity(self) -> None:
         """Test continuity at waypoints."""
-        params = InterpolationParams(
-            points=[0.0, 3.0, 8.0, 12.0], v0=0.0, vn=0.0, amax=2.0, vmax=4.0
-        )
+        params = InterpolationParams(points=[0.0, 3.0, 8.0, 12.0], v0=0.0, vn=0.0, amax=2.0, vmax=4.0)
 
         trajectory_func, total_duration = TrapezoidalTrajectory.interpolate_waypoints(params)
 
@@ -555,9 +549,7 @@ class TestTrapezoidalWaypointInterpolation:
 
     def test_waypoint_interpolation_with_times(self) -> None:
         """Test waypoint interpolation with specified times."""
-        params = InterpolationParams(
-            points=[0.0, 5.0, 10.0], times=[0.0, 3.0, 6.0], v0=0.0, vn=0.0, amax=3.0
-        )
+        params = InterpolationParams(points=[0.0, 5.0, 10.0], times=[0.0, 3.0, 6.0], v0=0.0, vn=0.0, amax=3.0)
 
         trajectory_func, total_duration = TrapezoidalTrajectory.interpolate_waypoints(params)
 
@@ -589,9 +581,7 @@ class TestTrapezoidalWaypointInterpolation:
         points = [0.0, 3.0, 8.0, 10.0]
         vmax = 4.0
 
-        velocities = TrapezoidalTrajectory.calculate_heuristic_velocities(
-            points, v0=0.0, vn=0.0, v_max=vmax
-        )
+        velocities = TrapezoidalTrajectory.calculate_heuristic_velocities(points, v0=0.0, vn=0.0, v_max=vmax)
 
         # Should return velocities for all points (including v0 and vn)
         assert len(velocities) == len(points)
@@ -666,9 +656,7 @@ class TestMotionProfilePerformance:
     """Test suite for performance benchmarks."""
 
     @pytest.mark.parametrize("displacement", [1.0, 10.0, 100.0])
-    def test_double_s_construction_performance(
-        self, displacement: float, benchmark: pytest.FixtureFunction
-    ) -> None:
+    def test_double_s_construction_performance(self, displacement: float, benchmark: BenchmarkFixture) -> None:
         """Benchmark DoubleSTrajectory construction performance."""
         state_params = StateParams(q_0=0.0, q_1=displacement, v_0=0.0, v_1=0.0)
         bounds = TrajectoryBounds(v_bound=5.0, a_bound=3.0, j_bound=2.0)
@@ -680,9 +668,7 @@ class TestMotionProfilePerformance:
         assert isinstance(trajectory, DoubleSTrajectory)
 
     @pytest.mark.parametrize("n_evaluations", [100, 1000])
-    def test_double_s_evaluation_performance(
-        self, n_evaluations: int, benchmark: pytest.FixtureFunction
-    ) -> None:
+    def test_double_s_evaluation_performance(self, n_evaluations: int, benchmark: BenchmarkFixture) -> None:
         """Benchmark DoubleSTrajectory evaluation performance."""
         state_params = StateParams(q_0=0.0, q_1=20.0, v_0=0.0, v_1=0.0)
         bounds = TrajectoryBounds(v_bound=4.0, a_bound=2.0, j_bound=1.0)
@@ -691,14 +677,14 @@ class TestMotionProfilePerformance:
         duration = trajectory.get_duration()
         t_values = np.linspace(0, duration, n_evaluations)
 
-        def evaluate_trajectory() -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        def evaluate_trajectory() -> tuple[float | np.ndarray, ...]:
             q, v, a, j = trajectory.evaluate_full(t_values)
             return q, v, a, j
 
         q, v, a, j = benchmark(evaluate_trajectory)
         assert len(q) == n_evaluations
 
-    def test_trapezoidal_generation_performance(self, benchmark: pytest.FixtureFunction) -> None:
+    def test_trapezoidal_generation_performance(self, benchmark: BenchmarkFixture) -> None:
         """Benchmark trapezoidal trajectory generation performance."""
         params = TrajectoryParams(q0=0.0, q1=50.0, v0=0.0, v1=0.0, amax=5.0, vmax=10.0)
 
@@ -709,7 +695,7 @@ class TestMotionProfilePerformance:
         assert callable(trajectory_func)
         assert duration > 0
 
-    def test_waypoint_interpolation_performance(self, benchmark: pytest.FixtureFunction) -> None:
+    def test_waypoint_interpolation_performance(self, benchmark: BenchmarkFixture) -> None:
         """Benchmark waypoint interpolation performance."""
         n_points = 10
         points = [i * 2.0 for i in range(n_points)]

@@ -88,7 +88,7 @@ class DoubleSTrajectory(_CppDoubleSTrajectory):  # type: ignore[valid-type, misc
         return trajectory, planner.get_duration()
 
     @property
-    def T(self) -> float:  # noqa: N802
+    def T(self) -> float:  # ruff: ignore[invalid-function-name]
         """Total trajectory duration."""
         return self.duration
 

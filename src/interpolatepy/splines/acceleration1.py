@@ -92,10 +92,10 @@ class CubicSplineWithAcceleration1:
     >>> spline.plot()
     """
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # ruff: ignore[too-many-arguments]
         self,
-        t_points: list[float],
-        q_points: list[float],
+        t_points: list[float] | np.ndarray,
+        q_points: list[float] | np.ndarray,
         v0: float = 0.0,
         vn: float = 0.0,
         a0: float = 0.0,
@@ -320,10 +320,7 @@ class CubicSplineWithAcceleration1:
             for i in range(2, n_segments - 2):
                 if i == n_segments - 3:
                     continue  # Skip since we've already handled the second-to-last element
-                c[i] = 6 * (
-                    (self.q[i + 2] - self.q[i + 1]) / self.T[i + 1]
-                    - (self.q[i + 1] - self.q[i]) / self.T[i]
-                )
+                c[i] = 6 * ((self.q[i + 2] - self.q[i + 1]) / self.T[i + 1] - (self.q[i + 1] - self.q[i]) / self.T[i])
 
         if self.debug:
             print("Main diagonal:", main_diag)
@@ -342,17 +339,9 @@ class CubicSplineWithAcceleration1:
         omega[-1] = self.an  # ωₙ = aₙ
 
         # Now adjust the positions of extra points using equations (4.26) and (4.27)
-        self.q[1] = (
-            self.q[0]
-            + self.T[0] * self.v0
-            + (self.T[0] ** 2 / 3) * self.a0
-            + (self.T[0] ** 2 / 6) * omega[1]
-        )
+        self.q[1] = self.q[0] + self.T[0] * self.v0 + (self.T[0] ** 2 / 3) * self.a0 + (self.T[0] ** 2 / 6) * omega[1]
         self.q[-2] = (
-            self.q[-1]
-            - self.T[-1] * self.vn
-            + (self.T[-1] ** 2 / 3) * self.an
-            + (self.T[-1] ** 2 / 6) * omega[-2]
+            self.q[-1] - self.T[-1] * self.vn + (self.T[-1] ** 2 / 3) * self.an + (self.T[-1] ** 2 / 6) * omega[-2]
         )
 
         if self.debug:
@@ -590,7 +579,7 @@ class CubicSplineWithAcceleration1:
         Original waypoints are shown as red circles, while extra points
         are shown as green x-marks.
         """
-        import matplotlib.pyplot as plt  # noqa: PLC0415
+        import matplotlib.pyplot as plt  # ruff: ignore[import-outside-top-level]
 
         # Generate evaluation points
         t_eval = np.linspace(self.t[0], self.t[-1], num_points)

@@ -153,37 +153,35 @@ class CubicSplineWithAcceleration2(CubicSpline):
         t_interval = t1 - t0
 
         # Set up the system of equations
-        a_matrix = np.array(
+        a_matrix = np.array([
+            [1, 0, 0, 0, 0, 0],  # p(0) = q0
+            [0, 1, 0, 0, 0, 0],  # p'(0) = v0
+            [0, 0, 2, 0, 0, 0],  # p''(0) = a0
             [
-                [1, 0, 0, 0, 0, 0],  # p(0) = q0
-                [0, 1, 0, 0, 0, 0],  # p'(0) = v0
-                [0, 0, 2, 0, 0, 0],  # p''(0) = a0
-                [
-                    1,
-                    t_interval,
-                    t_interval**2,
-                    t_interval**3,
-                    t_interval**4,
-                    t_interval**5,
-                ],  # p(T) = q1
-                [
-                    0,
-                    1,
-                    2 * t_interval,
-                    3 * t_interval**2,
-                    4 * t_interval**3,
-                    5 * t_interval**4,
-                ],  # p'(T) = v1
-                [
-                    0,
-                    0,
-                    2,
-                    6 * t_interval,
-                    12 * t_interval**2,
-                    20 * t_interval**3,
-                ],  # p''(T) = a1
-            ]
-        )
+                1,
+                t_interval,
+                t_interval**2,
+                t_interval**3,
+                t_interval**4,
+                t_interval**5,
+            ],  # p(T) = q1
+            [
+                0,
+                1,
+                2 * t_interval,
+                3 * t_interval**2,
+                4 * t_interval**3,
+                5 * t_interval**4,
+            ],  # p'(T) = v1
+            [
+                0,
+                0,
+                2,
+                6 * t_interval,
+                12 * t_interval**2,
+                20 * t_interval**3,
+            ],  # p''(T) = a1
+        ])
 
         b = np.array([q0, v0, a0, q1, v1, a1])
 
@@ -245,37 +243,35 @@ class CubicSplineWithAcceleration2(CubicSpline):
         t_interval = tn - tn_1
 
         # Set up the system of equations
-        a_matrix = np.array(
+        a_matrix = np.array([
+            [1, 0, 0, 0, 0, 0],  # p(0) = qn_1
+            [0, 1, 0, 0, 0, 0],  # p'(0) = vn_1
+            [0, 0, 2, 0, 0, 0],  # p''(0) = an_1
             [
-                [1, 0, 0, 0, 0, 0],  # p(0) = qn_1
-                [0, 1, 0, 0, 0, 0],  # p'(0) = vn_1
-                [0, 0, 2, 0, 0, 0],  # p''(0) = an_1
-                [
-                    1,
-                    t_interval,
-                    t_interval**2,
-                    t_interval**3,
-                    t_interval**4,
-                    t_interval**5,
-                ],  # p(T) = qn
-                [
-                    0,
-                    1,
-                    2 * t_interval,
-                    3 * t_interval**2,
-                    4 * t_interval**3,
-                    5 * t_interval**4,
-                ],  # p'(T) = vn
-                [
-                    0,
-                    0,
-                    2,
-                    6 * t_interval,
-                    12 * t_interval**2,
-                    20 * t_interval**3,
-                ],  # p''(T) = an
-            ]
-        )
+                1,
+                t_interval,
+                t_interval**2,
+                t_interval**3,
+                t_interval**4,
+                t_interval**5,
+            ],  # p(T) = qn
+            [
+                0,
+                1,
+                2 * t_interval,
+                3 * t_interval**2,
+                4 * t_interval**3,
+                5 * t_interval**4,
+            ],  # p'(T) = vn
+            [
+                0,
+                0,
+                2,
+                6 * t_interval,
+                12 * t_interval**2,
+                20 * t_interval**3,
+            ],  # p''(T) = an
+        ])
 
         b = np.array([qn_1, vn_1, an_1, qn, vn, an])
 
@@ -344,29 +340,11 @@ class CubicSplineWithAcceleration2(CubicSpline):
             if k == 0 and hasattr(self, "quintic_coeffs") and "first" in self.quintic_coeffs:
                 # Use the quintic polynomial for the first segment
                 b = self.quintic_coeffs["first"]
-                result[i] = (
-                    b[0]
-                    + b[1] * tau
-                    + b[2] * tau**2
-                    + b[3] * tau**3
-                    + b[4] * tau**4
-                    + b[5] * tau**5
-                )
-            elif (
-                k == self.n - 1
-                and hasattr(self, "quintic_coeffs")
-                and "last" in self.quintic_coeffs
-            ):
+                result[i] = b[0] + b[1] * tau + b[2] * tau**2 + b[3] * tau**3 + b[4] * tau**4 + b[5] * tau**5
+            elif k == self.n - 1 and hasattr(self, "quintic_coeffs") and "last" in self.quintic_coeffs:
                 # Use the quintic polynomial for the last segment
                 b = self.quintic_coeffs["last"]
-                result[i] = (
-                    b[0]
-                    + b[1] * tau
-                    + b[2] * tau**2
-                    + b[3] * tau**3
-                    + b[4] * tau**4
-                    + b[5] * tau**5
-                )
+                result[i] = b[0] + b[1] * tau + b[2] * tau**2 + b[3] * tau**3 + b[4] * tau**4 + b[5] * tau**5
             else:
                 # Use the cubic polynomial for other segments
                 a = self.coefficients[k]
@@ -418,27 +396,11 @@ class CubicSplineWithAcceleration2(CubicSpline):
             if k == 0 and hasattr(self, "quintic_coeffs") and "first" in self.quintic_coeffs:
                 # Use the derivative of the quintic polynomial for the first segment
                 b = self.quintic_coeffs["first"]
-                result[i] = (
-                    b[1]
-                    + 2 * b[2] * tau
-                    + 3 * b[3] * tau**2
-                    + 4 * b[4] * tau**3
-                    + 5 * b[5] * tau**4
-                )
-            elif (
-                k == self.n - 1
-                and hasattr(self, "quintic_coeffs")
-                and "last" in self.quintic_coeffs
-            ):
+                result[i] = b[1] + 2 * b[2] * tau + 3 * b[3] * tau**2 + 4 * b[4] * tau**3 + 5 * b[5] * tau**4
+            elif k == self.n - 1 and hasattr(self, "quintic_coeffs") and "last" in self.quintic_coeffs:
                 # Use the derivative of the quintic polynomial for the last segment
                 b = self.quintic_coeffs["last"]
-                result[i] = (
-                    b[1]
-                    + 2 * b[2] * tau
-                    + 3 * b[3] * tau**2
-                    + 4 * b[4] * tau**3
-                    + 5 * b[5] * tau**4
-                )
+                result[i] = b[1] + 2 * b[2] * tau + 3 * b[3] * tau**2 + 4 * b[4] * tau**3 + 5 * b[5] * tau**4
             else:
                 # Use the derivative of the cubic polynomial for other segments
                 a = self.coefficients[k]
@@ -491,11 +453,7 @@ class CubicSplineWithAcceleration2(CubicSpline):
                 # Use the second derivative of the quintic polynomial for the first segment
                 b = self.quintic_coeffs["first"]
                 result[i] = 2 * b[2] + 6 * b[3] * tau + 12 * b[4] * tau**2 + 20 * b[5] * tau**3
-            elif (
-                k == self.n - 1
-                and hasattr(self, "quintic_coeffs")
-                and "last" in self.quintic_coeffs
-            ):
+            elif k == self.n - 1 and hasattr(self, "quintic_coeffs") and "last" in self.quintic_coeffs:
                 # Use the second derivative of the quintic polynomial for the last segment
                 b = self.quintic_coeffs["last"]
                 result[i] = 2 * b[2] + 6 * b[3] * tau + 12 * b[4] * tau**2 + 20 * b[5] * tau**3

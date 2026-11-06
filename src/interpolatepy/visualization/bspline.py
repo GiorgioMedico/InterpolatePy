@@ -25,7 +25,7 @@ def plot_bspline_2d(
         raise ValueError(f"Control points must be 2D for this plot function, got {spline.dimension}D")
 
     if ax is None:
-        import matplotlib.pyplot as plt  # noqa: PLC0415
+        import matplotlib.pyplot as plt  # ruff: ignore[import-outside-top-level]
 
         _, ax = plt.subplots(figsize=(10, 6))
 
@@ -83,7 +83,7 @@ def plot_bspline_3d(
         raise ValueError(f"Control points must be 3D for this plot function, got {spline.dimension}D")
 
     if ax is None:
-        import matplotlib.pyplot as plt  # noqa: PLC0415
+        import matplotlib.pyplot as plt  # ruff: ignore[import-outside-top-level]
 
         figure = plt.figure(figsize=(10, 8))
         ax = figure.add_subplot(111, projection="3d")

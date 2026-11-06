@@ -21,10 +21,10 @@ class SquadC2Config:
     interpolator according to the Wittmann et al. specification.
     """
 
-    time_points: list[float]                 # Time sequence for quaternion waypoints
-    quaternions: list[Quaternion]            # Quaternion waypoints to interpolate
-    normalize_quaternions: bool = True       # Ensure unit quaternion constraints
-    validate_continuity: bool = True         # Enable C²-continuity validation
+    time_points: list[float]  # Time sequence for quaternion waypoints
+    quaternions: list[Quaternion]  # Quaternion waypoints to interpolate
+    normalize_quaternions: bool = True  # Ensure unit quaternion constraints
+    validate_continuity: bool = True  # Enable C²-continuity validation
 
 
 class SquadC2:
@@ -203,14 +203,11 @@ class SquadC2:
         original durations at both ends to line up with it.
         """
         original_durations = np.diff(self.original_time_points)
-        return np.concatenate(
-            ([original_durations[0]], original_durations, [original_durations[-1]])
-        )
+        return np.concatenate(([original_durations[0]], original_durations, [original_durations[-1]]))
 
     @staticmethod
     def _compute_intermediate_quaternion(
-        q_prev: Quaternion, q_curr: Quaternion, q_next: Quaternion,
-        h_prev: float, h_curr: float
+        q_prev: Quaternion, q_curr: Quaternion, q_next: Quaternion, h_prev: float, h_curr: float
     ) -> Quaternion:
         """
         Compute intermediate quaternion using the corrected formula from Equation (5)
@@ -280,9 +277,7 @@ class SquadC2:
                 h_prev = segment_durations[i - 1]
                 h_curr = segment_durations[i]
 
-                intermediate_q = self._compute_intermediate_quaternion(
-                    q_prev, q_curr, q_next, h_prev, h_curr
-                )
+                intermediate_q = self._compute_intermediate_quaternion(q_prev, q_curr, q_next, h_prev, h_curr)
                 self.intermediate_quaternions.append(intermediate_q)
 
         # Setup quintic polynomial parameterization for each segment between original waypoints
@@ -304,9 +299,7 @@ class SquadC2:
             final_bc = BoundaryCondition(position=1.0, velocity=0.0, acceleration=0.0)
             time_interval = TimeInterval(t_start, t_end)
 
-            polynomial_func = PolynomialTrajectory.order_5_trajectory(
-                initial_bc, final_bc, time_interval
-            )
+            polynomial_func = PolynomialTrajectory.order_5_trajectory(initial_bc, final_bc, time_interval)
             self.polynomial_segments.append(polynomial_func)
 
     @staticmethod
@@ -315,8 +308,7 @@ class SquadC2:
         return q1.slerp(q2, t)
 
     def _squad_interpolation(
-        self, q1: Quaternion, s1: Quaternion, s2: Quaternion,
-        q2: Quaternion, u: float
+        self, q1: Quaternion, s1: Quaternion, s2: Quaternion, q2: Quaternion, u: float
     ) -> Quaternion:
         """
         SQUAD interpolation using equations (2)-(4) from Wittmann et al.:
@@ -401,9 +393,11 @@ class SquadC2:
             s1 = self.intermediate_quaternions[1]  # s₁ᵛⁱʳᵗ (at extended index 1)
             # Handle s2 quaternion selection
             two_waypoints = 2
-            s2 = (self.intermediate_quaternions[2]
-                  if len(self.intermediate_quaternions) > two_waypoints
-                  else self.intermediate_quaternions[1])  # s₂
+            s2 = (
+                self.intermediate_quaternions[2]
+                if len(self.intermediate_quaternions) > two_waypoints
+                else self.intermediate_quaternions[1]
+            )  # s₂
         else:
             # Later segments: map correctly to extended sequence
             q1 = self.original_quaternions[segment_idx]
@@ -412,12 +406,16 @@ class SquadC2:
             extended_idx1 = segment_idx + 1  # Account for virtual waypoint offset
             extended_idx2 = extended_idx1 + 1
             # Handle intermediate quaternion selection with bounds checking
-            s1 = (self.intermediate_quaternions[extended_idx1]
-                  if extended_idx1 < len(self.intermediate_quaternions)
-                  else Quaternion.identity())
-            s2 = (self.intermediate_quaternions[extended_idx2]
-                  if extended_idx2 < len(self.intermediate_quaternions)
-                  else Quaternion.identity())
+            s1 = (
+                self.intermediate_quaternions[extended_idx1]
+                if extended_idx1 < len(self.intermediate_quaternions)
+                else Quaternion.identity()
+            )
+            s2 = (
+                self.intermediate_quaternions[extended_idx2]
+                if extended_idx2 < len(self.intermediate_quaternions)
+                else Quaternion.identity()
+            )
 
         # Use SQUAD interpolation for all segments
         return self._squad_interpolation(q1, s1, s2, q2, u)
@@ -509,7 +507,7 @@ class SquadC2:
             "original_times": self.original_time_points.tolist(),
             "extended_times": self.time_points.tolist(),
             "segment_durations": self._compute_segment_durations().tolist(),
-            "has_virtual_waypoints": len(self.time_points) > len(self.original_time_points)
+            "has_virtual_waypoints": len(self.time_points) > len(self.original_time_points),
         }
 
     def __len__(self) -> int:
@@ -520,8 +518,7 @@ class SquadC2:
         """String representation."""
         t_min, t_max = self.get_time_range()
         n_extended = len(self.time_points)
-        return (f"SquadC2({len(self)} original waypoints, {n_extended} extended, "
-                f"t=[{t_min:.3f}, {t_max:.3f}])")
+        return f"SquadC2({len(self)} original waypoints, {n_extended} extended, t=[{t_min:.3f}, {t_max:.3f}])"
 
     def __repr__(self) -> str:
         """Detailed string representation."""

@@ -53,11 +53,10 @@ def main() -> int:
                         compile(code, f"{path}:{block_number}", "exec"),
                         {"__name__": "__documentation_example__"},
                     )
-            except Exception:  # noqa: BLE001
+            except Exception:  # ruff: ignore[blind-except]
                 relative_path = path.relative_to(root)
                 failures.append(
-                    f"{relative_path}: Python block {block_number}\n"
-                    f"{output.getvalue()}{traceback.format_exc()}"
+                    f"{relative_path}: Python block {block_number}\n{output.getvalue()}{traceback.format_exc()}"
                 )
             finally:
                 close_figures()

@@ -20,8 +20,8 @@ class SplineConfig:
 
 
 def smoothing_spline_with_tolerance(
-    t_points: np.ndarray,
-    q_points: np.ndarray,
+    t_points: list[float] | np.ndarray,
+    q_points: list[float] | np.ndarray,
     tolerance: float,
     config: SplineConfig,
 ) -> tuple[CubicSmoothingSpline, float, float, int]:
@@ -116,7 +116,7 @@ def smoothing_spline_with_tolerance(
             print(f"\nIteration {i + 1}: μ={mu}")
 
         # Step 2: Compute spline and maximum error
-        try:
+        try:  # ruff: ignore[too-many-statements-in-try-clause]
             # Create spline with current μ
             spline = CubicSmoothingSpline(
                 t_points.tolist() if hasattr(t_points, "tolist") else list(t_points),
@@ -162,9 +162,7 @@ def smoothing_spline_with_tolerance(
             upper_bound = upper_bound_new
 
             # Check for convergence or solution
-            if abs(e_max - tolerance) < EPSILON or (
-                e_max < tolerance and upper_bound - lower_bound < EPSILON
-            ):
+            if abs(e_max - tolerance) < EPSILON or (e_max < tolerance and upper_bound - lower_bound < EPSILON):
                 if config.debug:
                     print(f"\nConverged to solution with error {e_max} after {i + 1} iterations")
                 return spline, mu, e_max, i + 1

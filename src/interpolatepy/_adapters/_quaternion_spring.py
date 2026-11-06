@@ -122,7 +122,7 @@ class SpringQuaternionInterpolation(_CppSpringQuaternionInterpolation):  # type:
         target_indices: np.ndarray,
     ) -> np.ndarray:
         """Retain the reference implementation's diagnostic helper."""
-        return _PySpringQuaternionInterpolation._refine_initial_curve(  # noqa: SLF001
+        return _PySpringQuaternionInterpolation._refine_initial_curve(  # ruff: ignore[private-member-access]
             source_indices,
             source_frames,
             target_indices,

@@ -154,8 +154,8 @@ class PolynomialTrajectory:
         ]
     ]:
         """Build the native callable for each polynomial segment."""
-        from interpolatepy.motion.polynomial import BoundaryCondition  # noqa: PLC0415
-        from interpolatepy.motion.polynomial import TimeInterval  # noqa: PLC0415
+        from interpolatepy.motion.polynomial import BoundaryCondition  # ruff: ignore[import-outside-top-level]
+        from interpolatepy.motion.polynomial import TimeInterval  # ruff: ignore[import-outside-top-level]
 
         segments = []
         for index in range(len(params.points) - 1):

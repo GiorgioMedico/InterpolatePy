@@ -42,7 +42,7 @@ class BSplineInterpolator(BSpline):
     Points can be of any dimension, including 2D and 3D.
     """
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # ruff: ignore[too-many-arguments]
         self,
         degree: int,
         points: list | np.ndarray,
@@ -194,9 +194,7 @@ class BSplineInterpolator(BSpline):
 
         return knots
 
-    def _compute_control_points(
-        self, degree: int, points: np.ndarray, times: np.ndarray
-    ) -> np.ndarray:
+    def _compute_control_points(self, degree: int, points: np.ndarray, times: np.ndarray) -> np.ndarray:
         """Build and solve the interpolation system for its control points."""
         return compute_control_points(self, degree, points, times)
 

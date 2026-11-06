@@ -32,7 +32,7 @@ class ApproximationBSpline(BSpline):
         The parameter values corresponding to original points.
     """
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # ruff: ignore[too-many-arguments]
         self,
         points: list | np.ndarray,
         num_control_points: int,
@@ -103,9 +103,7 @@ class ApproximationBSpline(BSpline):
         knots = self._compute_knots(degree, num_control_points, len(points), u_bar)
 
         # Calculate control points using least squares approximation
-        control_points = self._approximate_control_points(
-            points, degree, knots, u_bar, num_control_points, weights
-        )
+        control_points = self._approximate_control_points(points, degree, knots, u_bar, num_control_points, weights)
 
         # Initialize parent class with calculated values
         super().__init__(degree, knots, control_points)
@@ -132,9 +130,7 @@ class ApproximationBSpline(BSpline):
                 print(f"  u_bar[{index}] = {parameter:.6f}")
         return parameters
 
-    def _compute_knots(
-        self, degree: int, num_control_points: int, num_points: int, u_bar: np.ndarray
-    ) -> np.ndarray:
+    def _compute_knots(self, degree: int, num_control_points: int, num_points: int, u_bar: np.ndarray) -> np.ndarray:
         """Compute knot vector following the algorithm in Section 8.5.1.
 
         Parameters
@@ -204,7 +200,7 @@ class ApproximationBSpline(BSpline):
 
         return knots
 
-    def _approximate_control_points(  # noqa: PLR0913
+    def _approximate_control_points(  # ruff: ignore[too-many-arguments]
         self,
         points: np.ndarray,
         degree: int,
@@ -224,9 +220,7 @@ class ApproximationBSpline(BSpline):
         )
         return approximate_control_points(self, problem)
 
-    def calculate_approximation_error(
-        self, points: np.ndarray | None = None, u_bar: np.ndarray | None = None
-    ) -> float:
+    def calculate_approximation_error(self, points: np.ndarray | None = None, u_bar: np.ndarray | None = None) -> float:
         """Calculate the approximation error as the sum of squared distances.
 
         Computes sum of squared distances between the points and the corresponding
@@ -263,9 +257,7 @@ class ApproximationBSpline(BSpline):
 
         return sum_squared_dist
 
-    def refine(
-        self, max_error: float = 0.1, max_control_points: int = 100
-    ) -> "ApproximationBSpline":
+    def refine(self, max_error: float = 0.1, max_control_points: int = 100) -> "ApproximationBSpline":
         """Refine the approximation by adding more control points.
 
         Adds control points until the maximum error is below a threshold or the
@@ -294,9 +286,7 @@ class ApproximationBSpline(BSpline):
             num_control_points += 1
 
             # Create a new approximation B-spline with more control points
-            new_spline = ApproximationBSpline(
-                self.original_points, num_control_points, degree=self.degree
-            )
+            new_spline = ApproximationBSpline(self.original_points, num_control_points, degree=self.degree)
 
             # Calculate the new error
             error = new_spline.calculate_approximation_error()

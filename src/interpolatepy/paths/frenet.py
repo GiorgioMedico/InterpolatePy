@@ -101,43 +101,35 @@ def compute_trajectory_frames(
         if isinstance(tool_orientation, int | float):
             # Legacy mode: simple rotation about binormal axis
             alpha = tool_orientation
-            r_tool = np.array(
-                [
-                    [np.cos(alpha), -np.sin(alpha), 0],
-                    [np.sin(alpha), np.cos(alpha), 0],
-                    [0, 0, 1],
-                ]
-            )
+            r_tool = np.array([
+                [np.cos(alpha), -np.sin(alpha), 0],
+                [np.sin(alpha), np.cos(alpha), 0],
+                [0, 0, 1],
+            ])
         else:
             # RPY angles (roll, pitch, yaw) in XYZ order
             roll, pitch, yaw = tool_orientation
 
             # X rotation (roll)
-            r_x = np.array(
-                [
-                    [1, 0, 0],
-                    [0, np.cos(roll), -np.sin(roll)],
-                    [0, np.sin(roll), np.cos(roll)],
-                ]
-            )
+            r_x = np.array([
+                [1, 0, 0],
+                [0, np.cos(roll), -np.sin(roll)],
+                [0, np.sin(roll), np.cos(roll)],
+            ])
 
             # Y rotation (pitch)
-            r_y = np.array(
-                [
-                    [np.cos(pitch), 0, np.sin(pitch)],
-                    [0, 1, 0],
-                    [-np.sin(pitch), 0, np.cos(pitch)],
-                ]
-            )
+            r_y = np.array([
+                [np.cos(pitch), 0, np.sin(pitch)],
+                [0, 1, 0],
+                [-np.sin(pitch), 0, np.cos(pitch)],
+            ])
 
             # Z rotation (yaw)
-            r_z = np.array(
-                [
-                    [np.cos(yaw), -np.sin(yaw), 0],
-                    [np.sin(yaw), np.cos(yaw), 0],
-                    [0, 0, 1],
-                ]
-            )
+            r_z = np.array([
+                [np.cos(yaw), -np.sin(yaw), 0],
+                [np.sin(yaw), np.cos(yaw), 0],
+                [0, 0, 1],
+            ])
 
             # Combined rotation matrix in XYZ order
             r_tool = np.dot(r_z, np.dot(r_y, r_x))
@@ -186,9 +178,7 @@ def helicoidal_trajectory_with_derivatives(
     return p, dp_du, d2p_du2
 
 
-def circular_trajectory_with_derivatives(
-    u: float, r: float = 2.0
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+def circular_trajectory_with_derivatives(u: float, r: float = 2.0) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Circular trajectory function returning position and derivatives.
 
@@ -220,7 +210,7 @@ def circular_trajectory_with_derivatives(
     return p, dp_du, d2p_du2
 
 
-def plot_frames(  # noqa: PLR0913
+def plot_frames(  # ruff: ignore[too-many-arguments]
     ax: Axes,
     points: np.ndarray,
     frames: np.ndarray,

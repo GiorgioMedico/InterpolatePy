@@ -51,7 +51,7 @@ class LinearPath:
     >>> velocities = trajectory['velocity']
     """
 
-    def __init__(self, pi: np.ndarray, pf: np.ndarray) -> None:
+    def __init__(self, pi: list[float] | np.ndarray, pf: list[float] | np.ndarray) -> None:
         """
         Initialize a linear path from point pi to point pf.
 
@@ -110,7 +110,7 @@ class LinearPath:
         # Equation 4.35: dp/ds = (pf-pi)/||pf-pi||
         return self.tangent
 
-    def acceleration(self, _s: float | None = None) -> np.ndarray:  # noqa: PLR6301
+    def acceleration(self, _s: float | None = None) -> np.ndarray:  # ruff: ignore[no-self-use]
         """
         Calculate second derivative with respect to arc length.
         For linear path, this is always zero.
@@ -247,7 +247,7 @@ class CircularPath:
     >>> positions = trajectory['position']
     """
 
-    def __init__(self, r: np.ndarray, d: np.ndarray, pi: np.ndarray) -> None:
+    def __init__(self, r: list[float] | np.ndarray, d: list[float] | np.ndarray, pi: list[float] | np.ndarray) -> None:
         """
         Initialize a circular path.
 
@@ -305,13 +305,11 @@ class CircularPath:
         if np.isscalar(s):
             # Position in local coordinate system (equation 4.38)
             angle = float(np.asarray(s)) / self.radius
-            p_prime = np.array(
-                [
-                    self.radius * np.cos(angle),
-                    self.radius * np.sin(angle),
-                    0.0,
-                ]
-            )
+            p_prime = np.array([
+                self.radius * np.cos(angle),
+                self.radius * np.sin(angle),
+                0.0,
+            ])
 
             # Position in global coordinate system (equation 4.39)
             return self.center + self.R @ p_prime
@@ -320,13 +318,11 @@ class CircularPath:
         s_array = np.asarray(s)
         positions = []
         for s_val in s_array:
-            p_prime = np.array(
-                [
-                    self.radius * np.cos(s_val / self.radius),
-                    self.radius * np.sin(s_val / self.radius),
-                    0,
-                ]
-            )
+            p_prime = np.array([
+                self.radius * np.cos(s_val / self.radius),
+                self.radius * np.sin(s_val / self.radius),
+                0,
+            ])
             positions.append(self.center + self.R @ p_prime)
         return np.array(positions)
 
@@ -365,13 +361,11 @@ class CircularPath:
             Acceleration vector.
         """
         # Acceleration in local coordinate system (equation 4.41)
-        d2p_prime_ds2 = np.array(
-            [
-                -np.cos(s / self.radius) / self.radius,
-                -np.sin(s / self.radius) / self.radius,
-                0,
-            ]
-        )
+        d2p_prime_ds2 = np.array([
+            -np.cos(s / self.radius) / self.radius,
+            -np.sin(s / self.radius) / self.radius,
+            0,
+        ])
 
         # Acceleration in global coordinate system
         return self.R @ d2p_prime_ds2

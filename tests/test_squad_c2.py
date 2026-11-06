@@ -31,10 +31,7 @@ class TestSquadC2BasicFunctionality:
     def test_squad_c2_creation_minimum_waypoints(self) -> None:
         """Test SQUAD C2 creation with minimum 2 waypoints."""
         time_points = [0.0, 1.0]
-        quaternions = [
-            Quaternion.identity(),
-            Quaternion.from_euler_angles(0.1, 0.2, 0.3)
-        ]
+        quaternions = [Quaternion.identity(), Quaternion.from_euler_angles(0.1, 0.2, 0.3)]
 
         squad = SquadC2(time_points, quaternions)
 
@@ -48,7 +45,7 @@ class TestSquadC2BasicFunctionality:
             Quaternion.identity(),
             Quaternion.from_euler_angles(0.1, 0.2, 0.3),
             Quaternion.from_euler_angles(0.2, 0.4, 0.6),
-            Quaternion.from_euler_angles(0.3, 0.6, 0.9)
+            Quaternion.from_euler_angles(0.3, 0.6, 0.9),
         ]
 
         squad = SquadC2(time_points, quaternions)
@@ -83,10 +80,7 @@ class TestSquadC2ExtendedSequence:
     def test_extended_sequence_two_waypoints(self) -> None:
         """Test extended sequence with 2 original waypoints."""
         time_points = [0.0, 1.0]
-        quaternions = [
-            Quaternion.identity(),
-            Quaternion.from_euler_angles(0.1, 0.2, 0.3)
-        ]
+        quaternions = [Quaternion.identity(), Quaternion.from_euler_angles(0.1, 0.2, 0.3)]
 
         squad = SquadC2(time_points, quaternions)
         extended_times, extended_quats = squad.get_extended_waypoints()
@@ -110,7 +104,7 @@ class TestSquadC2ExtendedSequence:
             Quaternion.identity(),
             Quaternion.from_euler_angles(0.1, 0.2, 0.3),
             Quaternion.from_euler_angles(0.2, 0.4, 0.6),
-            Quaternion.from_euler_angles(0.3, 0.6, 0.9)
+            Quaternion.from_euler_angles(0.3, 0.6, 0.9),
         ]
 
         squad = SquadC2(time_points, quaternions)
@@ -121,12 +115,12 @@ class TestSquadC2ExtendedSequence:
         assert len(extended_quats) == 6
 
         # Check virtual waypoint placement
-        assert extended_quats[0] == quaternions[0]    # q1
-        assert extended_quats[1] == quaternions[0]    # q1_virt = q1
-        assert extended_quats[2] == quaternions[1]    # q2
-        assert extended_quats[3] == quaternions[2]    # q3
-        assert extended_quats[4] == quaternions[3]    # q4_virt = q4
-        assert extended_quats[5] == quaternions[3]    # q4
+        assert extended_quats[0] == quaternions[0]  # q1
+        assert extended_quats[1] == quaternions[0]  # q1_virt = q1
+        assert extended_quats[2] == quaternions[1]  # q2
+        assert extended_quats[3] == quaternions[2]  # q3
+        assert extended_quats[4] == quaternions[3]  # q4_virt = q4
+        assert extended_quats[5] == quaternions[3]  # q4
 
     def test_extended_sequence_time_spacing(self) -> None:
         """Test that virtual waypoints have appropriate time spacing."""
@@ -134,18 +128,18 @@ class TestSquadC2ExtendedSequence:
         quaternions = [
             Quaternion.identity(),
             Quaternion.from_euler_angles(0.1, 0.2, 0.3),
-            Quaternion.from_euler_angles(0.2, 0.4, 0.6)
+            Quaternion.from_euler_angles(0.2, 0.4, 0.6),
         ]
 
         squad = SquadC2(time_points, quaternions)
         extended_times, _ = squad.get_extended_waypoints()
 
         # Check that virtual waypoints are placed between segments
-        assert extended_times[0] == 0.0   # q1
-        assert 0.0 < extended_times[1] < 2.0   # q1_virt between q1 and q2
-        assert extended_times[2] == 2.0   # q2
-        assert 2.0 < extended_times[3] < 4.0   # q3_virt between q2 and q3
-        assert extended_times[4] == 4.0   # q3
+        assert extended_times[0] == 0.0  # q1
+        assert 0.0 < extended_times[1] < 2.0  # q1_virt between q1 and q2
+        assert extended_times[2] == 2.0  # q2
+        assert 2.0 < extended_times[3] < 4.0  # q3_virt between q2 and q3
+        assert extended_times[4] == 4.0  # q3
 
 
 class TestSquadC2IntermediateQuaternions:
@@ -185,7 +179,7 @@ class TestSquadC2IntermediateQuaternions:
             Quaternion.from_euler_angles(0.1, 0.2, 0.3),
             Quaternion.from_euler_angles(0.2, 0.4, 0.6),
             Quaternion.from_euler_angles(0.3, 0.6, 0.9),
-            Quaternion.from_euler_angles(0.4, 0.8, 1.2)
+            Quaternion.from_euler_angles(0.4, 0.8, 1.2),
         ]
 
         squad = SquadC2(time_points, quaternions)
@@ -248,7 +242,7 @@ class TestSquadC2Interpolation:
             Quaternion.identity(),
             Quaternion.from_euler_angles(0.1, 0.2, 0.3),
             Quaternion.from_euler_angles(0.2, 0.4, 0.6),
-            Quaternion.from_euler_angles(0.3, 0.6, 0.9)
+            Quaternion.from_euler_angles(0.3, 0.6, 0.9),
         ]
 
         squad = SquadC2(time_points, quaternions)
@@ -267,7 +261,7 @@ class TestSquadC2Interpolation:
         quaternions = [
             Quaternion.identity(),
             Quaternion.from_euler_angles(0.1, 0.2, 0.3),
-            Quaternion.from_euler_angles(0.2, 0.4, 0.6)
+            Quaternion.from_euler_angles(0.2, 0.4, 0.6),
         ]
 
         squad = SquadC2(time_points, quaternions)
@@ -284,7 +278,7 @@ class TestSquadC2Interpolation:
         quaternions = [
             Quaternion.identity(),
             Quaternion.from_euler_angles(0.1, 0.2, 0.3),
-            Quaternion.from_euler_angles(0.2, 0.4, 0.6)
+            Quaternion.from_euler_angles(0.2, 0.4, 0.6),
         ]
 
         squad = SquadC2(time_points, quaternions)
@@ -332,7 +326,7 @@ class TestSquadC2Continuity:
             Quaternion.identity(),
             Quaternion.from_euler_angles(0.1, 0.2, 0.3),
             Quaternion.from_euler_angles(0.2, 0.4, 0.6),
-            Quaternion.from_euler_angles(0.3, 0.6, 0.9)
+            Quaternion.from_euler_angles(0.3, 0.6, 0.9),
         ]
 
         squad = SquadC2(time_points, quaternions)
@@ -356,7 +350,7 @@ class TestSquadC2Continuity:
             Quaternion.identity(),
             Quaternion.from_euler_angles(0.1, 0.2, 0.3),
             Quaternion.from_euler_angles(0.2, 0.4, 0.6),
-            Quaternion.from_euler_angles(0.3, 0.6, 0.9)
+            Quaternion.from_euler_angles(0.3, 0.6, 0.9),
         ]
 
         squad = SquadC2(time_points, quaternions)
@@ -380,7 +374,7 @@ class TestSquadC2Continuity:
             Quaternion.identity(),
             Quaternion.from_euler_angles(0.1, 0.2, 0.3),
             Quaternion.from_euler_angles(0.2, 0.4, 0.6),
-            Quaternion.from_euler_angles(0.3, 0.6, 0.9)
+            Quaternion.from_euler_angles(0.3, 0.6, 0.9),
         ]
 
         squad = SquadC2(time_points, quaternions)
@@ -410,7 +404,7 @@ class TestSquadC2ZeroClampedBoundaries:
             Quaternion.identity(),
             Quaternion.from_euler_angles(0.1, 0.2, 0.3),
             Quaternion.from_euler_angles(0.2, 0.4, 0.6),
-            Quaternion.from_euler_angles(0.3, 0.6, 0.9)
+            Quaternion.from_euler_angles(0.3, 0.6, 0.9),
         ]
 
         squad = SquadC2(time_points, quaternions)
@@ -430,7 +424,7 @@ class TestSquadC2ZeroClampedBoundaries:
             Quaternion.identity(),
             Quaternion.from_euler_angles(0.1, 0.2, 0.3),
             Quaternion.from_euler_angles(0.2, 0.4, 0.6),
-            Quaternion.from_euler_angles(0.3, 0.6, 0.9)
+            Quaternion.from_euler_angles(0.3, 0.6, 0.9),
         ]
 
         squad = SquadC2(time_points, quaternions)
@@ -449,7 +443,7 @@ class TestSquadC2ZeroClampedBoundaries:
         quaternions = [
             Quaternion.identity(),
             Quaternion.from_euler_angles(0.1, 0.2, 0.3),
-            Quaternion.from_euler_angles(0.2, 0.4, 0.6)
+            Quaternion.from_euler_angles(0.2, 0.4, 0.6),
         ]
 
         squad = SquadC2(time_points, quaternions)
@@ -513,7 +507,7 @@ class TestSquadC2EdgeCases:
         """Test with large rotation angles."""
         q1 = Quaternion.identity()
         q2 = Quaternion.from_angle_axis(np.pi, np.array([0.0, 0.0, 1.0]))  # 180° rotation
-        q3 = Quaternion.from_angle_axis(2*np.pi, np.array([1.0, 0.0, 0.0]))  # 360° rotation
+        q3 = Quaternion.from_angle_axis(2 * np.pi, np.array([1.0, 0.0, 0.0]))  # 360° rotation
 
         time_points = [0.0, 1.0, 2.0]
         quaternions = [q1, q2, q3]
@@ -532,7 +526,7 @@ class TestSquadC2EdgeCases:
         quaternions = [
             Quaternion.identity(),
             Quaternion.from_euler_angles(0.001, 0.002, 0.003),
-            Quaternion.from_euler_angles(0.002, 0.004, 0.006)
+            Quaternion.from_euler_angles(0.002, 0.004, 0.006),
         ]
 
         squad = SquadC2(time_points, quaternions)
@@ -550,7 +544,7 @@ class TestSquadC2EdgeCases:
             Quaternion.from_euler_angles(0.05, 0.1, 0.15),
             Quaternion.from_euler_angles(0.1, 0.2, 0.3),
             Quaternion.from_euler_angles(0.2, 0.4, 0.6),
-            Quaternion.from_euler_angles(0.25, 0.5, 0.75)
+            Quaternion.from_euler_angles(0.25, 0.5, 0.75),
         ]
 
         squad = SquadC2(time_points, quaternions)
@@ -581,7 +575,7 @@ class TestSquadC2PaperExample:
             Quaternion.from_euler_angles(0.1, 0.3, 0.2),
             Quaternion.from_euler_angles(-0.1, 0.2, 0.4),
             Quaternion.from_euler_angles(0.0, -0.1, 0.3),
-            Quaternion.from_euler_angles(0.1, 0.0, 0.1)
+            Quaternion.from_euler_angles(0.1, 0.0, 0.1),
         ]
 
         squad = SquadC2(time_points, quaternions)
@@ -635,7 +629,7 @@ class TestSquadC2Utilities:
         quaternions = [
             Quaternion.identity(),
             Quaternion.from_euler_angles(0.1, 0.2, 0.3),
-            Quaternion.from_euler_angles(0.2, 0.4, 0.6)
+            Quaternion.from_euler_angles(0.2, 0.4, 0.6),
         ]
 
         squad = SquadC2(time_points, quaternions)
@@ -659,7 +653,7 @@ class TestSquadC2Utilities:
             Quaternion.identity(),
             Quaternion.from_euler_angles(0.1, 0.2, 0.3),
             Quaternion.from_euler_angles(0.2, 0.4, 0.6),
-            Quaternion.from_euler_angles(0.3, 0.6, 0.9)
+            Quaternion.from_euler_angles(0.3, 0.6, 0.9),
         ]
 
         squad = SquadC2(time_points, quaternions)
@@ -679,7 +673,7 @@ class TestSquadC2Utilities:
         quaternions = [
             Quaternion.identity(),
             Quaternion.from_euler_angles(0.1, 0.2, 0.3),
-            Quaternion.from_euler_angles(0.2, 0.4, 0.6)
+            Quaternion.from_euler_angles(0.2, 0.4, 0.6),
         ]
 
         squad = SquadC2(time_points, quaternions)

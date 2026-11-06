@@ -69,7 +69,7 @@ class TrapezoidalTrajectory:
         amax: float | None = None,
     ) -> list[float]:
         """Calculate intermediate velocities heuristically."""
-        from interpolatepy.motion.trapezoidal import (  # noqa: PLC0415
+        from interpolatepy.motion.trapezoidal import (  # ruff: ignore[import-outside-top-level]
             TrapezoidalTrajectory as PythonTrapezoidalTrajectory,
         )
 
@@ -81,7 +81,7 @@ class TrapezoidalTrajectory:
         params: InterpolationParams,
     ) -> tuple[Callable[[float], tuple[float, float, float]], float]:
         """Generate a multi-segment trajectory through waypoints."""
-        from interpolatepy.motion.trapezoidal import (  # noqa: PLC0415
+        from interpolatepy.motion.trapezoidal import (  # ruff: ignore[import-outside-top-level]
             TrapezoidalTrajectory as PythonTrapezoidalTrajectory,
         )
 
