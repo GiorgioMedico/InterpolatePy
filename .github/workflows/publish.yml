@@ -28,7 +28,7 @@ jobs:
         os: [ubuntu-latest, macos-15-intel, macos-latest]
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
       - name: Install cibuildwheel
         run: python -m pip install cibuildwheel==4.2.0
       - name: Build and test wheels
