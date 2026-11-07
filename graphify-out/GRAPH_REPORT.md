@@ -1,17 +1,17 @@
-# Graph Report - InterpolatePy  (2026-11-06)
+# Graph Report - InterpolatePy  (2026-11-07)
 
 ## Corpus Check
-- 249 files · ~205,069 words
+- 249 files · ~205,067 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 10 file(s) not represented in the graph (top: (none) 5, .in 2, .css 1)
 
 ## Summary
-- 5088 nodes · 9244 edges · 227 communities (156 shown, 71 thin omitted)
+- 5093 nodes · 9248 edges · 225 communities (152 shown, 73 thin omitted)
 - Extraction: 86% EXTRACTED · 14% INFERRED · 0% AMBIGUOUS · INFERRED: 1264 edges (avg confidence: 0.88)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `123e4f5b`
+- Built from commit: `376fa140`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -21,7 +21,7 @@
 - catch_test_macros
 - DoubleSTrajectory
 - matplotlib_pyplot
-- TrajectoryParams
+- interpolatepy/__init__.py
 - linear_traj
 - _api.py
 - CubicSmoothingSpline
@@ -47,8 +47,8 @@
 - lqi_spiral_frenet_ex.py
 - example_utils.hpp
 - SpringQuaternionInterpolation
-- compute_trajectory_frames
-- typing
+- _api.py
+- .generate_curve_points
 - CubicSplineWithAcceleration2
 - steps
 - pytest
@@ -61,7 +61,7 @@
 - spring.py
 - test_protocols.py
 - LogQuaternionInterpolation
-- .find_knot_span
+- TrajectoryParams
 - ModifiedLogQuaternionInterpolation
 - TrajectoryParams
 - TestFrenetFrames
@@ -75,20 +75,20 @@
 - .stereographic_projection
 - SquadC2
 - Changelog
-- TimeInterval
+- BoundaryCondition
 - shooting.py
 - QuaternionTrajectory
 - numpy
-- _motion_polynomial.py
+- .multipoint_trajectory
 - test_quaternion_spline.cpp
 - _adapters/__init__.py
-- test_motion_profiles.py
-- TestQuaternionSpline
+- TestTrajectoryBounds
+- numpy
 - LogQuaternionInterpolation
 - .plot_2d
 - trapezoidal_ex.py
 - test_cpp_parity.py
-- BoundaryCondition
+- test_polynomials.py
 - TestSmoothingSplinePerformance
 - TestQuaternionConversions
 - test_squad_c2.py
@@ -131,12 +131,11 @@
 - quaternion_example.cpp
 - quaternion.cpp
 - shooting_quaternion_interpolation.cpp
-- spring_quaternion_ex.py
 - test_backend.py
 - hooks
 - TestParabolicBlendTrajectoryConstruction
-- TestMotionProfilePerformance
-- test_polynomials.py
+- .test_double_s_evaluation_performance
+- paths_example.cpp
 - get_cpp_module
 - TestParabolicBlendTrajectoryPerformance
 - parabolic_linear_example.cpp
@@ -150,51 +149,51 @@
 - ParabolicBlendTrajectory
 - Quaternion interpolation
 - TestPolynomialTrajectoryPerformance
-- ApproximationBSpline
 - CubicBSplineInterpolation
+- _interpolation_system.py
 - shooting_solver.cpp
 - Algorithms
 - simple_paths_ex.py
 - TestQuaternionEdgeCases
 - TestCubicSplinePerformance
-- TestCubicSplineEdgeCases
+- lqi_spiral_frenet_ex.py
 - TestSquadC2EdgeCases
 - spring_gauss_newton.cpp
 - bspline_approx_smooth_example.cpp
 - SpringConfig
 - Contributing
-- squad_c2_ex.py
-- TestCubicSplineNumericalStability
+- TestPathPlanningPerformance
+- b_spline_approx_ex.py
 - TestEdgeCasesAndErrorHandling
-- BSplineParams
+- TestLinearTrajectoryScalar
 - CircularPath
 - polynomial_trajectory.cpp
 - Run Python examples
 - Spline interpolation
 - TimingResult
 - PlotStyle
-- TestCubicSplineEvaluationMethods
+- .test_vector_trajectory_performance
 - TestParabolicBlendTrajectoryMathematicalProperties
 - TestParabolicBlendTrajectoryEdgeCases
-- bspline_example.cpp
-- bspline_interpolator_example.cpp
-- cubic_bspline_interpolation.cpp
+- TestLinearTrajectoryVector
+- TestIntegrationWithQuaternionTrajectories
+- TestLinearTrajectoryMathematicalProperties
 - FullTrajectoryResult
 - Solution
 - Installation
-- _quaternion_spring.py
+- TestDoubleSTrajectoryConstruction
 - cubic_spline_acc1_example.cpp
 - CubicSmoothingSpline::CubicSmoothingSpline
 - User guide
 - cubic_spline.cpp
-- circular_path.cpp
+- TestSquadC2IntermediateQuaternions
 - SpringEnergy
-- Quaternion operations and interpolation
+- SquadC2
 - Motion profiles
 - TestBackendDetection
 - TestParabolicBlendTrajectoryPlotting
 - TestParabolicBlendTrajectoryIntegration
-- TestPolynomialTrajectoryOrder5
+- Path planning
 - .vec
 - Quaternion::dot
 - time_intervals_
@@ -207,29 +206,27 @@
 - TestTrajectoryFunctionProtocol
 - Quaternion::inverse
 - coefficients_
-- B-splines
+- TestLinearTrajectoryInputValidation
 - Quick start
-- TestBSplineVariantsComparison
+- TestPathPlanningEdgeCases
 - TestCppClassTypes
-- TestSmoothingSplineComparison
-- TestSplineParameters
+- TestNumericalEquivalence
+- TestStateParams
 - BoundaryCondition
 - StateParams
-- TrajectoryBounds
+- 3.2.1 — 2026-09-04
 - ShootingConfig
-- ApproximationBSpline::compute_parameters
+- Time and sample validation
 - System
 - Integration
-- CubicSpline
 - test_log_quat.py
-- Parameterization
 - DoubleSTrajectory::DoubleSTrajectory
 - .log
 - Quaternion::Quaternion
-- SmoothingCubicBSpline::SmoothingCubicBSpline
 - Quaternion::to_transformation_matrix
 - SegmentInfo
 - CubicSpline::find_segment
+- test_spring_performance.py
 - InterpolatePy
 
 ## God Nodes (most connected - your core abstractions)
@@ -237,57 +234,53 @@
 2. `BSpline` - 97 edges
 3. `CubicSpline` - 57 edges
 4. `BoundaryCondition` - 51 edges
-5. `BSplineInterpolator` - 50 edges
-6. `TimeInterval` - 50 edges
+5. `TimeInterval` - 50 edges
+6. `BSplineInterpolator` - 50 edges
 7. `DoubleSTrajectory` - 49 edges
 8. `SpringQuaternionInterpolation` - 47 edges
-9. `ParabolicBlendTrajectory` - 47 edges
-10. `CubicSmoothingSpline` - 47 edges
+9. `CubicSmoothingSpline` - 47 edges
+10. `ParabolicBlendTrajectory` - 47 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `Choose by problem` --references--> `compute_trajectory_frames()`  [INFERRED]
-  ALGORITHMS.md → src/interpolatepy/paths/frenet.py
-- `Find the right tool` --references--> `compute_trajectory_frames()`  [INFERRED]
-  docs/index.md → src/interpolatepy/paths/frenet.py
-- `Plotting` --references--> `plot_frames()`  [INFERRED]
-  docs/user-guide.md → src/interpolatepy/paths/frenet.py
 - `Imports and backend routing` --references--> `CubicSpline`  [INFERRED]
   docs/user-guide.md → src/interpolatepy/splines/cubic.py
 - `Backend detection` --references--> `get_cpp_module()`  [INFERRED]
   docs/architecture.md → src/interpolatepy/_backend.py
+- `Choose by problem` --references--> `compute_trajectory_frames()`  [INFERRED]
+  ALGORITHMS.md → src/interpolatepy/paths/frenet.py
+- `Find the right tool` --references--> `compute_trajectory_frames()`  [INFERRED]
+  docs/index.md → src/interpolatepy/paths/frenet.py
+- `Frenet frames` --references--> `compute_trajectory_frames()`  [INFERRED]
+  docs/tutorials/path-planning.md → src/interpolatepy/paths/frenet.py
 
 ## Import Cycles
 - None detected.
 
-## Communities (227 total, 71 thin omitted)
+## Communities (225 total, 73 thin omitted)
 
 ### Community 0 - "BSpline"
 Cohesion: 0.03
-Nodes (9): ApproximationBSpline, BSpline, BSpline, TestBSplineConstruction, TestBSplineCurveGeneration, TestBSplineEdgeCases, TestBSplineEvaluation, TestBSplineNumericalStability (+1 more)
+Nodes (8): BSpline, TestBSplineBasisFunctions, TestBSplineConstruction, TestBSplineEdgeCases, TestBSplineEvaluation, TestBSplineKnotHandling, TestBSplineNumericalStability, TestBSplineStringRepresentation
 
 ### Community 1 - ".from_euler_angles"
 Cohesion: 0.03
-Nodes (12): create_complex_trajectory(), example_quaternion_trajectory(), main(), create_waypoints(), main(), TestQuaternionInterpolation, test_spring_refinement_reduces_curvature_near_a_geodesic(), test_spring_rejects_out_of_range_evaluation() (+4 more)
+Nodes (11): create_basic_trajectory(), create_complex_trajectory(), example_quaternion_trajectory(), main(), create_waypoints(), main(), TestQuaternionInterpolation, TestSquadC2ExtendedSequence (+3 more)
 
 ### Community 2 - "catch_test_macros"
 Cohesion: 0.03
-Nodes (69): "BSpline basis functions", "BSpline construction", "BSpline construction validation", "BSpline curve generation", "BSpline edge cases", "BSpline evaluation", "BSpline knot span", "BSpline numerical stability" (+61 more)
+Nodes (76): DoubleSTrajectory::phase_durations(), "BSpline basis functions", "BSpline construction", "BSpline construction validation", "BSpline curve generation", "BSpline edge cases", "BSpline evaluation", "BSpline knot span" (+68 more)
 
 ### Community 3 - "DoubleSTrajectory"
-Cohesion: 0.05
-Nodes (16): example_asymmetric_velocities(), example_factory_method(), example_negative_displacement(), example_standard_trajectory(), example_velocity_matching(), main(), example_scalar_trajectory(), DoubleSTrajectory (+8 more)
+Cohesion: 0.07
+Nodes (11): example_asymmetric_velocities(), example_factory_method(), example_negative_displacement(), example_standard_trajectory(), example_velocity_matching(), main(), StateParams, TrajectoryBounds (+3 more)
 
 ### Community 4 - "matplotlib_pyplot"
-Cohesion: 0.04
-Nodes (28): create_test_shapes(), example_approximation(), example_degree_comparison(), example_different_shapes(), example_method_comparison(), example_noise_sensitivity(), example_8_8(), example_cubic_bspline() (+20 more)
+Cohesion: 0.06
+Nodes (18): example_8_8(), example_cubic_bspline(), example_cyclic_bspline(), example_jerk_continuous_bspline(), simple_3d_example(), example_8_12(), textbook_example(), camera_pan_example() (+10 more)
 
-### Community 5 - "TrajectoryParams"
-Cohesion: 0.04
-Nodes (11): TrapezoidalTrajectory, __dir__(), __getattr__(), PolynomialTrajectory, TrajectoryParams, CalculationParams, InterpolationParams, TrapezoidalTrajectory (+3 more)
-
-### Community 6 - "linear_traj"
-Cohesion: 0.04
-Nodes (10): linear_traj(), TestLinearTrajectoryEdgeCases, TestLinearTrajectoryInputValidation, TestLinearTrajectoryMathematicalProperties, TestLinearTrajectoryPerformance, compute_large_trajectory(), compute_trajectory(), compute_trajectory() (+2 more)
+### Community 5 - "interpolatepy/__init__.py"
+Cohesion: 0.06
+Nodes (7): __dir__(), __getattr__(), PolynomialTrajectory, CalculationParams, TrapezoidalTrajectory, trajectory(), trajectory_original()
 
 ### Community 7 - "_api.py"
 Cohesion: 0.05
@@ -295,11 +288,11 @@ Nodes (7): example_prescribed_tolerance(), __dir__(), __getattr__(), smoothing_s
 
 ### Community 8 - "CubicSmoothingSpline"
 Cohesion: 0.04
-Nodes (3): CubicSmoothingSpline, TestCubicSmoothingSpline, TestSmoothingSplineEdgeCases
+Nodes (4): CubicSmoothingSpline, TestCubicSmoothingSpline, TestSmoothingSplineComparison, TestSmoothingSplineEdgeCases
 
 ### Community 9 - "BSplineInterpolator"
 Cohesion: 0.05
-Nodes (11): BSplineInterpolator, _add_cyclic_rows(), _add_derivative_row(), _add_endpoint_rows(), _add_interpolation_rows(), compute_control_points(), _InterpolationSystem, _solve_error_message() (+3 more)
+Nodes (4): BSplineInterpolator, TestBSplineInterpolator, TestBSplineInterpolatorAdvanced, TestBSplineVariantsComparison
 
 ### Community 11 - "ApproximationBSpline"
 Cohesion: 0.05
@@ -307,79 +300,79 @@ Nodes (8): ApproximationBSpline, approximate_control_points(), ApproximationProb
 
 ### Community 12 - "CubicBSplineInterpolation"
 Cohesion: 0.05
-Nodes (6): CubicBSplineInterpolation, test_acceleration_constraints_are_honoured(), test_public_api_interpolates_from_two_points(), TestBSplineVariantsPerformance, construct_variant(), TestCubicBSplineInterpolation
+Nodes (5): CubicBSplineInterpolation, test_acceleration_constraints_are_honoured(), test_public_api_interpolates_from_two_points(), construct_variant(), TestCubicBSplineInterpolation
 
 ### Community 13 - "stdexcept"
 Cohesion: 0.05
-Nodes (22): T_, solve_tridiagonal(), ApproximationBSpline::calculate_approximation_error(), BSplineInterpolator::compute_control_points(), BSplineInterpolator::create_knot_vector(), CubicSmoothingSpline::evaluate(), CubicSmoothingSpline::evaluate_acceleration(), CubicSmoothingSpline::evaluate_velocity() (+14 more)
+Nodes (31): example_3d(), example_cubic_bspline(), example_cyclic(), example_degree5(), example_jerk_continuous(), main(), print_scalar_trajectory(), T_ (+23 more)
 
 ### Community 14 - "ModifiedLogQuaternionInterpolation"
 Cohesion: 0.06
-Nodes (5): _extract_axis_angle_raw(), ModifiedLogQuaternionInterpolation, _omega_alpha(), _validate_inputs(), TestModifiedLogQuaternionInterpolation
+Nodes (6): _canonicalize_double_cover(), _extract_axis_angle_raw(), ModifiedLogQuaternionInterpolation, _omega_alpha(), _validate_inputs(), TestModifiedLogQuaternionInterpolation
 
 ### Community 15 - "test_paths.cpp"
-Cohesion: 0.05
-Nodes (37): bind_paths(), circular_path_example(), frenet_frame_circular(), frenet_frame_helicoidal(), linear_path_example(), main(), FrenetFrame, binormal (+29 more)
+Cohesion: 0.06
+Nodes (26): CircularPath::acceleration(), CircularPath::CircularPath(), CircularPath::position(), CircularPath::velocity(), LinearPath::acceleration(), LinearPath::LinearPath(), LinearPath::position(), LinearPath::velocity() (+18 more)
 
 ### Community 16 - "SmoothingCubicBSpline"
-Cohesion: 0.06
-Nodes (5): BSplineParams, SmoothingCubicBSpline, TestBSplineParams, TestSmoothingCubicBSpline, TestSmoothingCubicBSplineAdvanced
+Cohesion: 0.05
+Nodes (9): __dir__(), __getattr__(), parameterize_points(), BSplineParams, SmoothingCubicBSpline, TestBSplineParams, TestBSplineVariantsPerformance, TestSmoothingCubicBSpline (+1 more)
 
 ### Community 19 - "QuaternionTrajectoryVisualizer"
 Cohesion: 0.06
-Nodes (9): create_basic_trajectory(), demo_basic_interpolation(), demo_comparison_with_traditional_methods(), demo_lqi_vs_mlqi_comparison(), main(), plot_comparison(), QuaternionTrajectoryVisualizer, TestQuaternionTrajectoryVisualizerBasics (+1 more)
+Nodes (10): demo_basic_interpolation(), demo_comparison_with_traditional_methods(), demo_lqi_vs_mlqi_comparison(), main(), create_simple_trajectory(), main(), plot_individual_methods(), QuaternionTrajectoryVisualizer (+2 more)
 
 ### Community 21 - "LinearPath"
-Cohesion: 0.06
-Nodes (4): LinearPath, TestLinearPath, TestLinearPathAdvanced, TestPathPlanningEdgeCases
+Cohesion: 0.08
+Nodes (3): LinearPath, TestLinearPath, TestLinearPathAdvanced
 
 ### Community 22 - "test_concepts.cpp"
-Cohesion: 0.06
-Nodes (12): bind_acc_splines(), bind_bspline(), bind_cubic_spline(), bind_motion(), bind_quaternion(), bind_smoothing_spline(), bind_tridiagonal(), PYBIND11_MODULE() (+4 more)
+Cohesion: 0.07
+Nodes (10): bind_acc_splines(), bind_bspline(), bind_cubic_spline(), bind_motion(), bind_paths(), bind_smoothing_search(), bind_smoothing_spline(), bind_tridiagonal() (+2 more)
 
 ### Community 23 - "CubicSpline"
-Cohesion: 0.06
-Nodes (5): CubicSplineWithAcceleration2, CubicSpline, TestCubicSplineConstruction, TestCubicSplineContinuity, TestCubicSplineMathematicalAccuracy
+Cohesion: 0.04
+Nodes (7): CubicSpline, TestCubicSplineConstruction, TestCubicSplineContinuity, TestCubicSplineEdgeCases, TestCubicSplineEvaluationMethods, TestCubicSplineMathematicalAccuracy, TestCubicSplineNumericalStability
 
 ### Community 24 - "QuaternionSpline"
 Cohesion: 0.06
-Nodes (4): _cpp_to_py(), LogQuaternionInterpolation, ModifiedLogQuaternionInterpolation, QuaternionSpline
+Nodes (5): _cpp_to_py(), LogQuaternionInterpolation, ModifiedLogQuaternionInterpolation, _py_to_cpp(), QuaternionSpline
 
 ### Community 25 - "test_spring_performance.py"
 Cohesion: 0.08
-Nodes (16): EnergyEvaluation, SpringEnergy, descent_direction(), normal_matrix(), MinimizationSettings, minimize(), eager_minimize(), test_banded_factorization_does_not_overwrite_input_model() (+8 more)
+Nodes (13): EnergyEvaluation, SpringEnergy, descent_direction(), normal_matrix(), curvature_energy(), curvature_energy_gradient(), MinimizationSettings, minimize() (+5 more)
 
 ### Community 26 - "vector"
 Cohesion: 0.11
 Nodes (3): TimeInterval, end, start
 
 ### Community 27 - "cmath"
-Cohesion: 0.05
-Nodes (25): bind_smoothing_search(), main(), smoothing_mu_example(), smoothing_tolerance_example(), SmoothingSearchResult, iterations, max_error, mu (+17 more)
+Cohesion: 0.08
+Nodes (17): main(), smoothing_mu_example(), smoothing_tolerance_example(), SmoothingSearchResult, iterations, max_error, mu, spline (+9 more)
 
 ### Community 28 - "lqi_spiral_frenet_ex.py"
-Cohesion: 0.07
-Nodes (10): angular_error_deg(), build_waypoints(), helix_func(), cylindrical_helix_with_derivatives(), evaluate_interpolated_trajectory(), frame_to_quaternion(), main(), helix_func() (+2 more)
+Cohesion: 0.12
+Nodes (3): CircularPath, LinearPath, construct_path()
 
 ### Community 29 - "example_utils.hpp"
-Cohesion: 0.08
-Nodes (23): example_8_8(), example_with_derivatives(), main(), example_asymmetric_velocities(), example_negative_displacement(), example_phase_durations(), example_standard(), example_velocity_matching() (+15 more)
+Cohesion: 0.07
+Nodes (30): example_8_8(), example_with_derivatives(), main(), create_example_bspline(), demonstrate_3d_bspline(), demonstrate_basic_bspline(), demonstrate_curve_generation(), demonstrate_periodic_knots() (+22 more)
 
 ### Community 30 - "SpringQuaternionInterpolation"
 Cohesion: 0.06
 Nodes (17): SpringQuaternionInterpolation, config_, derivative_step_, kEpsilon, keyframe_indices_, kMaxBacktracks, kMinBacktrackStep, kRefinementFactor (+9 more)
 
-### Community 31 - "compute_trajectory_frames"
-Cohesion: 0.07
-Nodes (21): Add a time law, Circular path, Custom curve, Frenet frames, Linear path, Path planning, Tool orientation, example_8_5() (+13 more)
+### Community 31 - "_api.py"
+Cohesion: 0.04
+Nodes (20): example_8_5(), helix_func(), example_8_6(), circle_func(), example_rot(), circle_func(), main(), ApproximationBSpline (+12 more)
 
-### Community 32 - "typing"
-Cohesion: 0.08
-Nodes (5): __dir__(), __getattr__(), parameterize_points(), plot_bspline_2d(), plot_bspline_3d()
+### Community 32 - ".generate_curve_points"
+Cohesion: 0.12
+Nodes (3): plot_bspline_2d(), plot_bspline_3d(), TestBSplineCurveGeneration
 
 ### Community 33 - "CubicSplineWithAcceleration2"
-Cohesion: 0.09
-Nodes (3): CubicSplineWithAcceleration2, SplineParameters, TestCubicSplineWithAcceleration2
+Cohesion: 0.07
+Nodes (4): CubicSplineWithAcceleration2, SplineParameters, TestCubicSplineWithAcceleration2, TestSplineParameters
 
 ### Community 34 - "steps"
 Cohesion: 0.05
@@ -399,31 +392,31 @@ Nodes (39): INTERPOLATEPY_NO_CPP, MPLBACKEND, PYTHONPATH, jobs, native, python-e
 
 ### Community 40 - "quaternion/__init__.py"
 Cohesion: 0.07
-Nodes (9): __dir__(), __getattr__(), _canonicalize_double_cover(), SquadC2Config, inverse_stereographic_projection(), project_trajectory(), quaternion_distance(), stereographic_projection() (+1 more)
+Nodes (10): __dir__(), __getattr__(), slerp_segments(), SquadC2Config, inverse_stereographic_projection(), project_trajectory(), quaternion_distance(), stereographic_projection() (+2 more)
 
 ### Community 41 - "CircularPath"
 Cohesion: 0.07
 Nodes (3): CircularPath, TestCircularPath, TestCircularPathAdvanced
 
 ### Community 42 - "spring.py"
-Cohesion: 0.10
-Nodes (9): _array_to_quaternion(), _quaternion_to_array(), slerp_segments(), curvature_energy(), iteration_budgets(), nested_level_indices(), refinement_sample_counts(), SpringQuaternionInterpolation (+1 more)
+Cohesion: 0.14
+Nodes (5): _array_to_quaternion(), _quaternion_to_array(), iteration_budgets(), refinement_sample_counts(), SpringQuaternionInterpolation
 
 ### Community 43 - "test_protocols.py"
 Cohesion: 0.07
-Nodes (8): circular_path(), cubic_spline(), linear_path(), log_quat_interp(), modified_log_quat_interp(), quaternion_spline(), squad_c2(), TestQuaternionTrajectoryProtocol
+Nodes (9): circular_path(), cubic_spline(), double_s_trajectory(), linear_path(), log_quat_interp(), modified_log_quat_interp(), quaternion_spline(), squad_c2() (+1 more)
+
+### Community 45 - "TrajectoryParams"
+Cohesion: 0.08
+Nodes (7): main(), multipoint_interpolation_example(), multipoint_interpolation_no_vel_example(), two_point_interpolation_example(), TrajectoryParams, TestPolynomialTrajectoryMultipoint, TestTrajectoryParams
 
 ### Community 46 - "ModifiedLogQuaternionInterpolation"
 Cohesion: 0.07
 Nodes (13): ModifiedLogQuaternionInterpolation, kEpsilon, quaternions_, theta_spline_, times_, xyz_spline_, axis_angle_raw(), ModifiedLogQuaternionInterpolation::angular_velocity() (+5 more)
 
 ### Community 47 - "TrajectoryParams"
-Cohesion: 0.07
-Nodes (5): TrajectoryParams, trajectory(), trajectory_original(), TestTrapezoidalTrajectoryEdgeCases, TestTrapezoidalTrajectoryGeneration
-
-### Community 48 - "TestFrenetFrames"
-Cohesion: 0.07
-Nodes (5): TestFrenetFrames, trajectory_func(), TestPathPlanningPerformance, compute_frames(), construct_path()
+Cohesion: 0.04
+Nodes (8): TrapezoidalTrajectory, InterpolationParams, TrajectoryParams, TestMotionProfilePerformance, TestTrapezoidalTrajectoryEdgeCases, TestTrapezoidalTrajectoryGeneration, TestTrapezoidalTrajectoryParams, TestTrapezoidalWaypointInterpolation
 
 ### Community 49 - "test_bspline_variants.cpp"
 Cohesion: 0.06
@@ -433,29 +426,33 @@ Nodes (33): "ApproximationBSpline construction", "ApproximationBSpline different
 Cohesion: 0.07
 Nodes (33): runs-on, steps, name, runs-on, steps, strategy, jobs, build-sdist (+25 more)
 
+### Community 51 - ".from_angle_axis"
+Cohesion: 0.05
+Nodes (3): TestTrajectoryProjection, TestVelocityAnalysis, test_spring_distributes_frames_by_rotation_distance()
+
 ### Community 52 - "CubicSplineWithAcceleration1"
 Cohesion: 0.07
 Nodes (19): CubicSplineWithAcceleration1, a0_, an_, coeffs_, debug_, n_, omega_, original_indices_ (+11 more)
 
 ### Community 53 - "Troubleshooting"
-Cohesion: 0.06
-Nodes (32): A constrained interpolation system is ill-conditioned, A documented top-level name cannot be imported, A helper exists only on the Python backend, Axis and angle appear swapped, B-spline questions, Backend issues, Bounds are invalid or the move is infeasible, Derivatives do not match expected angular velocity (+24 more)
+Cohesion: 0.07
+Nodes (28): A constrained interpolation system is ill-conditioned, A documented top-level name cannot be imported, A helper exists only on the Python backend, Axis and angle appear swapped, B-spline questions, Backend issues, Bounds are invalid or the move is infeasible, Derivatives do not match expected angular velocity (+20 more)
 
 ### Community 55 - "test_spring_quaternion.py"
-Cohesion: 0.11
-Nodes (21): curvature_energy_gradient(), _curved_keyframes(), _same_orientation(), test_keyframe_weight_scales_only_its_curvature_gradient_terms(), test_spring_analytic_gradient_matches_centered_difference(), test_spring_can_retain_one_stage_optimization(), test_spring_config_rejects_invalid_values(), test_spring_configured_sample_count_validation() (+13 more)
+Cohesion: 0.13
+Nodes (19): _curved_keyframes(), _same_orientation(), test_spring_analytic_gradient_matches_centered_difference(), test_spring_can_retain_one_stage_optimization(), test_spring_config_rejects_invalid_values(), test_spring_configured_sample_count_validation(), test_spring_conforms_to_quaternion_trajectory_protocol(), test_spring_is_invariant_to_keyframe_signs() (+11 more)
 
 ### Community 57 - "SquadC2"
 Cohesion: 0.08
 Nodes (14): SquadC2, ext_intermediates_, ext_quats_, ext_times_, kDt, quaternions_, times_, SquadC2Config (+6 more)
 
 ### Community 58 - "Changelog"
-Cohesion: 0.07
-Nodes (27): 1.0.1 — 2025-03-26, 1.1.0 — 2025-05-17, 2.0.0 — 2025-08-06, 3.0.1 — 2026-05-14, 3.1.0 — 2026-05-21, 3.2.0 — 2026-09-04, 3.2.1 — 2026-09-04, 3.2.2 — 2026-09-07 (+19 more)
+Cohesion: 0.08
+Nodes (23): 1.0.1 — 2025-03-26, 1.1.0 — 2025-05-17, 2.0.0 — 2025-08-06, 3.0.1 — 2026-05-14, 3.1.0 — 2026-05-21, 3.2.0 — 2026-09-04, 3.2.2 — 2026-09-07, 3.3.0 — 2026-09-19 (+15 more)
 
-### Community 59 - "TimeInterval"
-Cohesion: 0.10
-Nodes (3): TimeInterval, TestPolynomialTrajectoryOrder3, TestTimeInterval
+### Community 59 - "BoundaryCondition"
+Cohesion: 0.06
+Nodes (9): PolynomialTrajectory, _to_cpp_boundary_condition(), _to_cpp_time_interval(), BoundaryCondition, TimeInterval, TestPolynomialTrajectoryEdgeCases, TestPolynomialTrajectoryOrder3, TestPolynomialTrajectoryOrder5 (+1 more)
 
 ### Community 60 - "shooting.py"
 Cohesion: 0.15
@@ -466,24 +463,20 @@ Cohesion: 0.11
 Nodes (8): 3.0.0 — 2026-03-21, Added, Changed, CurveEvaluator, GeometricPath, QuaternionTrajectory, ScalarTrajectory, TrajectoryFunction
 
 ### Community 62 - "numpy"
-Cohesion: 0.12
-Nodes (15): create_simple_3d_bspline(), demonstrate_3d_bspline(), demonstration(), example_b6(), example_bspline(), plot_basis_functions(), test_bspline_scalar_inputs_and_python_config(), test_double_s_convenience_api() (+7 more)
-
-### Community 63 - "_motion_polynomial.py"
-Cohesion: 0.10
-Nodes (5): _multipoint_evaluator(), PolynomialTrajectory, trajectory(), _to_cpp_boundary_condition(), _to_cpp_time_interval()
+Cohesion: 0.20
+Nodes (6): create_simple_3d_bspline(), demonstrate_3d_bspline(), demonstration(), example_b6(), example_bspline(), plot_basis_functions()
 
 ### Community 64 - "test_quaternion_spline.cpp"
-Cohesion: 0.08
-Nodes (23): "LogQuaternionInterpolation construction", "LogQuaternionInterpolation endpoints", "LogQuaternionInterpolation supports two quaternions for every degree", "LogQuaternionInterpolation validation", "LogQuaternionInterpolation velocity", make_test_quats(), make_test_times(), "ModifiedLogQuaternionInterpolation construction" (+15 more)
+Cohesion: 0.05
+Nodes (29): bind_quaternion(), SquadC2::evaluate_acceleration(), SquadC2::evaluate_velocity(), "log quat exposes its B-spline", "modified log quat angular velocity is zero at rest ends", quats(), "LogQuaternionInterpolation construction", "LogQuaternionInterpolation endpoints" (+21 more)
 
 ### Community 65 - "_adapters/__init__.py"
-Cohesion: 0.10
-Nodes (4): ShootingQuaternionInterpolation, _to_python(), SquadC2, ShootingConfig
+Cohesion: 0.19
+Nodes (3): ShootingQuaternionInterpolation, _to_python(), ShootingConfig
 
-### Community 66 - "test_motion_profiles.py"
-Cohesion: 0.08
-Nodes (3): TestStateParams, TestTrajectoryBounds, TestTrapezoidalTrajectoryParams
+### Community 67 - "numpy"
+Cohesion: 0.13
+Nodes (12): angular_error_deg(), nested_level_indices(), test_bspline_scalar_inputs_and_python_config(), test_double_s_convenience_api(), test_motion_and_path_helper_return_types(), test_polynomial_parameter_objects_and_smoothing_result(), test_quaternion_compatibility_helpers(), test_shooting_native_adapter_matches_python_reference() (+4 more)
 
 ### Community 68 - "LogQuaternionInterpolation"
 Cohesion: 0.09
@@ -497,17 +490,17 @@ Nodes (11): example_10_complex_velocity_profile(), example_1_basic_trajectory(),
 Cohesion: 0.15
 Nodes (8): _as_array(), _bspline_grid(), _points(), test_modified_log_angular_velocity_matches_python(), TestCubicBSplineInterpolationParity, TestLogQuaternionParity, TestSmallestNSplineParity, _z_rotation()
 
-### Community 73 - "BoundaryCondition"
-Cohesion: 0.11
-Nodes (3): BoundaryCondition, TestBoundaryCondition, TestPolynomialTrajectoryEdgeCases
+### Community 73 - "test_polynomials.py"
+Cohesion: 0.07
+Nodes (3): TestBoundaryCondition, TestPolynomialTrajectoryValidOrders, TestTimeInterval
 
 ### Community 74 - "TestSmoothingSplinePerformance"
 Cohesion: 0.12
 Nodes (5): construct_spline(), TestSmoothingSplinePerformance, construct_large_spline(), run_tolerance_search(), run_weighted_tolerance_search()
 
 ### Community 76 - "test_squad_c2.py"
-Cohesion: 0.09
-Nodes (5): TestSquadC2BasicFunctionality, TestSquadC2IntermediateQuaternions, evaluate_linear_u(), omega(), TestSquadC2PaperExample
+Cohesion: 0.08
+Nodes (3): TestSquadC2BasicFunctionality, TestSquadC2Continuity, TestSquadC2PaperExample
 
 ### Community 77 - "QuaternionSpline"
 Cohesion: 0.09
@@ -518,8 +511,8 @@ Cohesion: 0.09
 Nodes (19): curved_keyframes(), curved_times(), same_orientation(), "SPRING banded solver preserves the exact coarse problem", "SPRING banded solver supports a dense single grid", "SPRING energy-only trials preserve values and reuse gradient buffers", "SPRING is invariant to quaternion signs", "SPRING leaves one geodesic unchanged" (+11 more)
 
 ### Community 79 - "_double_s_planner.py"
-Cohesion: 0.13
-Nodes (10): _apply_candidate(), _compute_constant_velocity_time(), _compute_initial_phase_times(), _finalize_plan(), _fit_reduced_acceleration(), plan_trajectory(), _PlanCandidate, _transform_parameters() (+2 more)
+Cohesion: 0.11
+Nodes (11): DoubleSTrajectory, _apply_candidate(), _compute_constant_velocity_time(), _compute_initial_phase_times(), _finalize_plan(), _fit_reduced_acceleration(), plan_trajectory(), _PlanCandidate (+3 more)
 
 ### Community 80 - "TrapezoidalTrajectory"
 Cohesion: 0.10
@@ -537,10 +530,6 @@ Nodes (12): EnergyGradient, energy, gradient, Frames, SpringQuaternionInterpolat
 Cohesion: 0.09
 Nodes (13): CubicSmoothingSpline, coeffs_, debug_, kHighConditionThreshold, kMinPointsRequired, kRegularizationFactor, lambd_, n_ (+5 more)
 
-### Community 84 - "CubicBSplineInterpolation"
-Cohesion: 0.10
-Nodes (3): BSplineInterpolator, CubicBSplineInterpolation, SmoothingCubicBSpline
-
 ### Community 87 - "concepts_example.cpp"
 Cohesion: 0.17
 Nodes (12): example_curve_evaluator(), example_geometric_path(), example_quaternion_trajectory(), example_scalar_trajectory(), main(), print_concept_conformance(), sample_curve(), sample_path() (+4 more)
@@ -553,9 +542,13 @@ Nodes (14): example_basic_trajectory(), example_duration_based(), example_multip
 Cohesion: 0.10
 Nodes (3): Quaternion, kEpsilon, q_
 
-### Community 91 - "API reference"
+### Community 90 - "SpringQuaternionInterpolation"
 Cohesion: 0.10
-Nodes (21): API reference, CircularPath, CubicSmoothingSpline, CubicSpline, CubicSplineWithAcceleration1, CubicSplineWithAcceleration2, DoubleSTrajectory, Frenet-frame functions (+13 more)
+Nodes (4): _checked_py_to_cpp(), _cpp_to_py(), _py_to_cpp(), SpringQuaternionInterpolation
+
+### Community 91 - "API reference"
+Cohesion: 0.06
+Nodes (35): API reference, ApproximationBSpline, B-splines, BSpline, BSplineInterpolator, CircularPath, CubicBSplineInterpolation, CubicSmoothingSpline (+27 more)
 
 ### Community 92 - "quat_visualization_ex.py"
 Cohesion: 0.17
@@ -574,8 +567,8 @@ Cohesion: 0.10
 Nodes (13): ParabolicBlendTrajectory, dt_blend_, n_, n_regions_, q_, reg_a_, reg_q0_, reg_t0_ (+5 more)
 
 ### Community 97 - "main"
-Cohesion: 0.17
-Nodes (8): accumulated_acceleration_energy(), angular_speed(), benchmark_methods(), create_factories(), _evaluate_batch(), main(), plot_smoothest(), sample_methods()
+Cohesion: 0.15
+Nodes (10): accumulated_acceleration_energy(), angular_speed(), benchmark_methods(), create_factories(), _evaluate_batch(), main(), _median_runtime(), plot_comparison() (+2 more)
 
 ### Community 99 - "PolynomialTrajectory"
 Cohesion: 0.12
@@ -585,16 +578,12 @@ Nodes (6): PolynomialTrajectory, coeffs_, ORDER_3, ORDER_5, ORDER_7, PolynomialT
 Cohesion: 0.18
 Nodes (11): Frame, SpringQuaternionInterpolation::allocate_intervals(), SpringQuaternionInterpolation::create_initial_curve(), SpringQuaternionInterpolation::evaluate(), SpringQuaternionInterpolation::evaluate_acceleration(), SpringQuaternionInterpolation::evaluate_velocity(), SpringQuaternionInterpolation::frame_to_quaternion(), SpringQuaternionInterpolation::generate_trajectory() (+3 more)
 
-### Community 101 - "CubicSmoothingSpline"
-Cohesion: 0.12
-Nodes (3): CubicSmoothingSpline, CubicSplineWithAcceleration1, _plot_spline()
-
 ### Community 103 - "SpringConfig"
 Cohesion: 0.20
 Nodes (11): SpringConfig, keyframes(), orientation_error(), test_banded_model_matches_original_energy_and_numerical_jacobian(), test_final_iteration_budget_validation(), test_gauss_newton_solves_single_grid_without_changing_keyframes(), test_solvers_agree_at_a_common_convergence_tolerance(), test_solvers_have_identical_coarse_states_and_final_starting_energy() (+3 more)
 
 ### Community 104 - "BSpline"
-Cohesion: 0.12
+Cohesion: 0.11
 Nodes (5): BSpline, control_points_, kEps, knots_, DeferInit
 
 ### Community 105 - "CubicSpline"
@@ -614,16 +603,16 @@ Cohesion: 0.12
 Nodes (16): comment, behavior, layout, require_changes, coverage, precision, range, round (+8 more)
 
 ### Community 109 - "BSplineInterpolator"
-Cohesion: 0.12
-Nodes (11): BSplineInterpolator, cyclic_, final_acceleration_, final_velocity_, initial_acceleration_, initial_velocity_, interp_points_, kConditionThreshold (+3 more)
+Cohesion: 0.11
+Nodes (13): BSplineInterpolator, cyclic_, final_acceleration_, final_velocity_, initial_acceleration_, initial_velocity_, interp_points_, kConditionThreshold (+5 more)
 
 ### Community 110 - "SmoothingCubicBSpline"
 Cohesion: 0.12
 Nodes (8): SmoothingCubicBSpline, approximation_points_, enforce_endpoints_, kEpsilon, u_bars_, v0_, vn_, weights_
 
 ### Community 111 - "protocols_ex.py"
-Cohesion: 0.17
-Nodes (7): evaluate_curve(), example_curve_evaluator(), example_geometric_path(), main(), sample_rotation(), sample_scalar_trajectory(), trace_geometric_path()
+Cohesion: 0.16
+Nodes (8): evaluate_curve(), example_curve_evaluator(), example_geometric_path(), example_scalar_trajectory(), main(), sample_rotation(), sample_scalar_trajectory(), trace_geometric_path()
 
 ### Community 112 - "check_doc_snippets.py"
 Cohesion: 0.15
@@ -649,9 +638,13 @@ Nodes (4): test_core_import_does_not_eagerly_load_matplotlib(), test_domain_name
 Cohesion: 0.12
 Nodes (15): default_language_version, python, args, entry, exclude, id, language, name (+7 more)
 
+### Community 121 - "paths_example.cpp"
+Cohesion: 0.14
+Nodes (14): circular_path_example(), frenet_frame_circular(), frenet_frame_helicoidal(), linear_path_example(), main(), FrenetFrame, binormal, curvature (+6 more)
+
 ### Community 122 - "get_cpp_module"
-Cohesion: 0.13
-Nodes (9): Adapter layer, Architecture, Backend detection, C++ targets, Overview, Public import routing, Source layout, Testing the two implementations (+1 more)
+Cohesion: 0.25
+Nodes (8): Adapter layer, Architecture, Backend detection, C++ targets, Overview, Public import routing, Source layout, Testing the two implementations
 
 ### Community 124 - "TestParabolicBlendTrajectoryPerformance"
 Cohesion: 0.16
@@ -663,7 +656,7 @@ Nodes (9): example_linear_scalar(), example_linear_vector(), example_parabolic_b
 
 ### Community 126 - "bspline.cpp"
 Cohesion: 0.21
-Nodes (7): BSpline::basis_function_derivatives(), BSpline::basis_functions(), BSpline::BSpline(), BSpline::create_periodic_knots(), BSpline::create_uniform_knots(), BSpline::evaluate_derivative(), BSpline::generate_curve_points()
+Nodes (8): BSpline::basis_function_derivatives(), BSpline::basis_functions(), BSpline::BSpline(), BSpline::create_periodic_knots(), BSpline::create_uniform_knots(), BSpline::evaluate(), BSpline::evaluate_derivative(), BSpline::generate_curve_points()
 
 ### Community 127 - "SplineConfig"
 Cohesion: 0.14
@@ -678,20 +671,20 @@ Cohesion: 0.21
 Nodes (3): check_backend(), main(), parse_args()
 
 ### Community 132 - "MatrixXd"
-Cohesion: 0.22
-Nodes (6): BSpline::evaluate(), SmoothingCubicBSpline::calculate_control_points_impl(), SmoothingCubicBSpline::calculate_control_points_with_endpoints(), SmoothingCubicBSpline::construct_a_matrix(), SmoothingCubicBSpline::construct_b_matrix(), SmoothingCubicBSpline::construct_c_matrix()
+Cohesion: 0.29
+Nodes (3): SmoothingCubicBSpline::calculate_control_points_impl(), SmoothingCubicBSpline::calculate_control_points_with_endpoints(), SmoothingCubicBSpline::construct_b_matrix()
 
 ### Community 134 - "Quaternion interpolation"
 Cohesion: 0.15
 Nodes (12): A faster solver for the same discrete SPRING problem, Choosing a method, Compare orientations correctly, Construct and convert orientations, Logarithmic quaternion interpolation, Modified logarithmic interpolation, Multiple shooting for natural Riemannian cubics, Quaternion interpolation (+4 more)
 
-### Community 137 - "ApproximationBSpline"
-Cohesion: 0.20
-Nodes (5): ApproximationBSpline, debug_, original_parameters_, original_points_, ApproximationBSpline::ApproximationBSpline()
+### Community 137 - "CubicBSplineInterpolation"
+Cohesion: 0.05
+Nodes (28): ApproximationBSpline, debug_, original_parameters_, original_points_, BSplineParams, auto_derivatives, enforce_endpoints, method (+20 more)
 
-### Community 138 - "CubicBSplineInterpolation"
-Cohesion: 0.17
-Nodes (7): CubicBSplineInterpolation, interpolation_points_, kMinPointsForTridiagonal, kParamDiffThreshold, u_bars_, v0_, vn_
+### Community 138 - "_interpolation_system.py"
+Cohesion: 0.19
+Nodes (8): _add_cyclic_rows(), _add_derivative_row(), _add_endpoint_rows(), _add_interpolation_rows(), compute_control_points(), _InterpolationSystem, _solve_error_message(), _solve_system()
 
 ### Community 139 - "shooting_solver.cpp"
 Cohesion: 0.35
@@ -704,6 +697,10 @@ Nodes (12): Acceleration-constrained splines, Algorithms, B-splines, Cubic inter
 ### Community 141 - "simple_paths_ex.py"
 Cohesion: 0.27
 Nodes (5): circular_path_example(), linear_path_example(), main(), plot_3d_path(), plot_motion_profiles()
+
+### Community 144 - "lqi_spiral_frenet_ex.py"
+Cohesion: 0.20
+Nodes (8): angular_error_deg(), build_waypoints(), helix_func(), cylindrical_helix_with_derivatives(), evaluate_interpolated_trajectory(), frame_to_quaternion(), main(), helix_func()
 
 ### Community 146 - "spring_gauss_newton.cpp"
 Cohesion: 0.33
@@ -721,13 +718,13 @@ Nodes (10): SpringConfig, final_iterations, iterations, keyframe_curvature_weigh
 Cohesion: 0.18
 Nodes (11): Backend parity, Before submitting a change, C++ build and tests, Contributing, Development setup, Documentation, Example programs, Pull requests (+3 more)
 
-### Community 150 - "squad_c2_ex.py"
-Cohesion: 0.24
-Nodes (3): create_simple_trajectory(), main(), plot_individual_methods()
+### Community 150 - "TestPathPlanningPerformance"
+Cohesion: 0.17
+Nodes (3): trajectory_func(), TestPathPlanningPerformance, compute_frames()
 
-### Community 154 - "BSplineParams"
-Cohesion: 0.20
-Nodes (8): BSplineParams, auto_derivatives, enforce_endpoints, method, mu, v0, vn, weights
+### Community 152 - "b_spline_approx_ex.py"
+Cohesion: 0.18
+Nodes (6): create_test_shapes(), example_approximation(), example_degree_comparison(), example_different_shapes(), example_method_comparison(), example_noise_sensitivity()
 
 ### Community 155 - "CircularPath"
 Cohesion: 0.20
@@ -745,17 +742,9 @@ Nodes (10): B-splines, C++ examples, Example programs, Motion profiles, Paths an
 Cohesion: 0.20
 Nodes (9): Approximate or smooth vector data, Common mistakes, Constrain endpoint acceleration, Construct a B-spline from controls, Interpolate B-spline samples, Interpolate scalar waypoints, Select smoothing by error tolerance, Smooth noisy scalar samples (+1 more)
 
-### Community 164 - "bspline_example.cpp"
-Cohesion: 0.42
-Nodes (7): create_example_bspline(), demonstrate_3d_bspline(), demonstrate_basic_bspline(), demonstrate_curve_generation(), demonstrate_periodic_knots(), example_b6(), main()
-
-### Community 165 - "bspline_interpolator_example.cpp"
-Cohesion: 0.42
-Nodes (7): example_3d(), example_cubic_bspline(), example_cyclic(), example_degree5(), example_jerk_continuous(), main(), print_scalar_trajectory()
-
-### Community 166 - "cubic_bspline_interpolation.cpp"
-Cohesion: 0.36
-Nodes (4): CubicBSplineInterpolation::calculate_control_points(), CubicBSplineInterpolation::calculate_knot_vector(), CubicBSplineInterpolation::calculate_parameters(), CubicBSplineInterpolation::CubicBSplineInterpolation()
+### Community 161 - ".test_vector_trajectory_performance"
+Cohesion: 0.21
+Nodes (4): TestLinearTrajectoryPerformance, compute_large_trajectory(), compute_trajectory(), compute_trajectory()
 
 ### Community 167 - "FullTrajectoryResult"
 Cohesion: 0.22
@@ -768,10 +757,6 @@ Nodes (7): Solution, energy, iterations, nodes, parameters, residual, steps
 ### Community 169 - "Installation"
 Cohesion: 0.22
 Nodes (9): Build and activate the Python extension, Build and test the C++ library, Development checkout, Force the Python backend, Install from PyPI, Installation, Installation troubleshooting, Optional C++ backend (+1 more)
-
-### Community 170 - "_quaternion_spring.py"
-Cohesion: 0.33
-Nodes (3): _checked_py_to_cpp(), _cpp_to_py(), _py_to_cpp()
 
 ### Community 171 - "cubic_spline_acc1_example.cpp"
 Cohesion: 0.46
@@ -789,17 +774,17 @@ Nodes (7): Imports and backend routing, Input rules, Plotting, Selecting an algo
 Cohesion: 0.32
 Nodes (4): CubicSpline::CubicSpline(), CubicSpline::evaluate(), CubicSpline::evaluate_acceleration(), CubicSpline::evaluate_velocity()
 
-### Community 175 - "circular_path.cpp"
-Cohesion: 0.36
-Nodes (4): CircularPath::acceleration(), CircularPath::CircularPath(), CircularPath::position(), CircularPath::velocity()
-
-### Community 177 - "Quaternion operations and interpolation"
-Cohesion: 0.25
-Nodes (8): LogQuaternionInterpolation, ModifiedLogQuaternionInterpolation, Quaternion, Quaternion operations and interpolation, QuaternionSpline, ShootingQuaternionInterpolation, SpringQuaternionInterpolation, SquadC2
+### Community 175 - "TestSquadC2IntermediateQuaternions"
+Cohesion: 0.22
+Nodes (3): TestSquadC2IntermediateQuaternions, evaluate_linear_u(), omega()
 
 ### Community 178 - "Motion profiles"
 Cohesion: 0.25
 Nodes (7): Choosing a profile, Double-S: bound jerk, acceleration, and speed, Linear segments with parabolic blends, Motion profiles, Polynomial boundary interpolation, Trapezoidal interpolation through via points, Trapezoidal velocity profile
+
+### Community 182 - "Path planning"
+Cohesion: 0.25
+Nodes (7): Add a time law, Circular path, Custom curve, Frenet frames, Linear path, Path planning, Tool orientation
 
 ### Community 183 - ".vec"
 Cohesion: 0.29
@@ -830,8 +815,8 @@ Cohesion: 0.29
 Nodes (7): B-spline curves, Callable trajectory generators, Double-S trajectories, Evaluation conventions, Geometric paths, Quaternion trajectories, Scalar splines
 
 ### Community 190 - "updates"
-Cohesion: 0.29
-Nodes (6): interval, updates, directory, package-ecosystem, schedule, version
+Cohesion: 0.20
+Nodes (9): minor-and-patch, update-types, interval, updates, directory, groups, package-ecosystem, schedule (+1 more)
 
 ### Community 191 - "InterpolatePy"
 Cohesion: 0.29
@@ -841,33 +826,29 @@ Nodes (7): Development, Installation, InterpolatePy, License and citation, Optio
 Cohesion: 0.60
 Nodes (4): CubicSplineWithAcceleration2::evaluate(), CubicSplineWithAcceleration2::evaluate_acceleration(), CubicSplineWithAcceleration2::evaluate_velocity(), coefficients_
 
-### Community 196 - "B-splines"
-Cohesion: 0.33
-Nodes (6): ApproximationBSpline, B-splines, BSpline, BSplineInterpolator, CubicBSplineInterpolation, SmoothingCubicBSpline
-
 ### Community 197 - "Quick start"
 Cohesion: 0.33
 Nodes (6): B-spline through two or more points, Geometric path plus a time law, Jerk-limited point-to-point motion, Quaternion keyframes, Quick start, Scalar spline
 
 ### Community 202 - "BoundaryCondition"
-Cohesion: 0.40
-Nodes (5): BoundaryCondition, acceleration, jerk, position, velocity
+Cohesion: 0.18
+Nodes (9): BoundaryCondition, acceleration, jerk, position, velocity, TrajectoryBounds, a_bound, j_bound (+1 more)
 
 ### Community 203 - "StateParams"
 Cohesion: 0.40
 Nodes (5): StateParams, q_0, q_1, v_0, v_1
 
-### Community 204 - "TrajectoryBounds"
-Cohesion: 0.40
-Nodes (4): TrajectoryBounds, a_bound, j_bound, v_bound
+### Community 204 - "3.2.1 — 2026-09-04"
+Cohesion: 0.50
+Nodes (4): 3.2.1 — 2026-09-04, Added, Changed, Fixed
 
 ### Community 205 - "ShootingConfig"
 Cohesion: 0.40
 Nodes (5): ShootingConfig, integration_steps, max_integration_steps, max_iterations, tolerance
 
-### Community 206 - "ApproximationBSpline::compute_parameters"
+### Community 206 - "Time and sample validation"
 Cohesion: 0.50
-Nodes (3): ApproximationBSpline::approximate_control_points(), ApproximationBSpline::compute_knots(), ApproximationBSpline::compute_parameters()
+Nodes (4): Evaluation is outside the domain, Time and position lengths differ, Time and sample validation, Time points must be strictly increasing
 
 ### Community 207 - "System"
 Cohesion: 0.40
@@ -877,33 +858,33 @@ Nodes (3): System, jacobian, residual
 Cohesion: 0.40
 Nodes (5): Integration, energy, nodes, sensitivity, state
 
-### Community 211 - "Parameterization"
-Cohesion: 0.50
-Nodes (4): Parameterization, Centripetal, ChordLength, EquallySpaced
-
 ### Community 217 - "SegmentInfo"
 Cohesion: 0.67
 Nodes (3): SegmentInfo, index, tau
 
+### Community 219 - "test_spring_performance.py"
+Cohesion: 0.19
+Nodes (7): eager_minimize(), test_batched_slerp_matches_scalar_operations(), test_batched_slerp_retains_small_angle_and_antipodal_rules(), test_lazy_backtracking_matches_eager_solver(), test_refinement_keeps_nonunit_coarse_anchors_and_scalar_slerp(), test_roundoff_trials_still_check_free_gradient(), values()
+
 ## Knowledge Gaps
-- **242 isolated node(s):** `original_points_`, `original_parameters_`, `debug_`, `knots_`, `control_points_` (+237 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 2511 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **71 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **242 isolated node(s):** `control_points_`, `kEps`, `knots_`, `coefficients_`, `debug_` (+237 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 2514 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **73 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `compute_trajectory_frames()` connect `compute_trajectory_frames` to `_api.py`, `LinearPath`, `lqi_spiral_frenet_ex.py`, `TestFrenetFrames`, `InterpolatePy`, `numpy`?**
-  _High betweenness centrality (0.370) - this node is a cross-community bridge._
+- **Why does `compute_trajectory_frames()` connect `_api.py` to `numpy`, `LinearPath`, `lqi_spiral_frenet_ex.py`, `TestFrenetFrames`, `Path planning`, `TestPathPlanningPerformance`, `InterpolatePy`?**
+  _High betweenness centrality (0.399) - this node is a cross-community bridge._
 - **Are the 63 inferred relationships involving `Quaternion` (e.g. with `LogQuaternionInterpolation` and `ModifiedLogQuaternionInterpolation`) actually correct?**
   _`Quaternion` has 63 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `original_points_`, `original_parameters_`, `debug_` to the rest of the system?**
+- **What connects `control_points_`, `kEps`, `knots_` to the rest of the system?**
   _242 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `BSpline` be split into smaller, more focused modules?**
-  _Cohesion score 0.03463927376970855 - nodes in this community are weakly interconnected._
-- **Why does `Paths and Frenet frames` connect `LinearPath` to `compute_trajectory_frames`?**
-  _High betweenness centrality (0.353) - this node is a cross-community bridge._
+  _Cohesion score 0.03081542351453856 - nodes in this community are weakly interconnected._
+- **Why does `Paths and Frenet frames` connect `LinearPath` to `_api.py`?**
+  _High betweenness centrality (0.361) - this node is a cross-community bridge._
 - **Are the 67 inferred relationships involving `BSpline` (e.g. with `ApproximationBSpline` and `BSpline`) actually correct?**
   _`BSpline` has 67 INFERRED edges - model-reasoned connections that need verification._
 - **Should `.from_euler_angles` be split into smaller, more focused modules?**
-  _Cohesion score 0.032175689479060264 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.03314621758887998 - nodes in this community are weakly interconnected._
