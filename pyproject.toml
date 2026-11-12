@@ -65,7 +65,7 @@ test = [
 ]
 dev = [
     "matplotlib>=3.6",
-    "ruff==0.17.3",
+    "ruff==0.17.4",
     "mypy>=1.17.0",
     "pre-commit>=4.2.0",
     "pyright>=1.1.400",
