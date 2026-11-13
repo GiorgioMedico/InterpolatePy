@@ -59,7 +59,6 @@ test = [
     "matplotlib>=3.6",
     "pytest>=8.4.0",
     "pytest-cov>=4.1.0",
-    "codecov>=2.1.13",
     "pytest-benchmark>=4.0.0",
     "pre-commit>=4.2.0",
 ]

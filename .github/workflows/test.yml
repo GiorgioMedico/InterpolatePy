@@ -27,15 +27,7 @@ jobs:
       - name: Sync dependencies
         run: uv sync --locked --no-default-groups --group test --no-install-project
       - name: Testing with coverage
-        run: uv run --no-sync pytest tests --cov=interpolatepy --cov-report=xml --cov-report=term-missing
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v7
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.xml
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
+        run: uv run --no-sync pytest tests --cov=interpolatepy --cov-report=term-missing
 
   python-examples:
     runs-on: ubuntu-latest
